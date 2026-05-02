@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>أذكاري — روضة الأذكار والأدعية</title>
+  <link rel="icon" href="./assets/icons/icon.png">
   <meta name="description" content="موقع شامل للأذكار والأدعية الإسلامية اليومية">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
@@ -12,10 +13,45 @@
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
 
-
 </head>
 
 <body>
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <!-- ===== MOBILE NAV ===== -->
+  <div class="mobile-nav" id="mobileNav" role="dialog" aria-label="القائمة الرئيسية">
+    <button class="close-nav" id="closeNav" aria-label="إغلاق القائمة">✕</button>
+    <a href="#" class="active" data-tab="morning" onclick="switchTab('morning');closeMobileNav()">☀️ أذكار الصباح</a>
+    <a href="#" data-tab="evening" onclick="switchTab('evening');closeMobileNav()">🌙 أذكار المساء</a>
+    <a href="#" data-tab="salah" onclick="switchTab('salah');closeMobileNav()">🕋 أذكار الصلاة</a>
+    <a href="#" data-tab="sleep" onclick="switchTab('sleep');closeMobileNav()">😴 أذكار النوم</a>
+    <a href="#" data-tab="various" onclick="switchTab('various');closeMobileNav()">💎 أذكار متنوعة</a>
+    <a href="#" data-tab="tasbih" onclick="switchTab('tasbih');closeMobileNav()">📿 التسبيح</a>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header role="banner">
+    <div class="header-inner">
+      <a class="logo" href="#" aria-label="الصفحة الرئيسية">
+        <div class="logo-icon" aria-hidden="true">☽</div>
+        <span class="logo-text">أذكاري</span>
+      </a>
+
+      <nav role="navigation" aria-label="التنقل الرئيسي">
+        <a href="#" class="active" data-tab="morning" onclick="switchTab('morning')">☀️ الصباح</a>
+        <a href="#" data-tab="evening" onclick="switchTab('evening')">🌙 المساء</a>
+        <a href="#" data-tab="salah" onclick="switchTab('salah')">🕋 الصلاة</a>
+        <a href="#" data-tab="sleep" onclick="switchTab('sleep')">😴 النوم</a>
+        <a href="#" data-tab="various" onclick="switchTab('various')">💎 متنوعة</a>
+        <a href="#" data-tab="tasbih" onclick="switchTab('tasbih')">📿 التسبيح</a>
+      </nav>
+
+      <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
 
   <script src="assets/js/main.js"></script>
 
