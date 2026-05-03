@@ -34,7 +34,7 @@
   <header role="banner">
     <div class="header-inner">
       <a class="logo" href="#" aria-label="الصفحة الرئيسية">
-        <div class="logo-icon" aria-hidden="true">⏾</div>
+        <div class="logo-icon" aria-hidden="true">☪︎</div>
         <span class="logo-text">أذكاري</span>
       </a>
 
@@ -47,9 +47,16 @@
         <a href="#" data-tab="tasbih" onclick="switchTab('tasbih')">📿 التسبيح</a>
       </nav>
 
-      <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="تبديل المظهر" title="تبديل الوضع الفاتح/الداكن">
+          <div class="theme-toggle-thumb">
+            <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+          </div>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>
 
