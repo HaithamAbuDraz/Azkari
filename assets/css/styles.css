@@ -287,3 +287,12 @@ nav a.active {
     align-items: flex-start;
   }
 }
+
+@media (max-width: 480px) {
+  .time-ribbon {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+  }
+}
