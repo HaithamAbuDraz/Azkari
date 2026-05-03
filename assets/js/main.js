@@ -42,6 +42,32 @@ function updateClock() {
 }
 
 // =============================================
+// THEME TOGGLE
+// =============================================
+const html = document.documentElement;
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+
+function applyTheme(theme) {
+  html.setAttribute('data-theme', theme);
+  themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('azkar-theme', theme);
+}
+
+themeToggle.addEventListener('click', () => {
+  const current = html.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+});
+
+// Load saved theme or system preference
+(function loadTheme() {
+  const saved = localStorage.getItem('azkar-theme');
+  if (saved) { applyTheme(saved); return; }
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(prefersDark ? 'dark' : 'light');
+})();
+
+// =============================================
 // INIT
 // =============================================
 (function init() {
