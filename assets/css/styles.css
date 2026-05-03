@@ -1,8 +1,10 @@
-/* ===== CSS VARIABLES ===== */
-:root {
+/* ===== DARK THEME (default) ===== */
+:root,
+[data-theme="dark"] {
   --bg-deep: #0d1117;
   --bg-card: #141b24;
-  --bg-glass: rgba(20, 27, 36, 0.85);
+  --bg-glass: rgba(20, 27, 36, 0.88);
+  --bg-input: #1a2332;
   --gold-bright: #d4a94e;
   --gold-dim: #8a6c30;
   --gold-glow: rgba(212, 169, 78, 0.18);
@@ -13,7 +15,30 @@
   --text-arabic: #f0e6cf;
   --border: rgba(212, 169, 78, 0.18);
   --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --pattern-opacity: 0.03;
+  --gradient-1: rgba(212, 169, 78, 0.07);
+  --gradient-2: rgba(46, 196, 182, 0.05);
+}
+
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg-deep: #faf7f2;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(250, 247, 242, 0.92);
+  --bg-input: #f5f0e8;
+  --gold-bright: #b8860b;
+  --gold-dim: #c9972a;
+  --gold-glow: rgba(184, 134, 11, 0.12);
+  --teal: #1a9e92;
+  --teal-dim: rgba(26, 158, 146, 0.12);
+  --text-main: #2c2416;
+  --text-muted: #7a6a50;
+  --text-arabic: #1a1208;
+  --border: rgba(184, 134, 11, 0.22);
+  --shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+  --pattern-opacity: 0.06;
+  --gradient-1: rgba(212, 169, 78, 0.06);
+  --gradient-2: rgba(46, 196, 182, 0.04);
 }
 
 /* ===== RESET & BASE ===== */
@@ -36,6 +61,9 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   direction: rtl;
+  transition:
+    background 0.35s ease,
+    color 0.35s ease;
 }
 
 /* ===== BACKGROUND PATTERN ===== */
@@ -46,17 +74,18 @@ body::before {
   background-image:
     radial-gradient(
       ellipse 80% 60% at 20% 10%,
-      rgba(212, 169, 78, 0.07) 0%,
+      var(--gradient-1) 0%,
       transparent 60%
     ),
     radial-gradient(
       ellipse 60% 50% at 80% 80%,
-      rgba(46, 196, 182, 0.05) 0%,
+      var(--gradient-2) 0%,
       transparent 50%
     ),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a94e' fill-opacity='0.03'%3E%3Cpath d='M30 0l3.09 9.51L42 6.18l-6.18 9 9.51 3.09L36 30l9.33 11.73-9.51 3.09L39.82 54 30 47.82 20.18 54l3.09-9.18-9.51-3.09L24 30l-9.33-11.82 9.51-3.09L18 6.18l9 3.33z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a94e' fill-opacity='0.04'%3E%3Cpath d='M30 0l3.09 9.51L42 6.18l-6.18 9 9.51 3.09L36 30l9.33 11.73-9.51 3.09L39.82 54 30 47.82 20.18 54l3.09-9.18-9.51-3.09L24 30l-9.33-11.82 9.51-3.09L18 6.18l9 3.33z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
+  transition: background-image 0.35s ease;
 }
 
 /* ===== HEADER ===== */
@@ -69,6 +98,9 @@ header {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);
   padding: 0 24px;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease;
 }
 
 .header-inner {
@@ -96,7 +128,8 @@ header {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 28px;
+  text-align: center;
   box-shadow: 0 0 16px var(--gold-glow);
 }
 
@@ -121,13 +154,59 @@ nav a {
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
-  transition: var(--transition);
+  transition:
+    color 0.25s,
+    background 0.25s;
+  white-space: nowrap;
 }
 
 nav a:hover,
 nav a.active {
   color: var(--gold-bright);
   background: var(--gold-glow);
+}
+
+/* ===== THEME TOGGLE ===== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background 0.35s,
+    border-color 0.35s;
+  flex-shrink: 0;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-bright), var(--gold-dim));
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+}
+
+[data-theme="light"] .theme-toggle-thumb {
+  transform: translateX(-18px);
+}
+
+.theme-toggle-icon {
+  line-height: 1;
 }
 
 .hamburger {
@@ -198,6 +277,9 @@ nav a.active {
   font-size: 14px;
   color: var(--text-muted);
   box-shadow: var(--shadow);
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease;
 }
 
 .time-ribbon .dot {
