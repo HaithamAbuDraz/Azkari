@@ -93,6 +93,25 @@ themeToggle.addEventListener('click', () => {
 })();
 
 // =============================================
+// RENDER
+// =============================================
+function renderAll() {
+  if (!state.dataLoaded) return;
+
+  Object.keys(AZKAR_DATA).forEach(tab => {
+    const grid = document.getElementById('grid-' + tab);
+    if (!grid) return;
+    grid.innerHTML = '';
+    AZKAR_DATA[tab].forEach((zikr, idx) => {
+      const cardId = tab + '-' + idx;
+      state.counters[cardId] = state.counters[cardId] ?? zikr.count;
+      grid.appendChild(buildCard(zikr, idx, tab, cardId));
+    });
+    updateProgress(tab);
+  });
+}
+
+// =============================================
 // PROGRESS
 // =============================================
 function updateProgress(tab) {
