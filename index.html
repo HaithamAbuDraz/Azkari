@@ -77,6 +77,86 @@
     </div>
   </section>
 
+  <!-- MAIN -->
+  <main id="main-content">
+
+    <!-- MORNING -->
+    <section id="panel-morning" class="azkar-panel active" role="tabpanel">
+      <div class="panel-header">
+        <h2 class="panel-title">☀️ أذكار الصباح</h2>
+        <div class="panel-progress">
+          <span id="progress-morning">0 / 0</span>
+          <div class="progress-bar" role="progressbar" id="bar-morning">
+            <div class="progress-fill" style="width:0%" id="fill-morning"></div>
+          </div>
+          <button class="complete-all-btn" onclick="resetPanel('morning')">إعادة تعيين</button>
+        </div>
+      </div>
+      <div class="azkar-grid" id="grid-morning"></div>
+    </section>
+
+    <!-- EVENING -->
+    <section id="panel-evening" class="azkar-panel" role="tabpanel">
+      <div class="panel-header">
+        <h2 class="panel-title">🌙 أذكار المساء</h2>
+        <div class="panel-progress">
+          <span id="progress-evening">0 / 0</span>
+          <div class="progress-bar" role="progressbar" id="bar-evening">
+            <div class="progress-fill" style="width:0%" id="fill-evening"></div>
+          </div>
+          <button class="complete-all-btn" onclick="resetPanel('evening')">إعادة تعيين</button>
+        </div>
+      </div>
+      <div class="azkar-grid" id="grid-evening"></div>
+    </section>
+
+    <!-- SALAH -->
+    <section id="panel-salah" class="azkar-panel" role="tabpanel">
+      <div class="panel-header">
+        <h2 class="panel-title">🕋 أذكار بعد الصلاة</h2>
+        <div class="panel-progress">
+          <span id="progress-salah">0 / 0</span>
+          <div class="progress-bar" role="progressbar" id="bar-salah">
+            <div class="progress-fill" style="width:0%" id="fill-salah"></div>
+          </div>
+          <button class="complete-all-btn" onclick="resetPanel('salah')">إعادة تعيين</button>
+        </div>
+      </div>
+      <div class="azkar-grid" id="grid-salah"></div>
+    </section>
+
+    <!-- SLEEP -->
+    <section id="panel-sleep" class="azkar-panel" role="tabpanel">
+      <div class="panel-header">
+        <h2 class="panel-title">😴 أذكار النوم</h2>
+        <div class="panel-progress">
+          <span id="progress-sleep">0 / 0</span>
+          <div class="progress-bar" role="progressbar" id="bar-sleep">
+            <div class="progress-fill" style="width:0%" id="fill-sleep"></div>
+          </div>
+          <button class="complete-all-btn" onclick="resetPanel('sleep')">إعادة تعيين</button>
+        </div>
+      </div>
+      <div class="azkar-grid" id="grid-sleep"></div>
+    </section>
+
+    <!-- VARIOUS -->
+    <section id="panel-various" class="azkar-panel" role="tabpanel">
+      <div class="panel-header">
+        <h2 class="panel-title">💎 أذكار متنوعة</h2>
+        <div class="panel-progress">
+          <span id="progress-various">0 / 0</span>
+          <div class="progress-bar" role="progressbar" id="bar-various">
+            <div class="progress-fill" style="width:0%" id="fill-various"></div>
+          </div>
+          <button class="complete-all-btn" onclick="resetPanel('various')">إعادة تعيين</button>
+        </div>
+      </div>
+      <div class="azkar-grid" id="grid-various"></div>
+    </section>
+
+  </main>
+
   <script src="assets/js/main.js"></script>
 
 </body>
