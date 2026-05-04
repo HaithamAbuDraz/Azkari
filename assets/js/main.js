@@ -21,6 +21,10 @@ async function loadAzkarData() {
     // Show error message to user
     showToast('حدث خطأ في تحميل البيانات. يرجى تحديث الصفحة.');
   }
+
+  renderAll();
+  updateClock();
+  autoSuggestTab();
 }
 
 // =============================================
