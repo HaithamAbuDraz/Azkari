@@ -163,6 +163,25 @@ function buildCard(zikr, idx, tab, cardId) {
 }
 
 // =============================================
+// TABS
+// =============================================
+function switchTab(tab) {
+  state.activeTab = tab;
+  document.querySelectorAll('.azkar-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + tab);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const a = b.dataset.tab === tab;
+    b.classList.toggle('active', a);
+    b.setAttribute('aria-selected', a);
+  });
+  document.querySelectorAll('nav a[data-tab], .mobile-nav a[data-tab]').forEach(a => {
+    a.classList.toggle('active', a.dataset.tab === tab);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =============================================
 // showToast
 // =============================================
 function showToast(msg) {
@@ -189,4 +208,5 @@ function autoSuggestTab() {
   loadAzkarData();
   updateClock();
   setInterval(updateClock, 1000);
+  autoSuggestTab();
 })();
