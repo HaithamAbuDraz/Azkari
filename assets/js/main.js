@@ -192,6 +192,13 @@ function showToast(msg) {
 }
 
 // =============================================
+// SCROLL TOP
+// =============================================
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => scrollTopBtn.classList.toggle('visible', scrollY > 400), { passive: true });
+
+
+// =============================================
 // AUTO SUGGEST TAB
 // =============================================
 function autoSuggestTab() {
