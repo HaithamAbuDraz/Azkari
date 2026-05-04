@@ -628,6 +628,39 @@ main {
   cursor: pointer;
 }
 
+/* ===== SCROLL TOP ===== */
+.scroll-top {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--gold-bright);
+  font-size: 18px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.3s,
+    background 0.25s;
+  z-index: 150;
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.scroll-top:hover {
+  background: var(--gold-glow);
+}
+
 /* ===== TOAST ===== */
 .toast {
   position: fixed;
@@ -665,6 +698,18 @@ main {
     display: flex;
   }
 
+  .hero {
+    padding: 48px 20px 36px;
+  }
+
+  .azkar-card {
+    padding: 20px 18px;
+  }
+
+  .arabic-text {
+    font-size: 1.15rem;
+  }
+
   .panel-header {
     flex-direction: column;
     align-items: flex-start;
@@ -672,6 +717,11 @@ main {
 }
 
 @media (max-width: 480px) {
+  .card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .time-ribbon {
     flex-wrap: wrap;
     justify-content: center;
