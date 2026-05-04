@@ -94,6 +94,35 @@ themeToggle.addEventListener('click', () => {
 })();
 
 // =============================================
+// BUILD CARD
+// =============================================
+function buildCard(zikr, idx, tab, cardId) {
+  const card = document.createElement('article');
+  card.className = 'azkar-card';
+  card.id = 'card-' + cardId;
+  card.setAttribute('aria-label', 'ذكر رقم ' + (idx + 1));
+  const remaining = state.counters[cardId];
+  const done = remaining === 0;
+  if (done) card.classList.add('completed');
+  card.innerHTML = `
+    <div class="card-number">${idx + 1}</div>
+    <p class="arabic-text" lang="ar" dir="rtl">${zikr.arabic}</p>
+    <div class="translation">
+      <div class="translation-label">الشرح والفضل</div>
+      ${zikr.translation}
+    </div>
+    <div class="card-meta">
+      <span class="source-badge">📖 ${zikr.source}</span>
+      <div class="counter-wrap" role="group" aria-label="عداد الذكر">
+        <button class="counter-btn" onclick="decrementCounter('${cardId}',${zikr.count})" aria-label="عدّ" ${done ? 'disabled style="opacity:0.4"' : ''}>−</button>
+        <div class="counter-display" id="cnt-${cardId}" aria-live="polite">${remaining} / ${zikr.count}</div>
+        <button class="counter-btn" onclick="resetCounter('${cardId}',${zikr.count})" aria-label="إعادة">↺</button>
+      </div>
+    </div>`;
+  return card;
+}
+
+// =============================================
 // showToast
 // =============================================
 function showToast(msg) {
