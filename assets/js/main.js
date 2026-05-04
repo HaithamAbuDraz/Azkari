@@ -1,3 +1,29 @@
+"use strict";
+// =============================================
+// STATE
+// =============================================
+const state = { counters: {}, activeTab: 'morning' };
+
+// =============================================
+// LOAD AZKAR DATA
+// =============================================
+let AZKAR_DATA = {};
+async function loadAzkarData() {
+  try {
+    const response = await fetch("../../assets/Data/azkar-data.json");
+    console.log(response);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    AZKAR_DATA = await response.json();
+    state.dataLoaded = true;
+  } catch (error) {
+    console.error('Error loading azkar data:', error);
+    // Show error message to user
+    showToast('حدث خطأ في تحميل البيانات. يرجى تحديث الصفحة.');
+  }
+}
+
 // =============================================
 // MOBILE NAV
 // =============================================
@@ -68,9 +94,20 @@ themeToggle.addEventListener('click', () => {
 })();
 
 // =============================================
+// showToast
+// =============================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// =============================================
 // INIT
 // =============================================
 (function init() {
+  loadAzkarData();
   updateClock();
   setInterval(updateClock, 1000);
 })();
