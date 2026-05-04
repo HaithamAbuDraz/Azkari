@@ -209,6 +209,7 @@ nav a.active {
   line-height: 1;
 }
 
+/* ===== HAMBURGER ===== */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -308,6 +309,94 @@ nav a.active {
   }
 }
 
+/* ===== MAIN ===== */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* .azkar-panel {
+  display: none;
+} */
+
+.azkar-panel.active {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.panel-title {
+  font-family: "Amiri", serif;
+  font-size: 1.6rem;
+  color: var(--gold-bright);
+}
+
+.panel-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.progress-bar {
+  width: 140px;
+  height: 6px;
+  background: var(--bg-deep);
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-bright), var(--teal));
+  border-radius: 100px;
+  transition: width 0.5s ease;
+}
+
+.complete-all-btn {
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: "Tajawal", sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    color 0.25s,
+    border-color 0.25s;
+}
+
+.complete-all-btn:hover {
+  color: var(--gold-bright);
+  border-color: var(--gold-dim);
+}
+
 /* ===== MOBILE NAV ===== */
 .mobile-nav {
   display: none;
@@ -353,6 +442,31 @@ nav a.active {
   font-size: 28px;
   cursor: pointer;
 }
+
+/* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: var(--bg-card);
+      border: 1px solid var(--gold-dim);
+      color: var(--gold-bright);
+      padding: 10px 24px;
+      border-radius: 100px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 500;
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
