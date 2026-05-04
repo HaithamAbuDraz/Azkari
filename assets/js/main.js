@@ -11,7 +11,6 @@ let AZKAR_DATA = {};
 async function loadAzkarData() {
   try {
     const response = await fetch("../../assets/Data/azkar-data.json");
-    console.log(response);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -92,6 +91,24 @@ themeToggle.addEventListener('click', () => {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(prefersDark ? 'dark' : 'light');
 })();
+
+// =============================================
+// PROGRESS
+// =============================================
+function updateProgress(tab) {
+  if (!AZKAR_DATA[tab]) return;
+  const data = AZKAR_DATA[tab];
+  const total = data.length;
+  const done = data.filter((_, i) => state.counters[tab + '-' + i] === 0).length;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const fill = document.getElementById('fill-' + tab);
+  const bar = document.getElementById('bar-' + tab);
+  const text = document.getElementById('progress-' + tab);
+  if (fill) fill.style.width = pct + '%';
+  if (bar) bar.setAttribute('aria-valuenow', pct);
+  if (text) text.textContent = done + ' / ' + total;
+  if (done === total && total > 0) showToast('ما شاء الله! اكتملت جميع الأذكار 🎉');
+}
 
 // =============================================
 // BUILD CARD
