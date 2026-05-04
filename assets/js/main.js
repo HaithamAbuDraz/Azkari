@@ -116,6 +116,45 @@ function renderAll() {
 }
 
 // =============================================
+// COUNTERS
+// =============================================
+function decrementCounter(cardId, max) {
+  if (state.counters[cardId] <= 0) return;
+  state.counters[cardId]--;
+  const remaining = state.counters[cardId];
+  const display = document.getElementById('cnt-' + cardId);
+  const card = document.getElementById('card-' + cardId);
+  if (display) display.textContent = remaining + ' / ' + max;
+  if (remaining === 0) {
+    card.classList.add('completed');
+    const btn = card.querySelector('.counter-btn');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+    showToast('أحسنت! اكتمل الذكر 🌟');
+  }
+  updateProgress(cardId.split('-')[0]);
+  if (navigator.vibrate) navigator.vibrate(25);
+}
+
+function resetCounter(cardId, max) {
+  state.counters[cardId] = max;
+  const display = document.getElementById('cnt-' + cardId);
+  const card = document.getElementById('card-' + cardId);
+  if (display) display.textContent = max + ' / ' + max;
+  if (card) {
+    card.classList.remove('completed');
+    const btn = card.querySelector('.counter-btn');
+    if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+  }
+  updateProgress(cardId.split('-')[0]);
+}
+
+function resetPanel(tab) {
+  if (!AZKAR_DATA[tab]) return;
+  AZKAR_DATA[tab].forEach((zikr, idx) => resetCounter(tab + '-' + idx, zikr.count));
+  showToast('تمت إعادة التعيين ✨');
+}
+
+// =============================================
 // PROGRESS
 // =============================================
 function updateProgress(tab) {
