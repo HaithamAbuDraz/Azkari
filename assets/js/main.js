@@ -104,6 +104,16 @@ function showToast(msg) {
 }
 
 // =============================================
+// AUTO SUGGEST TAB
+// =============================================
+function autoSuggestTab() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 10) switchTab('morning');
+  else if (h >= 17 && h < 21) switchTab('evening');
+  else if (h >= 21 || h < 5) switchTab('sleep');
+}
+
+// =============================================
 // INIT
 // =============================================
 (function init() {
