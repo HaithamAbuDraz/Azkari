@@ -318,9 +318,9 @@ main {
   padding: 24px;
 }
 
-/* .azkar-panel {
+.azkar-panel {
   display: none;
-} */
+}
 
 .azkar-panel.active {
   display: block;
