@@ -735,3 +735,229 @@ main {
     padding: 10px 16px;
   }
 }
+
+/* ===== FOOTER ===== */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  margin-top: 60px;
+  color: var(--text-muted);
+  background: var(--bg-deep);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 32px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.footer-section {
+  text-align: center;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.footer-logo-icon {
+  font-size: 28px;
+  background: var(--gold-bright);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--bg-deep);
+}
+
+.footer-logo h3 {
+  font-size: 24px;
+  margin: 0;
+  color: var(--gold-bright);
+}
+
+.footer-description {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  color: var(--text-muted);
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.footer-hadith {
+  background: var(--bg-card);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border-right: 3px solid var(--gold-bright);
+  font-size: 13px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.footer-hadith p {
+  margin: 0 0 6px 0;
+  font-style: italic;
+  color: var(--text-main);
+}
+
+.footer-hadith small {
+  color: var(--gold-dim);
+  font-size: 11px;
+}
+
+.footer-section h4 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--gold-bright);
+  position: relative;
+  display: inline-block;
+}
+
+.footer-section h4::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 40px;
+  height: 2px;
+  background: var(--gold-bright);
+}
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--bg-card);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: 1px solid var(--border);
+  color: var(--gold-bright);
+  font-size: 18px;
+}
+
+.social-icon i {
+  font-size: 18px;
+}
+
+.social-icon:hover {
+  background: var(--gold-bright);
+  transform: translateY(-3px);
+  color: var(--bg-deep);
+  border-color: var(--gold-bright);
+}
+
+.dua-btn {
+  background: var(--gold-glow);
+  color: var(--gold-bright);
+  border: none;
+  padding: 8px 24px;
+  border-radius: 30px;
+  font-family: "Tajawal", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.dua-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px var(--gold-glow);
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-bottom p {
+  font-size: 13px;
+  margin: 0 0 8px 0;
+  color: var(--text-muted);
+}
+
+.footer-source {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-container {
+    padding: 32px 20px 24px;
+  }
+
+  .footer-ayah {
+    font-size: 1.1rem;
+  }
+
+  .footer-grid {
+    gap: 28px;
+    margin-bottom: 28px;
+  }
+
+  .footer-logo h3 {
+    font-size: 20px;
+  }
+
+  .footer-description {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  footer {
+    margin-top: 40px;
+  }
+
+  .footer-container {
+    padding: 24px 16px 20px;
+  }
+
+  .footer-ayah {
+    font-size: 1rem;
+  }
+
+  .footer-ayah-ref {
+    font-size: 11px;
+    margin-bottom: 24px;
+  }
+
+  .footer-section h4 {
+    font-size: 16px;
+  }
+
+  .social-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+}
