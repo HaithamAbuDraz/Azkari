@@ -19,7 +19,7 @@ async function loadAzkarData() {
   } catch (error) {
     console.error('Error loading azkar data:', error);
     // Show error message to user
-    showToast('حدث خطأ في تحميل البيانات. يرجى تحديث الصفحة.');
+    showToast('حدث خطأ في تحميل البيانات. يرجى تحديث الصفحة <i class="fas fa-exclamation-triangle"></i>');
   }
 
   renderAll();
@@ -79,7 +79,7 @@ const themeIcon = document.getElementById('themeIcon');
 
 function applyTheme(theme) {
   html.setAttribute('data-theme', theme);
-  themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+  themeIcon.innerHTML = theme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
   localStorage.setItem('azkar-theme', theme);
 }
 
@@ -129,7 +129,7 @@ function decrementCounter(cardId, max) {
     card.classList.add('completed');
     const btn = card.querySelector('.counter-btn');
     if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
-    showToast('أحسنت! اكتمل الذكر 🌟');
+    showToast('أحسنت! اكتمل الذكر <i class="fas fa-star"></i>');
   }
   updateProgress(cardId.split('-')[0]);
   if (navigator.vibrate) navigator.vibrate(25);
@@ -151,7 +151,7 @@ function resetCounter(cardId, max) {
 function resetPanel(tab) {
   if (!AZKAR_DATA[tab]) return;
   AZKAR_DATA[tab].forEach((zikr, idx) => resetCounter(tab + '-' + idx, zikr.count));
-  showToast('تمت إعادة التعيين ✨');
+  showToast('تمت إعادة التعيين <i class="fas fa-check-circle"></i>');
 }
 
 // =============================================
@@ -169,7 +169,9 @@ function updateProgress(tab) {
   if (fill) fill.style.width = pct + '%';
   if (bar) bar.setAttribute('aria-valuenow', pct);
   if (text) text.textContent = done + ' / ' + total;
-  if (done === total && total > 0) showToast('ما شاء الله! اكتملت جميع الأذكار 🎉');
+  if (done === total && total > 0) {
+    showToast('ما شاء الله! اكتملت جميع الأذكار <i class="fas fa-trophy"></i>');
+  }
 }
 
 // =============================================
@@ -187,15 +189,15 @@ function buildCard(zikr, idx, tab, cardId) {
     <div class="card-number">${idx + 1}</div>
     <p class="arabic-text" lang="ar" dir="rtl">${zikr.arabic}</p>
     <div class="translation">
-      <div class="translation-label">الشرح والفضل</div>
+      <div class="translation-label"><i class="fas fa-info-circle"></i> الشرح والفضل</div>
       ${zikr.translation}
     </div>
     <div class="card-meta">
-      <span class="source-badge">📖 ${zikr.source}</span>
+      <span class="source-badge"><i class="fas fa-book"></i> ${zikr.source}</span>
       <div class="counter-wrap" role="group" aria-label="عداد الذكر">
         <button class="counter-btn" onclick="decrementCounter('${cardId}',${zikr.count})" aria-label="عدّ" ${done ? 'disabled style="opacity:0.4"' : ''}>−</button>
         <div class="counter-display" id="cnt-${cardId}" aria-live="polite">${remaining} / ${zikr.count}</div>
-        <button class="counter-btn" onclick="resetCounter('${cardId}',${zikr.count})" aria-label="إعادة">↺</button>
+        <button class="counter-btn" onclick="resetCounter('${cardId}',${zikr.count})" aria-label="إعادة"><i class="fas fa-undo-alt"></i></button>
       </div>
     </div>`;
   return card;
