@@ -11,6 +11,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="assets/css/styles.css">
 
 </head>
@@ -21,36 +22,66 @@
 
   <!-- ===== MOBILE NAV ===== -->
   <div class="mobile-nav" id="mobileNav" role="dialog" aria-label="القائمة الرئيسية">
-    <button class="close-nav" id="closeNav" aria-label="إغلاق القائمة">✕</button>
-    <a href="#" class="active" data-tab="morning" onclick="switchTab('morning');closeMobileNav()">☀️ أذكار الصباح</a>
-    <a href="#" data-tab="evening" onclick="switchTab('evening');closeMobileNav()">🌙 أذكار المساء</a>
-    <a href="#" data-tab="salah" onclick="switchTab('salah');closeMobileNav()">🕋 أذكار الصلاة</a>
-    <a href="#" data-tab="sleep" onclick="switchTab('sleep');closeMobileNav()">😴 أذكار النوم</a>
-    <a href="#" data-tab="various" onclick="switchTab('various');closeMobileNav()">💎 أذكار متنوعة</a>
-    <a href="#" data-tab="tasbih" onclick="switchTab('tasbih');closeMobileNav()">📿 التسبيح</a>
+    <button class="close-nav" id="closeNav" aria-label="إغلاق القائمة">
+      <i class="fas fa-times"></i>
+    </button>
+    <a href="#" class="active" data-tab="morning" onclick="switchTab('morning');closeMobileNav()">
+      <i class="fas fa-sun"></i> أذكار الصباح
+    </a>
+    <a href="#" data-tab="evening" onclick="switchTab('evening');closeMobileNav()">
+      <i class="fas fa-moon"></i> أذكار المساء
+    </a>
+    <a href="#" data-tab="salah" onclick="switchTab('salah');closeMobileNav()">
+      <i class="fas fa-kaaba"></i> أذكار الصلاة
+    </a>
+    <a href="#" data-tab="sleep" onclick="switchTab('sleep');closeMobileNav()">
+      <i class="fas fa-bed"></i> أذكار النوم
+    </a>
+    <a href="#" data-tab="various" onclick="switchTab('various');closeMobileNav()">
+      <i class="fas fa-gem"></i> أذكار متنوعة
+    </a>
+    <a href="#" data-tab="tasbih" onclick="switchTab('tasbih');closeMobileNav()">
+      <i class="fas fa-praying-hands"></i> التسبيح
+    </a>
   </div>
 
   <!-- ===== HEADER ===== -->
   <header role="banner">
     <div class="header-inner">
       <a class="logo" href="#" aria-label="الصفحة الرئيسية">
-        <div class="logo-icon" aria-hidden="true">☪︎</div>
+        <div class="logo-icon" aria-hidden="true">
+          <i class="fas fa-star-and-crescent"></i>
+        </div>
         <span class="logo-text">أذكاري</span>
       </a>
 
       <nav role="navigation" aria-label="التنقل الرئيسي">
-        <a href="#" class="active" data-tab="morning" onclick="switchTab('morning')">☀️ الصباح</a>
-        <a href="#" data-tab="evening" onclick="switchTab('evening')">🌙 المساء</a>
-        <a href="#" data-tab="salah" onclick="switchTab('salah')">🕋 الصلاة</a>
-        <a href="#" data-tab="sleep" onclick="switchTab('sleep')">😴 النوم</a>
-        <a href="#" data-tab="various" onclick="switchTab('various')">💎 متنوعة</a>
-        <a href="#" data-tab="tasbih" onclick="switchTab('tasbih')">📿 التسبيح</a>
+        <a href="#" class="active" data-tab="morning" onclick="switchTab('morning')">
+          <i class="fas fa-sun"></i> الصباح
+        </a>
+        <a href="#" data-tab="evening" onclick="switchTab('evening')">
+          <i class="fas fa-moon"></i> المساء
+        </a>
+        <a href="#" data-tab="salah" onclick="switchTab('salah')">
+          <i class="fas fa-kaaba"></i> الصلاة
+        </a>
+        <a href="#" data-tab="sleep" onclick="switchTab('sleep')">
+          <i class="fas fa-bed"></i> النوم
+        </a>
+        <a href="#" data-tab="various" onclick="switchTab('various')">
+          <i class="fas fa-gem"></i> متنوعة
+        </a>
+        <a href="#" data-tab="tasbih" onclick="switchTab('tasbih')">
+          <i class="fas fa-praying-hands"></i> التسبيح
+        </a>
       </nav>
 
       <div class="header-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="تبديل المظهر" title="تبديل الوضع الفاتح/الداكن">
           <div class="theme-toggle-thumb">
-            <span class="theme-toggle-icon" id="themeIcon">🌙</span>
+            <span class="theme-toggle-icon" id="themeIcon">
+              <i class="fas fa-moon"></i>
+            </span>
           </div>
         </button>
         <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
@@ -62,18 +93,20 @@
 
   <!-- ===== HERO ===== -->
   <section class="hero" aria-label="مقدمة">
-    <div class="hero-badge">بسم الله الرحمن الرحيم</div>
+    <div class="hero-badge">
+      <i class="fas fa-bismillah"></i> بسم الله الرحمن الرحيم
+    </div>
     <h1>روضة الأذكار والأدعية</h1>
     <p class="hero-sub">
       حصن المسلم من أذكار الكتاب والسنة النبوية الشريفة — أذكار يومية لتقوية الإيمان وتحصين النفس
     </p>
     <div class="time-ribbon" aria-live="polite" aria-label="الوقت الحالي">
       <div class="dot" aria-hidden="true"></div>
-      <span>التوقيت: <strong id="currentTime">--:--:--</strong></span>
+      <span><i class="fas fa-clock"></i> التوقيت: <strong id="currentTime">--:--:--</strong></span>
       <span>|</span>
-      <span>الفترة: <strong id="currentPeriod">--</strong></span>
+      <span><i class="fas fa-calendar-alt"></i> الفترة: <strong id="currentPeriod">--</strong></span>
       <span>|</span>
-      <span>التاريخ: <strong id="currentDate">--</strong></span>
+      <span><i class="fas fa-calendar-day"></i> التاريخ: <strong id="currentDate">--</strong></span>
     </div>
   </section>
 
@@ -83,13 +116,15 @@
     <!-- MORNING -->
     <section id="panel-morning" class="azkar-panel active" role="tabpanel">
       <div class="panel-header">
-        <h2 class="panel-title">☀️ أذكار الصباح</h2>
+        <h2 class="panel-title"><i class="fas fa-sun"></i> أذكار الصباح</h2>
         <div class="panel-progress">
           <span id="progress-morning">0 / 0</span>
           <div class="progress-bar" role="progressbar" id="bar-morning">
             <div class="progress-fill" style="width:0%" id="fill-morning"></div>
           </div>
-          <button class="complete-all-btn" onclick="resetPanel('morning')">إعادة تعيين</button>
+          <button class="complete-all-btn" onclick="resetPanel('morning')">
+            <i class="fas fa-sync-alt"></i> إعادة تعيين
+          </button>
         </div>
       </div>
       <div class="azkar-grid" id="grid-morning"></div>
@@ -98,13 +133,15 @@
     <!-- EVENING -->
     <section id="panel-evening" class="azkar-panel" role="tabpanel">
       <div class="panel-header">
-        <h2 class="panel-title">🌙 أذكار المساء</h2>
+        <h2 class="panel-title"><i class="fas fa-moon"></i> أذكار المساء</h2>
         <div class="panel-progress">
           <span id="progress-evening">0 / 0</span>
           <div class="progress-bar" role="progressbar" id="bar-evening">
             <div class="progress-fill" style="width:0%" id="fill-evening"></div>
           </div>
-          <button class="complete-all-btn" onclick="resetPanel('evening')">إعادة تعيين</button>
+          <button class="complete-all-btn" onclick="resetPanel('evening')">
+            <i class="fas fa-sync-alt"></i> إعادة تعيين
+          </button>
         </div>
       </div>
       <div class="azkar-grid" id="grid-evening"></div>
@@ -113,13 +150,15 @@
     <!-- SALAH -->
     <section id="panel-salah" class="azkar-panel" role="tabpanel">
       <div class="panel-header">
-        <h2 class="panel-title">🕋 أذكار بعد الصلاة</h2>
+        <h2 class="panel-title"><i class="fas fa-kaaba"></i> أذكار بعد الصلاة</h2>
         <div class="panel-progress">
           <span id="progress-salah">0 / 0</span>
           <div class="progress-bar" role="progressbar" id="bar-salah">
             <div class="progress-fill" style="width:0%" id="fill-salah"></div>
           </div>
-          <button class="complete-all-btn" onclick="resetPanel('salah')">إعادة تعيين</button>
+          <button class="complete-all-btn" onclick="resetPanel('salah')">
+            <i class="fas fa-sync-alt"></i> إعادة تعيين
+          </button>
         </div>
       </div>
       <div class="azkar-grid" id="grid-salah"></div>
@@ -128,13 +167,15 @@
     <!-- SLEEP -->
     <section id="panel-sleep" class="azkar-panel" role="tabpanel">
       <div class="panel-header">
-        <h2 class="panel-title">😴 أذكار النوم</h2>
+        <h2 class="panel-title"><i class="fas fa-bed"></i> أذكار النوم</h2>
         <div class="panel-progress">
           <span id="progress-sleep">0 / 0</span>
           <div class="progress-bar" role="progressbar" id="bar-sleep">
             <div class="progress-fill" style="width:0%" id="fill-sleep"></div>
           </div>
-          <button class="complete-all-btn" onclick="resetPanel('sleep')">إعادة تعيين</button>
+          <button class="complete-all-btn" onclick="resetPanel('sleep')">
+            <i class="fas fa-sync-alt"></i> إعادة تعيين
+          </button>
         </div>
       </div>
       <div class="azkar-grid" id="grid-sleep"></div>
@@ -143,13 +184,15 @@
     <!-- VARIOUS -->
     <section id="panel-various" class="azkar-panel" role="tabpanel">
       <div class="panel-header">
-        <h2 class="panel-title">💎 أذكار متنوعة</h2>
+        <h2 class="panel-title"><i class="fas fa-gem"></i> أذكار متنوعة</h2>
         <div class="panel-progress">
           <span id="progress-various">0 / 0</span>
           <div class="progress-bar" role="progressbar" id="bar-various">
             <div class="progress-fill" style="width:0%" id="fill-various"></div>
           </div>
-          <button class="complete-all-btn" onclick="resetPanel('various')">إعادة تعيين</button>
+          <button class="complete-all-btn" onclick="resetPanel('various')">
+            <i class="fas fa-sync-alt"></i> إعادة تعيين
+          </button>
         </div>
       </div>
       <div class="azkar-grid" id="grid-various"></div>
@@ -160,7 +203,9 @@
   <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({
     top:0,
     behavior:'smooth'
-    })" aria-label="العودة للأعلى">↑</button>
+    })" aria-label="العودة للأعلى">
+    <i class="fas fa-arrow-up"></i>
+  </button>
 
   <!-- ===== FOOTER ===== -->
   <footer role="contentinfo">
@@ -169,7 +214,9 @@
       <div class="footer-grid">
         <div class="footer-section">
           <div class="footer-logo">
-            <span class="footer-logo-icon">☪︎</span>
+            <span class="footer-logo-icon">
+              <i class="fas fa-star-and-crescent"></i>
+            </span>
             <h3>أذكاري</h3>
           </div>
           <p class="footer-description">
@@ -177,40 +224,44 @@
             من الكتاب والسنة النبوية والمسبحة، بهدف تحصين المسلم وتقوية إيمانه.
           </p>
           <div class="footer-hadith">
-            <p>❝ مَثَلُ الذي يَذكُرُ رَبَّه والذي لا يَذكُرُ رَبَّه مَثَلُ الحَيِّ والمَيِّتِ. ❞</p>
-            <small>— البخاري</small>
+            <p><i class="fas fa-quote-right"></i> مَثَلُ الذي يَذكُرُ رَبَّه والذي لا يَذكُرُ رَبَّه مَثَلُ الحَيِّ
+              والمَيِّتِ. <i class="fas fa-quote-left"></i></p>
+            <small><i class="fas fa-book"></i> — البخاري</small>
           </div>
         </div>
 
         <div class="footer-section">
-          <h4>تواصل</h4>
+          <h4><i class="fas fa-envelope"></i> تواصل</h4>
           <div class="social-icons">
             <a href="#" class="social-icon" aria-label="فيسبوك" target="_blank">
-              ⓕ
+              <i class="fab fa-facebook-f"></i>
             </a>
             <a href="#" class="social-icon" aria-label="إنستغرام" target="_blank">
-              🅾
+              <i class="fab fa-instagram"></i>
             </a>
             <a href="#" class="social-icon" aria-label="واتساب" target="_blank">
-              ✆
+              <i class="fab fa-whatsapp"></i>
             </a>
             <a href="#" class="social-icon" aria-label="تيليجرام" target="_blank">
-              ⌲
+              <i class="fab fa-telegram"></i>
             </a>
           </div>
-          <button class="dua-btn" onclick="showToast('جزاك الله خيراً 🤲')">🤲 ادعو لي</button>
+          <button class="dua-btn" onclick="showToast('جزاك الله خيراً <i class=\'fas fa-hands-praying\'></i>')">
+            <i class="fas fa-hands-praying"></i> ادعو لي
+          </button>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <p>© 2026 أذكاري — روضة الأذكار والأدعية</p>
-        <div class="footer-source">جميع الأذكار مأخوذة من حصن المسلم — المصدر: الكتاب والسنة النبوية الشريفة</div>
+        <p><i class="far fa-copyright"></i> 2026 أذكاري — روضة الأذكار والأدعية</p>
+        <div class="footer-source">
+          <i class="fas fa-quran"></i> جميع الأذكار مأخوذة من حصن المسلم — المصدر: الكتاب والسنة النبوية الشريفة
+        </div>
       </div>
     </div>
   </footer>
 
   <script src="assets/js/main.js"></script>
-
 </body>
 
 </html>
