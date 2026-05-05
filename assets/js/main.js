@@ -10,7 +10,7 @@ const state = { counters: {}, activeTab: 'morning' };
 let AZKAR_DATA = {};
 async function loadAzkarData() {
   try {
-    const response = await fetch("../../assets/Data/azkar-data.json");
+    const response = await fetch("assets/Data/azkar-data.json");
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
