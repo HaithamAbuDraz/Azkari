@@ -92,7 +92,7 @@
   </header>
 
   <!-- ===== HERO ===== -->
-  <section class="hero" aria-label="مقدمة">
+  <section class="hero" aria-label="مقدمة" id="defaultHeroSection">
     <div class="hero-badge">
       <i class="fas fa-bismillah"></i> بسم الله الرحمن الرحيم
     </div>
@@ -196,6 +196,78 @@
         </div>
       </div>
       <div class="azkar-grid" id="grid-various"></div>
+    </section>
+
+    <!-- TASBIH -->
+    <section id="panel-tasbih" class="azkar-panel" role="tabpanel">
+      <div class="page-wrapper">
+        <div class="page-title-section">
+          <div class="page-badge">سبحان الله وبحمده</div>
+          <h1 class="page-title"><i class="fas fa-hands-praying"></i> التسبيح الرقمي</h1>
+          <p class="page-subtitle">اذكر الله ذكراً كثيراً — اضغط الزر أو مفتاح المسافة</p>
+        </div>
+
+        <div class="dhikr-selector" role="region" aria-label="اختيار الذكر">
+          <h3>اختر الذكر</h3>
+          <div class="dhikr-pills" role="group" id="dhikrPills"></div>
+          <div class="dhikr-display" id="dhikrDisplay" lang="ar" dir="rtl" aria-live="polite"></div>
+          <div class="dhikr-target" id="dhikrTarget"></div>
+        </div>
+
+        <div class="counter-section" aria-label="عداد التسبيح">
+          <div class="ring-wrap" aria-hidden="true">
+            <svg class="ring-svg" viewBox="0 0 240 240">
+              <defs>
+                <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="var(--gold-bright)" />
+                  <stop offset="100%" stop-color="var(--teal)" />
+                </linearGradient>
+              </defs>
+              <circle class="ring-track" cx="120" cy="120" r="115" />
+              <circle class="ring-progress" id="ringProgress" cx="120" cy="120" r="115" />
+            </svg>
+            <div class="ring-inner">
+              <div class="count-number" id="countDisplay" aria-live="polite">0</div>
+              <div class="count-total" id="countTotal">من 33</div>
+              <div class="count-laps" id="countLaps" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="tap-btn-wrap">
+            <button class="tap-btn" id="tapBtn" onclick="increment(event)" aria-label="اضغط للتسبيح">
+              <span class="tap-btn-icon"><i class="fas fa-hands-praying"></i></span>
+              <span class="tap-btn-label">سبّح</span>
+            </button>
+            <div class="kbd-hint">أو اضغط <kbd class="kbd">Space</kbd></div>
+          </div>
+        </div>
+
+        <div class="controls" role="group" aria-label="أدوات التحكم">
+          <button class="ctrl-btn" onclick="undoLast()"><i class="fas fa-arrow-right"></i> تراجع</button>
+          <button class="ctrl-btn danger" onclick="resetCounter()"><i class="fas fa-undo-alt"></i> إعادة</button>
+          <button class="ctrl-btn" onclick="saveToHistory()"><i class="fas fa-save"></i> حفظ</button>
+          <div class="custom-target-wrap">
+            <label for="customTarget">الهدف:</label>
+            <input class="custom-target-input" id="customTarget" type="number" min="1" max="9999" placeholder="33">
+            <button class="set-target-btn" onclick="setCustomTarget()">تعيين</button>
+          </div>
+        </div>
+
+        <div class="milestone-section" role="region" aria-label="الإنجازات">
+          <h3><i class="fas fa-trophy"></i> الإنجازات</h3>
+          <div class="milestones-grid" id="milestonesGrid"></div>
+        </div>
+
+        <div class="history-section" role="region" aria-label="سجل التسبيح">
+          <h3><i class="fas fa-clipboard-list"></i> سجل الجلسات <span
+              style="font-size:12px;color:var(--text-muted);font-family:'Tajawal',sans-serif;">(آخر
+              10
+              جلسات)</span></h3>
+          <div class="history-list" id="historyList">
+            <div class="history-empty">لا توجد جلسات محفوظة — اضغط "حفظ" بعد الانتهاء</div>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
