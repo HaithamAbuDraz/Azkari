@@ -234,6 +234,43 @@ const CIRCUMFERENCE = 2 * Math.PI * 115;
 let count = 0, laps = 0, activeIdx = 0, target = 33, lastSaved = -1;
 let history = JSON.parse(localStorage.getItem('tasbih-history') || '[]');
 
+// Pills
+function buildPills() {
+  const c = document.getElementById('dhikrPills');
+  if (!c) return;
+  c.innerHTML = '';
+  DHIKR_LIST.forEach((d, i) => {
+    const b = document.createElement('button');
+    b.className = 'dhikr-pill' + (i === activeIdx ? ' active' : '');
+    b.textContent = d.label;
+    b.onclick = () => selectDhikr(i);
+    c.appendChild(b);
+  });
+}
+
+function selectDhikr(idx) {
+  activeIdx = idx;
+  const d = DHIKR_LIST[idx];
+  target = d.target;
+  count = 0;
+  laps = 0;
+  updateDisplay();
+  buildPills();
+  const el = document.getElementById('dhikrDisplay');
+  if (el) {
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = d.arabic || '— اكتب ذكرك المخصص —';
+      el.style.opacity = '1';
+    }, 150);
+  }
+  const targetEl = document.getElementById('dhikrTarget');
+  if (targetEl) {
+    targetEl.innerHTML = d.target ? `الهدف: <span class="target-badge">${d.target}</span>` : '';
+  }
+  const customTarget = document.getElementById('customTarget');
+  if (customTarget) customTarget.value = d.target || '';
+}
 
 // =============================================
 // TABS
