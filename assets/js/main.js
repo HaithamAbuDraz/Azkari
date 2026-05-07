@@ -336,6 +336,25 @@ function resetTasbihCounter() {
   showToast('تمت إعادة التعيين <i class="fas fa-check-circle"></i>');
 }
 
+function updateDisplay() {
+  const countDisplay = document.getElementById('countDisplay');
+  const countTotal = document.getElementById('countTotal');
+  const countLaps = document.getElementById('countLaps');
+  const ringProgress = document.getElementById('ringProgress');
+
+  if (countDisplay) countDisplay.textContent = count;
+  if (countTotal) countTotal.textContent = 'من ' + target;
+  if (countLaps) countLaps.textContent = laps > 0 ? `الدورة ${laps}` : '';
+
+  if (ringProgress && target > 0) {
+    const pct = count / target;
+    const offset = CIRCUMFERENCE * (1 - Math.min(pct, 1));
+    ringProgress.style.strokeDashoffset = offset;
+  }
+
+  renderMilestones(laps * target + count);
+}
+
 // =============================================
 // TABS
 // =============================================
