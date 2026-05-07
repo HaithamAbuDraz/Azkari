@@ -422,6 +422,17 @@ function setCustomTarget() {
   showToast('تم تعيين الهدف: ' + val);
 }
 
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    increment(null);
+  }
+  if (e.code === 'Backspace') undoLast();
+  if (e.code === 'KeyR') resetCounter();
+});
+
 // =============================================
 // TABS
 // =============================================
