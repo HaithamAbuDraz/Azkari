@@ -208,17 +208,39 @@ function buildCard(zikr, idx, tab, cardId) {
 // =============================================
 function switchTab(tab) {
   state.activeTab = tab;
-  document.querySelectorAll('.azkar-panel').forEach(p => p.classList.remove('active'));
+
+  // Switch panels
+  document.querySelectorAll('.azkar-panel, .tasbih-panel').forEach(p => p.classList.remove('active'));
   const panel = document.getElementById('panel-' + tab);
   if (panel) panel.classList.add('active');
+
+  // Switch heroes
+  const defaultHero = document.getElementById('defaultHeroSection');
+  const tasbihHero = document.getElementById('tasbihHeroSection');
+
+  if (defaultHero && tasbihHero) {
+    if (tab === 'tasbih') {
+      defaultHero.style.display = 'none';
+      tasbihHero.style.display = 'block';
+    } else {
+      defaultHero.style.display = 'block';
+      tasbihHero.style.display = 'none';
+    }
+  }
+
+  // Update tab buttons
   document.querySelectorAll('.tab-btn').forEach(b => {
     const a = b.dataset.tab === tab;
     b.classList.toggle('active', a);
     b.setAttribute('aria-selected', a);
   });
+
+  // Update navigation links
   document.querySelectorAll('nav a[data-tab], .mobile-nav a[data-tab]').forEach(a => {
     a.classList.toggle('active', a.dataset.tab === tab);
   });
+
+  // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -228,10 +250,10 @@ function switchTab(tab) {
 function showToast(message) {
   const toast = document.getElementById('toast');
   if (!toast) return;
-  
+
   toast.innerHTML = message;
   toast.classList.add('show');
-  
+
   setTimeout(() => {
     toast.classList.remove('show');
   }, 1000);
