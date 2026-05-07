@@ -48,7 +48,11 @@ function updateClock() {
   const h = String(now.getHours()).padStart(2, "0");
   const m = String(now.getMinutes()).padStart(2, "0");
   const s = String(now.getSeconds()).padStart(2, "0");
-  document.getElementById("currentTime").textContent = h + ":" + m + ":" + s;
+  const timeString = h + ":" + m + ":" + s;
+
+  document.querySelectorAll("#currentTime").forEach(el => {
+    el.textContent = timeString;
+  });
 
   const hour = now.getHours();
   let period;
@@ -57,7 +61,10 @@ function updateClock() {
   else if (hour >= 16 && hour < 19) period = "العصر";
   else if (hour >= 19 && hour < 20) period = "المغرب";
   else period = "الليل";
-  document.getElementById("currentPeriod").textContent = period;
+
+  document.querySelectorAll("#currentPeriod").forEach(el => {
+    el.textContent = period;
+  });
 
   const dateStr = now.toLocaleDateString(
     "ar-SA", {
@@ -67,7 +74,10 @@ function updateClock() {
     day: "numeric",
     numberingSystem: "latn"
   });
-  document.getElementById("currentDate").textContent = dateStr;
+
+  document.querySelectorAll("#currentDate").forEach(el => {
+    el.textContent = dateStr;
+  });
 }
 
 // =============================================
