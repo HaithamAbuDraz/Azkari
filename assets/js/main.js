@@ -225,7 +225,6 @@ const DHIKR_LIST = [
   { label: 'الصلاة على النبي', arabic: 'اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى مُحَمَّدٍ', target: 10 },
   { label: 'سبحان الله وبحمده', arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', target: 100 },
   { label: 'حسبي الله', arabic: 'حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ', target: 7 },
-  { label: 'مخصص', arabic: '', target: 33 },
 ];
 
 const MILESTONES = [33, 66, 99, 100, 200, 300, 500, 1000];
@@ -260,7 +259,7 @@ function selectDhikr(idx) {
   if (el) {
     el.style.opacity = '0';
     setTimeout(() => {
-      el.textContent = d.arabic || '— اكتب ذكرك المخصص —';
+      el.textContent = d.arabic;
       el.style.opacity = '1';
     }, 150);
   }
@@ -305,17 +304,20 @@ function increment(e) {
 }
 
 function milestoneMsg(n) {
+  const currentDhikr = DHIKR_LIST[activeIdx]?.label || 'التسبيح';
+  
   const msgs = {
-    33: 'ثلاثة وثلاثون — سبحان الله! <i class="fas fa-star"></i>',
-    66: 'ستة وستون <i class="fas fa-star"></i>',
-    99: 'تسعة وتسعون — الحمد لله! <i class="fas fa-star"></i>',
-    100: 'مئة تسبيحة! ما شاء الله <i class="fas fa-trophy"></i>',
-    200: 'مئتان! <i class="fas fa-trophy"></i>',
-    300: 'ثلاثمئة! <i class="fas fa-trophy"></i>',
-    500: 'خمسمئة! بارك الله فيك <i class="fas fa-star"></i>',
-    1000: 'ألف تسبيحة! ما شاء الله <i class="fas fa-trophy"></i>'
+    33: `ثلاثة وثلاثون — ${currentDhikr}! <i class="fas fa-star"></i>`,
+    66: `ستة وستون ${currentDhikr} <i class="fas fa-star"></i>`,
+    99: `تسعة وتسعون — ${currentDhikr}! الحمد لله <i class="fas fa-star"></i>`,
+    100: `مئة ${currentDhikr}! ما شاء الله <i class="fas fa-trophy"></i>`,
+    200: `مئتان ${currentDhikr}! <i class="fas fa-trophy"></i>`,
+    300: `ثلاثمئة ${currentDhikr}! <i class="fas fa-trophy"></i>`,
+    500: `خمسمئة ${currentDhikr}! بارك الله فيك <i class="fas fa-star"></i>`,
+    1000: `ألف ${currentDhikr}! ما شاء الله <i class="fas fa-trophy"></i>`
   };
-  return msgs[n] || `${n} تسبيحة! <i class="fas fa-star"></i>`;
+  
+  return msgs[n] || `${n} ${currentDhikr}! <i class="fas fa-star"></i>`;
 }
 
 function undoLast() {
