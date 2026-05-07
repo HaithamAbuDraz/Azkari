@@ -367,6 +367,42 @@ function renderMilestones(total) {
   });
 }
 
+function saveToHistory() {
+  const total = laps * target + count;
+  if (total === 0 || total === lastSaved) {
+    showToast('لا يوجد تسبيح للحفظ');
+    return;
+  }
+  const d = DHIKR_LIST[activeIdx];
+  const entry = {
+    dhikr: d.label,
+    count: total,
+    time: new Date().toLocaleTimeString('ar-SA', { numberingSystem: "latn", hour: '2-digit', minute: '2-digit' }),
+    date: new Date().toLocaleDateString('ar-SA', { numberingSystem: "latn", day: 'numeric', month: 'short' })
+  };
+  history.unshift(entry);
+  if (history.length > 10) history = history.slice(0, 10);
+  localStorage.setItem('tasbih-history', JSON.stringify(history));
+  lastSaved = total;
+  renderHistory();
+  showToast('تم حفظ الجلسة <i class="fas fa-save"></i>');
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!list) return;
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">لا توجد جلسات محفوظة — اضغط "حفظ" بعد الانتهاء</div>';
+    return;
+  }
+  list.innerHTML = '';
+  history.forEach(e => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `<span class="hist-dhikr">${e.dhikr}</span><span class="hist-count">${e.count}×</span><span class="hist-time">${e.date} ${e.time}</span>`;
+    list.appendChild(item);
+  });
+}
 // =============================================
 // TABS
 // =============================================
