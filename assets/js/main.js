@@ -355,6 +355,18 @@ function updateDisplay() {
   renderMilestones(laps * target + count);
 }
 
+function renderMilestones(total) {
+  const g = document.getElementById('milestonesGrid');
+  if (!g) return;
+  g.innerHTML = '';
+  MILESTONES.forEach(ms => {
+    const c = document.createElement('div');
+    c.className = 'milestone-chip' + (total >= ms ? ' reached' : '');
+    c.innerHTML = `<span class="ms-number">${ms}</span><span>${total >= ms ? '✓ تم' : 'تسبيحة'}</span>`;
+    g.appendChild(c);
+  });
+}
+
 // =============================================
 // TABS
 // =============================================
