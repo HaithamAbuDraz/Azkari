@@ -403,6 +403,25 @@ function renderHistory() {
     list.appendChild(item);
   });
 }
+
+function setCustomTarget() {
+  const input = document.getElementById('customTarget');
+  if (!input) return;
+  const val = parseInt(input.value);
+  if (!val || val < 1) {
+    showToast('أدخل رقماً صحيحاً');
+    return;
+  }
+  target = val;
+  DHIKR_LIST[activeIdx].target = val;
+  count = 0;
+  laps = 0;
+  const targetEl = document.getElementById('dhikrTarget');
+  if (targetEl) targetEl.innerHTML = `الهدف: <span class="target-badge">${val}</span>`;
+  updateDisplay();
+  showToast('تم تعيين الهدف: ' + val);
+}
+
 // =============================================
 // TABS
 // =============================================
