@@ -272,6 +272,38 @@ function selectDhikr(idx) {
   if (customTarget) customTarget.value = d.target || '';
 }
 
+function increment(e) {
+  const btn = document.getElementById('tapBtn');
+  if (e && btn) {
+    const r = btn.getBoundingClientRect();
+    const x = (e.clientX || r.left + r.width / 2) - r.left;
+    const y = (e.clientY || r.top + r.height / 2) - r.top;
+    const size = Math.max(r.width, r.height);
+    const rip = document.createElement('span');
+    rip.className = 'ripple';
+    rip.style.cssText = `width:${size}px;height:${size}px;left:${x - size / 2}px;top:${y - size / 2}px`;
+    btn.appendChild(rip);
+    setTimeout(() => rip.remove(), 600);
+  }
+  count++;
+  if (count > target) {
+    count = 1;
+    laps++;
+    showToast(`دورة ${laps} مكتملة! <i class="fas fa-star"></i>`);
+  }
+  const total = laps * target + count;
+  if (MILESTONES.includes(total)) showToast(milestoneMsg(total));
+  const num = document.getElementById('countDisplay');
+  if (num) {
+    num.classList.remove('bump');
+    void num.offsetWidth;
+    num.classList.add('bump');
+    setTimeout(() => num.classList.remove('bump'), 120);
+  }
+  if (navigator.vibrate) navigator.vibrate(18);
+  updateDisplay();
+}
+
 // =============================================
 // TABS
 // =============================================
