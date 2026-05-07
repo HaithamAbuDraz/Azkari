@@ -214,6 +214,28 @@ function buildCard(zikr, idx, tab, cardId) {
 }
 
 // =============================================
+// TASBIH SECTION
+// =============================================
+const DHIKR_LIST = [
+  { label: 'سبحان الله', arabic: 'سُبْحَانَ اللَّهِ', target: 33 },
+  { label: 'الحمد لله', arabic: 'الْحَمْدُ لِلَّهِ', target: 33 },
+  { label: 'الله أكبر', arabic: 'اللَّهُ أَكْبَرُ', target: 34 },
+  { label: 'لا إله إلا الله', arabic: 'لَا إِلَٰهَ إِلَّا اللَّهُ', target: 100 },
+  { label: 'أستغفر الله', arabic: 'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ', target: 100 },
+  { label: 'الصلاة على النبي', arabic: 'اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى مُحَمَّدٍ', target: 10 },
+  { label: 'سبحان الله وبحمده', arabic: 'سُبْحَانَ اللَّهِ وَبِحَمْدِهِ', target: 100 },
+  { label: 'حسبي الله', arabic: 'حَسْبِيَ اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ', target: 7 },
+  { label: 'مخصص', arabic: '', target: 33 },
+];
+
+const MILESTONES = [33, 66, 99, 100, 200, 300, 500, 1000];
+const CIRCUMFERENCE = 2 * Math.PI * 115;
+
+let count = 0, laps = 0, activeIdx = 0, target = 33, lastSaved = -1;
+let history = JSON.parse(localStorage.getItem('tasbih-history') || '[]');
+
+
+// =============================================
 // TABS
 // =============================================
 function switchTab(tab) {
@@ -294,4 +316,8 @@ function autoSuggestTab() {
   updateClock();
   setInterval(updateClock, 1000);
   autoSuggestTab();
+  buildPills();
+  selectDhikr(0);
+  renderHistory();
+  renderMilestones(0);
 })();
