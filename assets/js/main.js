@@ -318,6 +318,24 @@ function milestoneMsg(n) {
   return msgs[n] || `${n} تسبيحة! <i class="fas fa-star"></i>`;
 }
 
+function undoLast() {
+  if (count > 0) {
+    count--;
+    updateDisplay();
+  } else if (laps > 0) {
+    laps--;
+    count = target;
+    updateDisplay();
+  }
+}
+
+function resetTasbihCounter() {
+  count = 0;
+  laps = 0;
+  updateDisplay();
+  showToast('تمت إعادة التعيين <i class="fas fa-check-circle"></i>');
+}
+
 // =============================================
 // TABS
 // =============================================
