@@ -305,7 +305,7 @@ function increment(e) {
 
 function milestoneMsg(n) {
   const currentDhikr = DHIKR_LIST[activeIdx]?.label || 'التسبيح';
-  
+
   const msgs = {
     33: `ثلاثة وثلاثون — ${currentDhikr}! <i class="fas fa-star"></i>`,
     66: `ستة وستون ${currentDhikr} <i class="fas fa-star"></i>`,
@@ -316,7 +316,7 @@ function milestoneMsg(n) {
     500: `خمسمئة ${currentDhikr}! بارك الله فيك <i class="fas fa-star"></i>`,
     1000: `ألف ${currentDhikr}! ما شاء الله <i class="fas fa-trophy"></i>`
   };
-  
+
   return msgs[n] || `${n} ${currentDhikr}! <i class="fas fa-star"></i>`;
 }
 
@@ -427,12 +427,15 @@ function setCustomTarget() {
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-  if (e.code === 'Space') {
-    e.preventDefault();
-    increment(null);
+
+  if (state.activeTab === 'tasbih') {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      increment(null);
+    }
+    if (e.code === 'Backspace') undoLast();
+    if (e.code === 'KeyR') resetTasbihCounter();
   }
-  if (e.code === 'Backspace') undoLast();
-  if (e.code === 'KeyR') resetCounter();
 });
 
 // =============================================
