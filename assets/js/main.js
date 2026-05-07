@@ -304,6 +304,20 @@ function increment(e) {
   updateDisplay();
 }
 
+function milestoneMsg(n) {
+  const msgs = {
+    33: 'ثلاثة وثلاثون — سبحان الله! <i class="fas fa-star"></i>',
+    66: 'ستة وستون <i class="fas fa-star"></i>',
+    99: 'تسعة وتسعون — الحمد لله! <i class="fas fa-star"></i>',
+    100: 'مئة تسبيحة! ما شاء الله <i class="fas fa-trophy"></i>',
+    200: 'مئتان! <i class="fas fa-trophy"></i>',
+    300: 'ثلاثمئة! <i class="fas fa-trophy"></i>',
+    500: 'خمسمئة! بارك الله فيك <i class="fas fa-star"></i>',
+    1000: 'ألف تسبيحة! ما شاء الله <i class="fas fa-trophy"></i>'
+  };
+  return msgs[n] || `${n} تسبيحة! <i class="fas fa-star"></i>`;
+}
+
 // =============================================
 // TABS
 // =============================================
