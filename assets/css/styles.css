@@ -241,6 +241,11 @@ nav a.active {
   z-index: 1;
   text-align: center;
   padding: 80px 24px 60px;
+  transition: opacity 0.3s ease;
+}
+
+#tasbihHeroSection {
+  display: none;
 }
 
 .hero-badge {
