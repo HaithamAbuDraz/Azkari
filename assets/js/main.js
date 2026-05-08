@@ -442,6 +442,8 @@ document.addEventListener('keydown', e => {
 // TABS
 // =============================================
 function switchTab(tab) {
+  if (!tab) return;
+
   state.activeTab = tab;
 
   // Switch panels
@@ -463,16 +465,21 @@ function switchTab(tab) {
     }
   }
 
-  // Update tab buttons
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    const a = b.dataset.tab === tab;
-    b.classList.toggle('active', a);
-    b.setAttribute('aria-selected', a);
+  // Update desktop navigation links
+  document.querySelectorAll('nav a[data-tab]').forEach(a => {
+    const isActive = a.dataset.tab === tab;
+    a.classList.toggle('active', isActive);
+    if (isActive) {
+      a.setAttribute('aria-current', 'page');
+    } else {
+      a.removeAttribute('aria-current');
+    }
   });
 
-  // Update navigation links
-  document.querySelectorAll('nav a[data-tab], .mobile-nav a[data-tab]').forEach(a => {
-    a.classList.toggle('active', a.dataset.tab === tab);
+  // Update mobile navigation links
+  document.querySelectorAll('.mobile-nav a[data-tab]').forEach(a => {
+    const isActive = a.dataset.tab === tab;
+    a.classList.toggle('active', isActive);
   });
 
   // Scroll to top
