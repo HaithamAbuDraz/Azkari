@@ -485,6 +485,9 @@ function switchTab(tab) {
   // Update Page Title
   updatePageTitle(tab);
 
+  // Update Meta Description
+  updateMetaDescription(tab);
+
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -504,6 +507,25 @@ function updatePageTitle(tab) {
   const mainTitle = 'أذكاري';
   const newTitle = titles[tab] ? `${mainTitle} | ${titles[tab]}` : mainTitle;
   document.title = newTitle;
+}
+
+// =============================================
+// updateMetaDescription
+// =============================================
+function updateMetaDescription(tab) {
+  const descriptions = {
+    'morning': 'أذكار الصباح من حصن المسلم - أذكار وأدعية الصباح لتحصين النفس وتقوية الإيمان. أذكار الصباح كاملة من الكتاب والسنة.',
+    'evening': 'أذكار المساء من حصن المسلم - أذكار وأدعية المساء للتحصين والحماية من الشرور. أذكار المساء كاملة من السنة النبوية.',
+    'salah': 'أذكار بعد الصلاة - أذكار وأدعية مشروعة بعد الصلوات الخمس المفروضة. أذكار ما بعد الصلاة من الكتاب والسنة.',
+    'sleep': 'أذكار النوم - أذكار قبل النوم ومنام المسلم من السنة النبوية. أذكار النوم والاستيقاظ كاملة.',
+    'various': 'أذكار متنوعة - مجموعة من الأذكار والأدعية الإسلامية لجميع المناسبات اليومية.',
+    'tasbih': 'التسبيح الرقمي - عداد تسبيح إلكتروني لتسبيح الله وذكر الله. سبحان الله وبحمده، سبحان الله العظيم.'
+  };
+
+  const metaDescription = document.querySelector('meta[name="description"]');
+  if (metaDescription && descriptions[tab]) {
+    metaDescription.setAttribute('content', descriptions[tab]);
+  }
 }
 
 // =============================================
