@@ -482,8 +482,28 @@ function switchTab(tab) {
     a.classList.toggle('active', isActive);
   });
 
+  // Update Page Title
+  updatePageTitle(tab);
+
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =============================================
+// updatePageTitle
+// =============================================
+function updatePageTitle(tab) {
+  const titles = {
+    'morning': 'أذكار الصباح',
+    'evening': 'أذكار المساء',
+    'salah': 'أذكار بعد الصلاة',
+    'sleep': 'أذكار النوم',
+    'various': 'أذكار متنوعة',
+    'tasbih': 'التسبيح الرقمي'
+  };
+  const mainTitle = 'أذكاري';
+  const newTitle = titles[tab] ? `${mainTitle} | ${titles[tab]}` : mainTitle;
+  document.title = newTitle;
 }
 
 // =============================================
