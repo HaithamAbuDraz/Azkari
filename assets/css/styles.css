@@ -505,7 +505,7 @@ main {
   direction: rtl;
 }
 
-.translation {
+.benefit {
   font-size: 14px;
   line-height: 1.9;
   color: var(--text-muted);
@@ -514,7 +514,7 @@ main {
   margin-bottom: 16px;
 }
 
-.translation-label {
+.benefit-label {
   font-size: 11px;
   color: var(--gold-dim);
   text-transform: uppercase;
