@@ -198,9 +198,9 @@ function buildCard(zikr, idx, tab, cardId) {
   card.innerHTML = `
     <div class="card-number">${idx + 1}</div>
     <p class="arabic-text" lang="ar" dir="rtl">${zikr.arabic}</p>
-    <div class="translation">
-      <div class="translation-label"><i class="fas fa-info-circle"></i> الشرح والفضل</div>
-      ${zikr.translation}
+    <div class="benefit">
+      <div class="benefit-label"><i class="fas fa-info-circle"></i> الشرح والفضل</div>
+      ${zikr.benefit}
     </div>
     <div class="card-meta">
       <span class="source-badge"><i class="fas fa-book"></i> ${zikr.source}</span>
