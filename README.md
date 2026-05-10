@@ -16,17 +16,17 @@
 
 | Feature | Description |
 |---------|-------------|
-| **Morning Adhkar** | Complete collection of morning supplications with authentic references from the Quran and Sunnah |
-| **Evening Adhkar** | Evening protections and remembrances for spiritual security |
-| **Post-Prayer Adhkar** | Authentic supplications recited after the five daily prayers |
-| **Sleep Duas** | Bedtime remembrances and waking-up supplications |
+| **Morning Azkar** | Complete collection of morning supplications with authentic references from the Quran and Sunnah |
+| **Evening Azkar** | Evening protections and remembrances for spiritual security |
+| **Post-Prayer Azkar** | Authentic supplications recited after the five daily prayers |
+| **Sleep Azkar** | Bedtime remembrances and waking-up supplications |
 | **Various Azkar** | General daily remembrances for all occasions and situations |
 | **Interactive Counters** | Click to decrement counter for each zikr until completion |
 | **Reset Functionality** | Individual reset for each zikr or full category reset with one click |
 | **Visual Progress Tracking** | Progress bars showing completion percentage for each category |
 | **Completion Celebration** | Toast notifications with star icons when completing a zikr |
 | **Category Completion Trophy** | Special celebration when all zikr in a category are completed |
-| **Completed Card Styling** | Visual distinction for completed adhkar with disabled counters |
+| **Completed Card Styling** | Visual distinction for completed azkar with disabled counters |
 
 ### 🎯 Digital Tasbih Features
 
