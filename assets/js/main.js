@@ -210,6 +210,17 @@ function buildCard(zikr, idx, tab, cardId) {
         <button class="counter-btn" onclick="resetCounter('${cardId}',${zikr.count})" aria-label="إعادة"><i class="fas fa-undo-alt"></i></button>
       </div>
     </div>`;
+  
+  card.addEventListener('click', e => {
+    if (e.target.closest('.counter-btn')) {
+      return;
+    }
+    if (done) {
+      return;
+    }
+    decrementCounter(cardId, zikr.count);
+  });
+  
   return card;
 }
 
