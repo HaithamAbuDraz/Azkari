@@ -28,12 +28,16 @@ export function useFavorites(showToast) {
         const exists = prev.includes(cardId);
         if (exists) {
           if (showToast) {
-            showToast('تمت إزالة الذكر من المفضلة <i class="far fa-heart"></i>');
+            showToast(
+              'تمت إزالة الذكر من المفضلة <i class="far fa-heart"></i>'
+            );
           }
           return prev.filter((id) => id !== cardId);
         } else {
           if (showToast) {
-            showToast('تمت إضافة الذكر إلى المفضلة <i class="fas fa-heart text-rose-400"></i>');
+            showToast(
+              'تمت إضافة الذكر إلى المفضلة <i class="fas fa-heart text-rose-400"></i>'
+            );
           }
           return [...prev, cardId];
         }

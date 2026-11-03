@@ -1,49 +1,119 @@
 import React from 'react';
 
-export default function HistoryList({ history = [] }) {
-  return (
-    <div
-      className="mt-8 p-5 sm:p-7 rounded-3xl bg-bg-card border border-border-theme max-w-4xl mx-auto shadow-xs"
-      role="region"
-      aria-label="سجل جلسات التسبيح المحفوظة"
-    >
-      <h3 className="text-sm sm:text-base font-bold text-text-main flex items-center justify-between gap-2 mb-4">
-        <span className="flex items-center gap-2">
-          <i className="fas fa-clipboard-list text-gold text-sm"></i>
-          <span>سجل الجلسات المحفوظة</span>
-        </span>
-        <span className="text-xs text-text-muted font-normal">
-          (آخر 10 جلسات)
-        </span>
-      </h3>
+export default function HistoryList({
+  history = [],
+  onDeleteSession,
+  onClearHistory,
+  onCopyHistory,
+}) {
+  const totalCountAll = history.reduce(
+    (acc, curr) => acc + (curr.count || 0),
+    0
+  );
 
-      <div className="flex flex-col gap-2.5">
+  return (
+    <aside
+      className='w-full p-5 sm:p-6 rounded-3xl bg-bg-card border border-border-theme shadow-xs flex flex-col gap-4'
+      role='complementary'
+      aria-label='سجل جلسات التسبيح المحفوظة'>
+      {/* Header */}
+      <div className='flex items-center justify-between gap-2 pb-3 border-b border-border-theme/60'>
+        <div className='flex items-center gap-2'>
+          <span className='w-7 h-7 rounded-xl bg-gold/15 text-gold flex items-center justify-center text-xs'>
+            <i className='fas fa-clock-rotate-left'></i>
+          </span>
+          <div>
+            <h3 className='text-sm font-bold text-text-main'>
+              سجل الجلسات المحفوظة
+            </h3>
+            <span className='text-[10px] text-text-muted'>
+              (آخر {history.length} جلسات)
+            </span>
+          </div>
+        </div>
+
+        {history.length > 0 && (
+          <div className='flex items-center gap-1.5'>
+            <button
+              type='button'
+              onClick={onCopyHistory}
+              className='p-1.5 rounded-lg bg-bg-elevated hover:bg-gold/20 text-text-muted hover:text-text-main transition text-xs cursor-pointer'
+              title='نسخ ملخص الجلسات'
+              aria-label='نسخ ملخص الجلسات'>
+              <i className='fas fa-copy'></i>
+            </button>
+            <button
+              type='button'
+              onClick={onClearHistory}
+              className='p-1.5 rounded-lg bg-bg-elevated hover:bg-rose-500/20 text-rose-500/80 hover:text-rose-500 transition text-xs cursor-pointer'
+              title='مسح السجل بالكامل'
+              aria-label='مسح السجل بالكامل'>
+              <i className='fas fa-trash-can'></i>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Summary stat badge if sessions exist */}
+      {history.length > 0 && (
+        <div className='flex items-center justify-between p-3 rounded-2xl bg-primary/10 border border-primary/20 text-xs'>
+          <span className='text-text-main font-medium'>
+            إجمالي التسبيحات المسجلة:
+          </span>
+          <span className='font-mono font-extrabold text-primary text-sm'>
+            {totalCountAll} تسبيحة
+          </span>
+        </div>
+      )}
+
+      {/* Sessions List */}
+      <div className='flex flex-col gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar'>
         {history.length === 0 ? (
-          <div className="text-center py-8 text-text-muted text-xs sm:text-sm bg-bg-elevated/40 rounded-2xl border border-dashed border-border-theme/70">
-            لا توجد جلسات محفوظة حالياً — اضغط "حفظ" بعد إتمام التسبيح
+          <div className='text-center py-10 px-4 text-text-muted text-xs bg-bg-elevated/40 rounded-2xl border border-dashed border-border-theme/70 flex flex-col items-center justify-center gap-2'>
+            <i className='fas fa-hands-praying text-2xl text-gold/40'></i>
+            <p className='font-medium text-text-main text-xs'>
+              لا توجد جلسات محفوظة حالياً
+            </p>
+            <p className='text-[11px] text-text-muted'>
+              اضغط على زر "حفظ الجلسة" بعد إتمام وردك ليُسجَّل هنا تلقائياً
+            </p>
           </div>
         ) : (
           history.map((item, idx) => (
             <div
-              key={idx}
-              className="flex items-center justify-between p-3.5 rounded-2xl bg-bg-elevated/70 border border-border-theme/70 text-xs sm:text-sm"
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="w-2 h-2 rounded-full bg-gold"></span>
-                <span className="font-semibold text-text-main">{item.dhikr}</span>
+              key={`${item.time}-${idx}`}
+              className='group flex items-center justify-between p-3 rounded-2xl bg-bg-elevated/60 hover:bg-bg-elevated border border-border-theme/70 hover:border-gold/30 transition-all text-xs'>
+              <div className='flex flex-col gap-0.5 text-right'>
+                <span className='font-bold text-text-main text-xs sm:text-sm'>
+                  {item.dhikr}
+                </span>
+                <span className='text-text-muted text-[10px] flex items-center gap-1 font-mono'>
+                  <i className='far fa-clock text-[9px] text-gold/70'></i>
+                  <span>{item.date}</span>
+                  <span>•</span>
+                  <span>{item.time}</span>
+                </span>
               </div>
-              <div className="flex items-center gap-4">
-                <span className="font-bold font-mono text-gold px-2 py-0.5 rounded-lg bg-gold/10">
+
+              <div className='flex items-center gap-2.5'>
+                <span className='font-mono font-extrabold text-gold px-2.5 py-1 rounded-xl bg-gold/15 border border-gold/20 text-xs'>
                   {item.count}×
                 </span>
-                <span className="text-text-muted text-[11px] font-mono">
-                  {item.date} {item.time}
-                </span>
+                {onDeleteSession && (
+                  <button
+                    type='button'
+                    onClick={() => onDeleteSession(idx)}
+                    className='opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-rose-500 transition cursor-pointer'
+                    title='حذف هذه الجلسة'
+                    aria-label='حذف هذه الجلسة'>
+                    <i className='fas fa-xmark text-xs'></i>
+                  </button>
+                )}
               </div>
             </div>
           ))
         )}
       </div>
-    </div>
+    </aside>
   );
 }

@@ -1,7 +1,10 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-tajawal: 'IBM Plex Sans Arabic', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-tajawal:
+    'IBM Plex Sans Arabic', 'Tajawal', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --font-cairo: 'Cairo', 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
   --font-ibm: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
   --font-amiri: 'Amiri', serif;
   --font-inter: 'Inter', sans-serif;
@@ -15,7 +18,7 @@
   --color-gold-dim: var(--gold-dim);
   --color-gold-light: var(--gold-light);
   --color-gold-glow: var(--gold-glow);
-  
+
   /* Legacy alias mappings for backward compatibility */
   --color-gold-bright: var(--gold);
   --color-teal-brand: var(--primary);
@@ -37,57 +40,57 @@
 
 /* ===== DARK THEME (default) ===== */
 :root,
-[data-theme="dark"] {
-  --bg-deep: #101B17;
+[data-theme='dark'] {
+  --bg-deep: #101b17;
   --bg-card: #182720;
-  --bg-elevated: #20332A;
+  --bg-elevated: #20332a;
   --bg-glass: rgba(16, 27, 23, 0.92);
-  --bg-input: #1D2E26;
-  
-  --primary: #91B69C;
-  --primary-dark: #7CA588;
+  --bg-input: #1d2e26;
+
+  --primary: #91b69c;
+  --primary-dark: #7ca588;
   --primary-light: rgba(145, 182, 156, 0.16);
-  --primary-fg: #101B17;
-  --sage: #91B69C;
-  
-  --gold: #C5A15B;
-  --gold-dim: #9E7D3F;
+  --primary-fg: #101b17;
+  --sage: #91b69c;
+
+  --gold: #c5a15b;
+  --gold-dim: #9e7d3f;
   --gold-light: rgba(197, 161, 91, 0.16);
   --gold-glow: rgba(197, 161, 91, 0.18);
-  
-  --text-main: #F2F3EC;
-  --text-muted: #A6B4A8;
-  --text-arabic: #FAFBF6;
-  
+
+  --text-main: #f2f3ec;
+  --text-muted: #a6b4a8;
+  --text-arabic: #fafbf6;
+
   --border: rgba(145, 182, 156, 0.16);
-  --border-accent: rgba(197, 161, 91, 0.30);
+  --border-accent: rgba(197, 161, 91, 0.3);
   --ambient-top: rgba(145, 182, 156, 0.08);
   --ambient-accent: rgba(197, 161, 91, 0.06);
 }
 
 /* ===== LIGHT THEME ===== */
-[data-theme="light"] {
-  --bg-deep: #F8F7F1;
-  --bg-card: #FFFFFF;
-  --bg-elevated: #F1EFEA;
+[data-theme='light'] {
+  --bg-deep: #f8f7f1;
+  --bg-card: #ffffff;
+  --bg-elevated: #f1efea;
   --bg-glass: rgba(248, 247, 241, 0.94);
-  --bg-input: #EFECE4;
-  
-  --primary: #245B46;
+  --bg-input: #efece4;
+
+  --primary: #245b46;
   --primary-dark: #194332;
   --primary-light: rgba(36, 91, 70, 0.09);
-  --primary-fg: #FFFFFF;
-  --sage: #8FA895;
-  
-  --gold: #C5A15B;
-  --gold-dim: #A88644;
+  --primary-fg: #ffffff;
+  --sage: #8fa895;
+
+  --gold: #c5a15b;
+  --gold-dim: #a88644;
   --gold-light: rgba(197, 161, 91, 0.12);
   --gold-glow: rgba(197, 161, 91, 0.14);
-  
-  --text-main: #252C27;
-  --text-muted: #5C6860;
-  --text-arabic: #19211C;
-  
+
+  --text-main: #252c27;
+  --text-muted: #5c6860;
+  --text-arabic: #19211c;
+
   --border: rgba(36, 91, 70, 0.12);
   --border-accent: rgba(197, 161, 91, 0.35);
   --ambient-top: rgba(36, 91, 70, 0.05);
@@ -105,14 +108,16 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   direction: rtl;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Islamic background pattern & subtle ambient glow */
 body::before {
-  content: "";
+  content: '';
   position: fixed;
   inset: 0;
   background-image:
@@ -163,4 +168,68 @@ body::before {
     transform: scale(3);
     opacity: 0;
   }
+}
+
+/* Custom styled range slider */
+input[type='range'].tasbih-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 9999px;
+  outline: none;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+input[type='range'].tasbih-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 0 10px var(--gold-glow);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input[type='range'].tasbih-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px var(--gold);
+}
+
+input[type='range'].tasbih-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 0 10px var(--gold-glow);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Button pulse aura */
+@keyframes tasbihGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 25px var(--gold-glow),
+      0 0 50px rgba(36, 91, 70, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 0 38px var(--gold-glow),
+      0 0 70px rgba(36, 91, 70, 0.35);
+  }
+}
+
+.tasbih-glow-aura {
+  animation: tasbihGlow 4s ease-in-out infinite;
 }

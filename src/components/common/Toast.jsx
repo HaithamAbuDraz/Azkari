@@ -25,12 +25,11 @@ export default function Toast({ toast, onClose }) {
           ? 'opacity-100 translate-y-0 scale-100'
           : 'opacity-0 -translate-y-3 scale-95'
       }`}
-      role="alert"
-      aria-live="polite"
-    >
-      <span className="w-2 h-2 rounded-full bg-gold animate-ping"></span>
+      role='alert'
+      aria-live='polite'>
+      <span className='w-2 h-2 rounded-full bg-gold animate-ping'></span>
       <span
-        className="flex items-center gap-2"
+        className='flex items-center gap-2'
         dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>

@@ -8,11 +8,10 @@ function getClockData() {
   const timeString = `${h}:${m}:${s}`;
 
   const hour = now.getHours();
-  let period = 'الليل';
-  if (hour >= 5 && hour < 12) period = 'الصباح';
-  else if (hour >= 12 && hour < 16) period = 'الظهر';
-  else if (hour >= 16 && hour < 19) period = 'العصر';
-  else if (hour >= 19 && hour < 20) period = 'المغرب';
+  // Morning (الصباح) from 4:00 AM to 12:00 PM; Evening (المساء) from 12:00 PM to 4:00 AM
+  const isMorning = hour >= 4 && hour < 12;
+  const period = isMorning ? 'الصباح' : 'المساء';
+  const periodEn = isMorning ? 'Morning' : 'Evening';
 
   const dateStr = now.toLocaleDateString('ar-SA', {
     weekday: 'long',
@@ -22,7 +21,14 @@ function getClockData() {
     numberingSystem: 'latn',
   });
 
-  return { timeString, period, dateStr };
+  const dateStrEn = now.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  return { timeString, period, periodEn, isMorning, dateStr, dateStrEn };
 }
 
 export function useClock() {

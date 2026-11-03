@@ -20,21 +20,20 @@ export default function ScrollTop() {
 
   return (
     <button
-      type="button"
+      type='button'
       className={`fixed bottom-6 left-6 z-40 w-11 h-11 rounded-full bg-primary text-text-arabic border border-gold/30 flex items-center justify-center shadow-lg hover:border-gold hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer ${
         visible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'
       }`}
       onClick={scrollToTop}
-      aria-label="العودة لأعلى الصفحة"
-      title="العودة للأعلى"
+      aria-label='العودة لأعلى الصفحة'
+      title='العودة للأعلى'
       style={{
         backgroundColor: 'var(--primary)',
         color: 'var(--text-arabic)',
-      }}
-    >
-      <i className="fas fa-arrow-up text-sm"></i>
+      }}>
+      <i className='fas fa-arrow-up text-sm'></i>
     </button>
   );
 }
