@@ -4,7 +4,7 @@ import { Header, MobileNav, Hero, Footer } from './components/layout';
 import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
 import { TasbihPanel } from './features/tasbih';
-import { useTheme, useToast } from './hooks';
+import { useTheme, useToast, useFavorites } from './hooks';
 import { triggerHaptic } from './utils/haptics';
 import {
   PANELS,
@@ -17,6 +17,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(getDefaultTab);
   const { theme, toggleTheme } = useTheme();
   const { toast, showToast, closeToast } = useToast();
+  const { favorites, toggleFavorite, isFavorite, favoritesCount } = useFavorites(showToast);
   const [counters, setCounters] = useState({});
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
@@ -25,7 +26,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     // Update document title
-    const mainTitle = 'أذكاري';
+    const mainTitle = 'أذكاري — روضة الأذكار والأدعية';
     const subTitle = TAB_TITLES[tab];
     document.title = subTitle ? `${mainTitle} | ${subTitle}` : mainTitle;
 
@@ -62,9 +63,9 @@ export default function App() {
           });
 
           if (allDone && list.length > 0) {
-            showToast('ما شاء الله! اكتملت جميع الأذكار <i class="fas fa-trophy"></i>');
+            showToast('ما شاء الله! اكتملت جميع الأذكار في هذا القسم <i class="fas fa-trophy text-gold"></i>');
           } else {
-            showToast('أحسنت! اكتمل الذكر <i class="fas fa-star"></i>');
+            showToast('أحسنت! اكتمل الذكر بحمد الله <i class="fas fa-check-circle text-gold"></i>');
           }
         }
 
@@ -91,13 +92,13 @@ export default function App() {
         });
         return next;
       });
-      showToast('تمت إعادة التعيين <i class="fas fa-check-circle"></i>');
+      showToast('تمت إعادة تعيين جميع أذكار هذا القسم <i class="fas fa-rotate-left text-gold"></i>');
     },
     [showToast]
   );
 
   return (
-    <div className="min-h-screen flex flex-col font-tajawal text-text-main selection:bg-gold-bright/30">
+    <div className="min-h-screen flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic">
       <Toast toast={toast} onClose={closeToast} />
 
       <MobileNav
@@ -105,6 +106,8 @@ export default function App() {
         onClose={() => setIsMobileNavOpen(false)}
         activeTab={activeTab}
         onSelectTab={switchTab}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <Header
@@ -113,11 +116,12 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         onOpenMobileNav={() => setIsMobileNavOpen(true)}
+        favoritesCount={favoritesCount}
       />
 
       <Hero activeTab={activeTab} />
 
-      <main id="main-content" className="flex-1 py-4">
+      <main id="main-content" className="flex-1 py-2 sm:py-4">
         {activeTab === 'tasbih' ? (
           <TasbihPanel isActive={true} showToast={showToast} />
         ) : (
@@ -134,6 +138,9 @@ export default function App() {
                 onDecrement={decrementCounter}
                 onResetCard={resetCardCounter}
                 onResetPanel={resetPanel}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
+                onShowToast={showToast}
               />
             );
           })
@@ -142,7 +149,7 @@ export default function App() {
 
       <ScrollTop />
 
-      <Footer onShowToast={showToast} />
+      <Footer onShowToast={showToast} onSelectTab={switchTab} />
     </div>
   );
 }

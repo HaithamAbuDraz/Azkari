@@ -1,64 +1,97 @@
 @import "tailwindcss";
 
 @theme {
-  --font-tajawal: 'Tajawal', sans-serif;
+  --font-tajawal: 'IBM Plex Sans Arabic', 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-ibm: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
   --font-amiri: 'Amiri', serif;
-  --color-gold-bright: var(--gold-bright);
+  --font-inter: 'Inter', sans-serif;
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+  --color-primary-fg: var(--primary-fg);
+  --color-sage: var(--sage);
+  --color-gold: var(--gold);
   --color-gold-dim: var(--gold-dim);
+  --color-gold-light: var(--gold-light);
   --color-gold-glow: var(--gold-glow);
-  --color-teal-brand: var(--teal);
-  --color-teal-dim: var(--teal-dim);
+  
+  /* Legacy alias mappings for backward compatibility */
+  --color-gold-bright: var(--gold);
+  --color-teal-brand: var(--primary);
+  --color-teal-dim: var(--primary-light);
+
   --color-bg-deep: var(--bg-deep);
   --color-bg-card: var(--bg-card);
+  --color-bg-elevated: var(--bg-elevated);
   --color-bg-glass: var(--bg-glass);
   --color-bg-input: var(--bg-input);
+
   --color-text-main: var(--text-main);
   --color-text-muted: var(--text-muted);
   --color-text-arabic: var(--text-arabic);
+
   --color-border-theme: var(--border);
+  --color-border-accent: var(--border-accent);
 }
 
 /* ===== DARK THEME (default) ===== */
 :root,
 [data-theme="dark"] {
-  --bg-deep: #0d1117;
-  --bg-card: #141b24;
-  --bg-glass: rgba(20, 27, 36, 0.88);
-  --bg-input: #1a2332;
-  --gold-bright: #d4a94e;
-  --gold-dim: #8a6c30;
-  --gold-glow: rgba(212, 169, 78, 0.18);
-  --teal: #2ec4b6;
-  --teal-dim: rgba(46, 196, 182, 0.15);
-  --text-main: #e8dcc8;
-  --text-muted: #7a8a99;
-  --text-arabic: #f0e6cf;
-  --border: rgba(212, 169, 78, 0.18);
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-  --pattern-opacity: 0.03;
-  --gradient-1: rgba(212, 169, 78, 0.07);
-  --gradient-2: rgba(46, 196, 182, 0.05);
+  --bg-deep: #101B17;
+  --bg-card: #182720;
+  --bg-elevated: #20332A;
+  --bg-glass: rgba(16, 27, 23, 0.92);
+  --bg-input: #1D2E26;
+  
+  --primary: #91B69C;
+  --primary-dark: #7CA588;
+  --primary-light: rgba(145, 182, 156, 0.16);
+  --primary-fg: #101B17;
+  --sage: #91B69C;
+  
+  --gold: #C5A15B;
+  --gold-dim: #9E7D3F;
+  --gold-light: rgba(197, 161, 91, 0.16);
+  --gold-glow: rgba(197, 161, 91, 0.18);
+  
+  --text-main: #F2F3EC;
+  --text-muted: #A6B4A8;
+  --text-arabic: #FAFBF6;
+  
+  --border: rgba(145, 182, 156, 0.16);
+  --border-accent: rgba(197, 161, 91, 0.30);
+  --ambient-top: rgba(145, 182, 156, 0.08);
+  --ambient-accent: rgba(197, 161, 91, 0.06);
 }
 
 /* ===== LIGHT THEME ===== */
 [data-theme="light"] {
-  --bg-deep: #faf7f2;
-  --bg-card: #ffffff;
-  --bg-glass: rgba(250, 247, 242, 0.92);
-  --bg-input: #f5f0e8;
-  --gold-bright: #b8860b;
-  --gold-dim: #c9972a;
-  --gold-glow: rgba(184, 134, 11, 0.12);
-  --teal: #1a9e92;
-  --teal-dim: rgba(26, 158, 146, 0.12);
-  --text-main: #2c2416;
-  --text-muted: #7a6a50;
-  --text-arabic: #1a1208;
-  --border: rgba(184, 134, 11, 0.22);
-  --shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
-  --pattern-opacity: 0.06;
-  --gradient-1: rgba(212, 169, 78, 0.06);
-  --gradient-2: rgba(46, 196, 182, 0.04);
+  --bg-deep: #F8F7F1;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #F1EFEA;
+  --bg-glass: rgba(248, 247, 241, 0.94);
+  --bg-input: #EFECE4;
+  
+  --primary: #245B46;
+  --primary-dark: #194332;
+  --primary-light: rgba(36, 91, 70, 0.09);
+  --primary-fg: #FFFFFF;
+  --sage: #8FA895;
+  
+  --gold: #C5A15B;
+  --gold-dim: #A88644;
+  --gold-light: rgba(197, 161, 91, 0.12);
+  --gold-glow: rgba(197, 161, 91, 0.14);
+  
+  --text-main: #252C27;
+  --text-muted: #5C6860;
+  --text-arabic: #19211C;
+  
+  --border: rgba(36, 91, 70, 0.12);
+  --border-accent: rgba(197, 161, 91, 0.35);
+  --ambient-top: rgba(36, 91, 70, 0.05);
+  --ambient-accent: rgba(197, 161, 91, 0.04);
 }
 
 html {
@@ -66,35 +99,53 @@ html {
 }
 
 body {
-  font-family: 'Tajawal', sans-serif;
+  font-family: var(--font-tajawal);
   background-color: var(--bg-deep);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
   direction: rtl;
-  transition: background-color 0.35s ease, color 0.35s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Islamic background pattern overlay */
+/* Islamic background pattern & subtle ambient glow */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background-image:
     radial-gradient(
-      ellipse 80% 60% at 20% 10%,
-      var(--gradient-1) 0%,
-      transparent 60%
+      ellipse 70% 50% at 50% 0%,
+      var(--ambient-top) 0%,
+      transparent 70%
     ),
     radial-gradient(
-      ellipse 60% 50% at 80% 80%,
-      var(--gradient-2) 0%,
-      transparent 50%
+      ellipse 60% 40% at 85% 90%,
+      var(--ambient-accent) 0%,
+      transparent 60%
     ),
-    url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4a94e' fill-opacity='0.04'%3E%3Cpath d='M30 0l3.09 9.51L42 6.18l-6.18 9 9.51 3.09L36 30l9.33 11.73-9.51 3.09L39.82 54 30 47.82 20.18 54l3.09-9.18-9.51-3.09L24 30l-9.33-11.82 9.51-3.09L18 6.18l9 3.33z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23C5A15B' stroke-width='0.6' opacity='0.035'%3E%3Cpath d='M40 0 L51.7 18.3 L70.7 9.3 L61.7 28.3 L80 40 L61.7 51.7 L70.7 70.7 L51.7 61.7 L40 80 L28.3 61.7 L9.3 70.7 L18.3 51.7 L0 40 L18.3 28.3 L9.3 9.3 L28.3 18.3 Z'/%3E%3Ccircle cx='40' cy='40' r='18'/%3E%3C/g%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 0;
-  transition: background-image 0.35s ease;
+  transition: opacity 0.3s ease;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold-dim);
 }
 
 /* Ripple animation on button click */

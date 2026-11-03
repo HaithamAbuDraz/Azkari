@@ -91,7 +91,7 @@ export default function TasbihPanel({ isActive, showToast }) {
         newCount = 1;
         newLaps = laps + 1;
         setLaps(newLaps);
-        showToast(`دورة ${newLaps} مكتملة! <i class="fas fa-star"></i>`);
+        showToast(`دورة ${newLaps} مكتملة! <i class="fas fa-star text-gold"></i>`);
       }
       setCount(newCount);
 
@@ -115,7 +115,7 @@ export default function TasbihPanel({ isActive, showToast }) {
   const resetTasbihCounter = useCallback(() => {
     setCount(0);
     setLaps(0);
-    showToast('تمت إعادة التعيين <i class="fas fa-check-circle"></i>');
+    showToast('تمت إعادة التعيين <i class="fas fa-check-circle text-gold"></i>');
   }, [showToast]);
 
   const saveToHistory = () => {
@@ -145,13 +145,13 @@ export default function TasbihPanel({ isActive, showToast }) {
     setHistory(newHistory);
     localStorage.setItem('tasbih-history', JSON.stringify(newHistory));
     setLastSaved(total);
-    showToast('تم حفظ الجلسة <i class="fas fa-save"></i>');
+    showToast('تم حفظ الجلسة <i class="fas fa-save text-gold"></i>');
   };
 
   const handleSetCustomTarget = () => {
     const val = parseInt(customTargetInput, 10);
     if (!val || val < 1) {
-      showToast('أدخل رقماً صحيحاً');
+      showToast('يرجى إدخال رقم صحيح');
       return;
     }
     const updated = [...dhikrs];
@@ -188,7 +188,7 @@ export default function TasbihPanel({ isActive, showToast }) {
   const strokeDashoffset = CIRCUMFERENCE * (1 - Math.min(pct, 1));
 
   return (
-    <section className="max-w-4xl mx-auto px-4 md:px-8 py-4" role="tabpanel">
+    <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6" role="tabpanel">
       <DhikrSelector
         dhikrs={dhikrs}
         activeIdx={activeIdx}
@@ -208,27 +208,43 @@ export default function TasbihPanel({ isActive, showToast }) {
         ripples={ripples}
       />
 
-      <div className="flex flex-wrap items-center justify-center gap-3 my-6" role="group" aria-label="أدوات التحكم">
+      {/* Control Buttons Module */}
+      <div
+        className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 my-6 sm:my-8"
+        role="group"
+        aria-label="أدوات التحكم في التسبيح"
+      >
         <button
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold-bright hover:border-gold-bright/40 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          type="button"
           onClick={undoLast}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold hover:border-gold/40 text-xs sm:text-sm font-semibold transition active:scale-95 shadow-2xs cursor-pointer"
         >
-          <i className="fas fa-arrow-right"></i> تراجع
+          <i className="fas fa-arrow-right text-xs"></i>
+          <span>تراجع</span>
         </button>
+
         <button
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/30 bg-bg-card text-rose-400 hover:text-rose-300 hover:border-rose-500/60 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          type="button"
           onClick={resetTasbihCounter}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/25 bg-bg-card text-rose-500 hover:text-rose-400 hover:border-rose-500/50 text-xs sm:text-sm font-semibold transition active:scale-95 shadow-2xs cursor-pointer"
         >
-          <i className="fas fa-undo-alt"></i> إعادة
+          <i className="fas fa-rotate-left text-xs"></i>
+          <span>إعادة</span>
         </button>
+
         <button
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold-bright hover:border-gold-bright/40 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          type="button"
           onClick={saveToHistory}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold hover:border-gold/40 text-xs sm:text-sm font-semibold transition active:scale-95 shadow-2xs cursor-pointer"
         >
-          <i className="fas fa-save"></i> حفظ
+          <i className="fas fa-save text-xs"></i>
+          <span>حفظ الجلسة</span>
         </button>
-        <div className="flex items-center gap-2 bg-bg-card p-1.5 rounded-xl border border-border-theme text-xs md:text-sm shadow-sm">
-          <label htmlFor="customTarget" className="text-text-muted px-1">الهدف:</label>
+
+        <div className="flex items-center gap-2 bg-bg-card px-2.5 py-1.5 rounded-xl border border-border-theme text-xs sm:text-sm shadow-2xs">
+          <label htmlFor="customTarget" className="text-text-muted text-xs">
+            الهدف:
+          </label>
           <input
             id="customTarget"
             type="number"
@@ -237,11 +253,12 @@ export default function TasbihPanel({ isActive, showToast }) {
             placeholder="33"
             value={customTargetInput}
             onChange={(e) => setCustomTargetInput(e.target.value)}
-            className="w-16 px-2.5 py-1 rounded-lg bg-bg-deep border border-border-theme text-text-main text-center text-sm font-bold focus:outline-none focus:border-gold-bright"
+            className="w-16 px-2 py-1 rounded-lg bg-bg-elevated border border-border-theme text-text-main text-center text-xs sm:text-sm font-mono font-bold focus:outline-none focus:border-gold/60"
           />
           <button
-            className="px-3.5 py-1.5 rounded-lg bg-gold-bright text-bg-deep font-bold text-xs hover:bg-gold-dim transition active:scale-95 cursor-pointer"
+            type="button"
             onClick={handleSetCustomTarget}
+            className="px-3 py-1 rounded-lg bg-gold text-bg-deep font-bold text-xs hover:opacity-90 transition active:scale-95 cursor-pointer"
           >
             تعيين
           </button>
