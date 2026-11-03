@@ -1,74 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import azkarData from './data/azkar-data.json';
-import Header from './components/Header';
-import MobileNav from './components/MobileNav';
-import Hero from './components/Hero';
-import AzkarPanel from './components/AzkarPanel';
-import TasbihPanel from './components/TasbihPanel';
-import Footer from './components/Footer';
-import ScrollTop from './components/ScrollTop';
-import Toast from './components/Toast';
-
-const PANELS = {
-  morning: { title: 'أذكار الصباح', icon: 'fas fa-sun' },
-  evening: { title: 'أذكار المساء', icon: 'fas fa-moon' },
-  salah: { title: 'أذكار بعد الصلاة', icon: 'fas fa-kaaba' },
-  sleep: { title: 'أذكار النوم', icon: 'fas fa-bed' },
-  various: { title: 'أذكار متنوعة', icon: 'fas fa-gem' },
-};
-
-const TAB_TITLES = {
-  morning: 'أذكار الصباح',
-  evening: 'أذكار المساء',
-  salah: 'أذكار بعد الصلاة',
-  sleep: 'أذكار النوم',
-  various: 'أذكار متنوعة',
-  tasbih: 'التسبيح الرقمي',
-};
-
-const TAB_DESCRIPTIONS = {
-  morning: 'أذكار الصباح من حصن المسلم - أذكار وأدعية الصباح لتحصين النفس وتقوية الإيمان. أذكار الصباح كاملة من الكتاب والسنة.',
-  evening: 'أذكار المساء من حصن المسلم - أذكار وأدعية المساء للتحصين والحماية من الشرور. أذكار المساء كاملة من السنة النبوية.',
-  salah: 'أذكار بعد الصلاة - أذكار وأدعية مشروعة بعد الصلوات الخمس المفروضة. أذكار ما بعد الصلاة من الكتاب والسنة.',
-  sleep: 'أذكار النوم - أذكار قبل النوم ومنام المسلم من السنة النبوية. أذكار النوم والاستيقاظ كاملة.',
-  various: 'أذكار متنوعة - مجموعة من الأذكار والأدعية الإسلامية لجميع المناسبات اليومية.',
-  tasbih: 'التسبيح الرقمي - عداد تسبيح إلكتروني لتسبيح الله وذكر الله. سبحان الله وبحمده، سبحان الله العظيم.',
-};
-
-function getDefaultTab() {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 10) return 'morning';
-  if (h >= 17 && h < 21) return 'evening';
-  if (h >= 21 || h < 5) return 'sleep';
-  return 'morning';
-}
-
-function getInitialTheme() {
-  const saved = localStorage.getItem('azkar-theme');
-  if (saved) return saved;
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+import { Header, MobileNav, Hero, Footer } from './components/layout';
+import { Toast, ScrollTop } from './components/common';
+import { AzkarPanel } from './features/azkar';
+import { TasbihPanel } from './features/tasbih';
+import { useTheme, useToast } from './hooks';
+import { triggerHaptic } from './utils/haptics';
+import {
+  PANELS,
+  TAB_TITLES,
+  TAB_DESCRIPTIONS,
+  getDefaultTab,
+} from './constants/tabs';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(getDefaultTab);
-  const [theme, setTheme] = useState(getInitialTheme);
+  const { theme, toggleTheme } = useTheme();
+  const { toast, showToast, closeToast } = useToast();
   const [counters, setCounters] = useState({});
-  const [toast, setToast] = useState(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-
-  // Sync theme attribute and localStorage
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('azkar-theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const showToast = useCallback((msg) => {
-    setToast(msg);
-  }, []);
 
   const switchTab = useCallback((tab) => {
     setActiveTab(tab);
@@ -86,7 +36,7 @@ export default function App() {
     }
   }, []);
 
-  // Initialize title and description on mount
+  // Sync title and description on mount
   useEffect(() => {
     switchTab(activeTab);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -98,7 +48,7 @@ export default function App() {
         if (current <= 0) return prev;
 
         const nextVal = current - 1;
-        if (navigator.vibrate) navigator.vibrate(25);
+        triggerHaptic(25);
 
         const tabKey = cardId.split('-')[0];
         const nextCounters = { ...prev, [cardId]: nextVal };
@@ -148,7 +98,7 @@ export default function App() {
 
   return (
     <>
-      <Toast toast={toast} onClose={() => setToast(null)} />
+      <Toast toast={toast} onClose={closeToast} />
 
       <MobileNav
         isOpen={isMobileNavOpen}

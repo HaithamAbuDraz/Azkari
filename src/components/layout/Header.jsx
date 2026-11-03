@@ -1,13 +1,5 @@
 import React from 'react';
-
-const NAV_ITEMS = [
-  { id: 'morning', label: 'الصباح', icon: 'fas fa-sun' },
-  { id: 'evening', label: 'المساء', icon: 'fas fa-moon' },
-  { id: 'salah', label: 'الصلاة', icon: 'fas fa-kaaba' },
-  { id: 'sleep', label: 'النوم', icon: 'fas fa-bed' },
-  { id: 'various', label: 'متنوعة', icon: 'fas fa-gem' },
-  { id: 'tasbih', label: 'التسبيح', icon: 'fas fa-praying-hands' },
-];
+import { NAV_ITEMS } from '../../constants/tabs';
 
 export default function Header({
   activeTab,

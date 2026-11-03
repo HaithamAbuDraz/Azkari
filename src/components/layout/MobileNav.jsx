@@ -1,13 +1,5 @@
 import React from 'react';
-
-const NAV_ITEMS = [
-  { id: 'morning', label: 'أذكار الصباح', icon: 'fas fa-sun' },
-  { id: 'evening', label: 'أذكار المساء', icon: 'fas fa-moon' },
-  { id: 'salah', label: 'أذكار الصلاة', icon: 'fas fa-kaaba' },
-  { id: 'sleep', label: 'أذكار النوم', icon: 'fas fa-bed' },
-  { id: 'various', label: 'أذكار متنوعة', icon: 'fas fa-gem' },
-  { id: 'tasbih', label: 'التسبيح', icon: 'fas fa-praying-hands' },
-];
+import { NAV_ITEMS } from '../../constants/tabs';
 
 export default function MobileNav({ isOpen, onClose, activeTab, onSelectTab }) {
   return (
@@ -30,7 +22,7 @@ export default function MobileNav({ isOpen, onClose, activeTab, onSelectTab }) {
             onClose();
           }}
         >
-          <i className={item.icon}></i> {item.label}
+          <i className={item.icon}></i> {item.fullLabel || item.label}
         </a>
       ))}
     </div>

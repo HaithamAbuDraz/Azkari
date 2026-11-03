@@ -4,9 +4,70 @@
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
-**Azkari** is a modern Islamic web application built with **React** and **Vite**, bringing together morning and evening supplications (Azkar), post‑prayer remembrances, sleep duas, and authentic supplications from the Quran and Sunnah. The app features **interactive counters**, **real-time progress tracking**, a **digital tasbih with SVG progress ring**, **audio-visual milestone celebrations**, and a **fully responsive right-to-left (RTL) Arabic interface**.
+**Azkari** is a modern Islamic web application built with **React 19** and **Vite**, bringing together morning and evening supplications (Azkar), post‑prayer remembrances, sleep duas, and authentic supplications from the Quran and Sunnah. The app features **interactive counters**, **real-time progress tracking**, a **digital tasbih with SVG progress ring**, **audio-visual milestone celebrations**, and a **fully responsive right-to-left (RTL) Arabic interface**.
 
 🔗 **Live Demo:** [my‑azkari.vercel.app](https://my-azkari.vercel.app/)
+
+---
+
+## 📁 Best-Practice Project Architecture
+
+The project follows a **Feature-Driven Modular Architecture**, separating domain features, shared UI components, custom hooks, constants, and utilities for maximum scalability, maintainability, and clean separation of concerns:
+
+```bash
+Azkari/
+├── public/                             # Static public assets served directly
+│   ├── assets/icons/icon.png           # App icon
+│   └── icon.png                        # Favicon
+├── src/
+│   ├── assets/                         # Bundled assets (styles, images)
+│   │   └── styles/
+│   │       └── index.css               # Global stylesheet & themes
+│   ├── components/                     # Reusable shared presentation components
+│   │   ├── common/                     # Generic UI elements
+│   │   │   ├── Toast.jsx               # Interactive feedback notification
+│   │   │   ├── ScrollTop.jsx           # Floating scroll-to-top button
+│   │   │   └── index.js                # Barrel export
+│   │   └── layout/                     # Structural layout components
+│   │       ├── Header.jsx              # Sticky navbar & theme toggle
+│   │       ├── MobileNav.jsx           # Responsive slide-in mobile navigation
+│   │       ├── Hero.jsx                # Dynamic hero with live clock
+│   │       ├── Footer.jsx              # Footer with hadith citation & links
+│   │       └── index.js                # Barrel export
+│   ├── features/                       # Domain / Feature modules
+│   │   ├── azkar/                      # Core Azkar browsing & counter feature
+│   │   │   ├── components/
+│   │   │   │   ├── AzkarCard.jsx       # Individual zikr card with decrement counter
+│   │   │   │   └── AzkarPanel.jsx      # Category panel with live progress bar
+│   │   │   └── index.js
+│   │   └── tasbih/                     # Digital Tasbih feature
+│   │       ├── components/
+│   │       │   ├── DhikrSelector.jsx   # Dhikr selector pills & preview
+│   │       │   ├── TasbihRing.jsx      # SVG circular progress ring & tap button
+│   │       │   ├── MilestonesGrid.jsx  # Milestone achievement badges
+│   │       │   └── HistoryList.jsx     # Saved sessions history
+│   │       ├── TasbihPanel.jsx         # Main Tasbih orchestrator
+│   │       └── index.js
+│   ├── hooks/                          # Reusable custom React hooks
+│   │   ├── useTheme.js                 # Theme state & system preference sync
+│   │   ├── useClock.js                 # Live 1s clock, Islamic periods & Hijri date
+│   │   ├── useToast.js                 # Toast notification manager
+│   │   └── index.js
+│   ├── constants/                      # Application constants & static config
+│   │   ├── tabs.js                     # Tab lists, descriptions, time rules
+│   │   └── tasbih.js                   # Pre-defined dhikrs, milestones, ring constants
+│   ├── utils/                          # Pure utility helper functions
+│   │   └── haptics.js                  # Safe device vibration trigger
+│   ├── data/                           # Authentic Azkar database
+│   │   └── azkar-data.json
+│   ├── App.jsx                         # Root application coordinator
+│   └── main.jsx                        # Vite React mounting point
+├── index.html                          # Entry HTML with Arabic fonts & FontAwesome
+├── vite.config.js                      # Vite configuration
+├── package.json                        # Dependencies & scripts
+├── .gitignore                          # Git ignore rules
+└── README.md                           # Documentation
+```
 
 ---
 
@@ -121,39 +182,6 @@
    ```bash
    npm run preview
    ```
-
----
-
-## 📁 Project Structure
-
-```bash
-Azkari/
-├── public/                 # Static public assets (icons, favicon)
-│   ├── assets/icons/
-│   └── icon.png
-├── src/
-│   ├── components/         # Modular React components
-│   │   ├── AzkarCard.jsx   # Individual zikr card with counters
-│   │   ├── AzkarPanel.jsx  # Category grid with progress bar
-│   │   ├── Footer.jsx      # Footer with hadith & links
-│   │   ├── Header.jsx      # Sticky navbar & theme switcher
-│   │   ├── Hero.jsx        # Hero section with live clock
-│   │   ├── MobileNav.jsx   # Responsive mobile drawer
-│   │   ├── ScrollTop.jsx   # Back-to-top floating button
-│   │   ├── TasbihPanel.jsx # Digital tasbih with SVG ring & history
-│   │   └── Toast.jsx       # Notification toast popup
-│   ├── data/
-│   │   └── azkar-data.json # Authentic Azkar database
-│   ├── App.jsx             # Root application state & router logic
-│   └── main.jsx            # Application entry point
-├── assets/
-│   ├── css/styles.css      # Core styles & themes
-│   └── Data/               # Original data backup
-├── index.html              # HTML template
-├── vite.config.js          # Vite configuration
-├── package.json            # Dependencies & scripts
-└── README.md               # Project documentation
-```
 
 ---
 

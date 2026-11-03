@@ -1,0 +1,25 @@
+{
+  "hash": "baa41e5f",
+  "configHash": "efe0dc66",
+  "lockfileHash": "d3dbf691",
+  "browserHash": "8ad2b18a",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "d9b37816",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "7979437d",
+      "needsInterop": true
+    }
+  },
+  "chunks": {
+    "chunk-GAETTYRR": {
+      "file": "chunk-GAETTYRR.js"
+    }
+  }
+}
