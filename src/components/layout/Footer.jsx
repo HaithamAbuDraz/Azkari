@@ -75,18 +75,18 @@ export default function Footer({ onShowToast, onSelectTab }) {
             </h4>
             <div className="flex flex-col gap-2">
               {NAV_ITEMS.map((item) => (
-                <button
+                <a
                   key={item.id}
-                  type="button"
-                  onClick={() => {
+                  href={`/${item.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
                     if (onSelectTab) onSelectTab(item.id);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="flex items-center gap-2 text-xs sm:text-sm text-text-muted hover:text-gold text-right transition cursor-pointer"
                 >
                   <i className={`${item.icon} text-xs w-4 text-center text-gold/70`}></i>
                   <span>{item.fullLabel || item.label}</span>
-                </button>
+                </a>
               ))}
             </div>
           </div>

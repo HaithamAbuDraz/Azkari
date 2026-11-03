@@ -32,7 +32,15 @@ export default function MobileNav({
         <div>
           {/* Top Brand Header & Close Button */}
           <div className="flex items-center justify-between pb-5 border-b border-border-theme/60 mb-6">
-            <div className="flex items-center gap-3">
+            <a
+              href="/morning"
+              onClick={(e) => {
+                e.preventDefault();
+                onSelectTab('morning');
+                onClose();
+              }}
+              className="flex items-center gap-3"
+            >
               <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold shadow-xs">
                 <svg
                   className="w-5 h-5"
@@ -49,7 +57,7 @@ export default function MobileNav({
                 <h3 className="font-bold text-lg text-text-main">أذكاري</h3>
                 <span className="text-xs text-text-muted">روضة الأذكار والأدعية</span>
               </div>
-            </div>
+            </a>
 
             <button
               type="button"
@@ -69,10 +77,11 @@ export default function MobileNav({
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.id;
               return (
-                <button
+                <a
                   key={item.id}
-                  type="button"
-                  onClick={() => {
+                  href={`/${item.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
                     onSelectTab(item.id);
                     onClose();
                   }}
@@ -97,7 +106,7 @@ export default function MobileNav({
                   {isActive && (
                     <i className="fas fa-check text-xs text-gold"></i>
                   )}
-                </button>
+                </a>
               );
             })}
           </div>

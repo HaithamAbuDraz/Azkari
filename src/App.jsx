@@ -1,46 +1,20 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import azkarData from './data/azkar-data.json';
 import { Header, MobileNav, Hero, Footer } from './components/layout';
 import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
 import { TasbihPanel } from './features/tasbih';
-import { useTheme, useToast, useFavorites } from './hooks';
+import { useTheme, useToast, useFavorites, useRouter } from './hooks';
 import { triggerHaptic } from './utils/haptics';
-import {
-  PANELS,
-  TAB_TITLES,
-  TAB_DESCRIPTIONS,
-  getDefaultTab,
-} from './constants/tabs';
+import { PANELS } from './constants/tabs';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(getDefaultTab);
+  const { currentRoute: activeTab, navigate: switchTab } = useRouter();
   const { theme, toggleTheme } = useTheme();
   const { toast, showToast, closeToast } = useToast();
-  const { favorites, toggleFavorite, isFavorite, favoritesCount } = useFavorites(showToast);
+  const { toggleFavorite, isFavorite, favoritesCount } = useFavorites(showToast);
   const [counters, setCounters] = useState({});
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-
-  const switchTab = useCallback((tab) => {
-    setActiveTab(tab);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Update document title
-    const mainTitle = 'أذكاري — روضة الأذكار والأدعية';
-    const subTitle = TAB_TITLES[tab];
-    document.title = subTitle ? `${mainTitle} | ${subTitle}` : mainTitle;
-
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription && TAB_DESCRIPTIONS[tab]) {
-      metaDescription.setAttribute('content', TAB_DESCRIPTIONS[tab]);
-    }
-  }, []);
-
-  // Sync title and description on mount
-  useEffect(() => {
-    switchTab(activeTab);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const decrementCounter = useCallback(
     (cardId, max) => {

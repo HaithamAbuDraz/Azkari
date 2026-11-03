@@ -15,7 +15,7 @@ export default function Header({
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Brand Identity / Logo */}
           <a
-            href="#"
+            href="/morning"
             aria-label="الصفحة الرئيسية — أذكاري"
             onClick={(e) => {
               e.preventDefault();
@@ -56,11 +56,14 @@ export default function Header({
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.id;
               return (
-                <button
+                <a
                   key={item.id}
-                  type="button"
+                  href={`/${item.id}`}
                   aria-current={isActive ? 'page' : undefined}
-                  onClick={() => onSelectTab(item.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSelectTab(item.id);
+                  }}
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 cursor-pointer select-none ${
                     isActive
                       ? 'bg-primary/15 text-primary border border-primary/30 font-semibold shadow-2xs'
@@ -73,7 +76,7 @@ export default function Header({
                     }`}
                   ></i>
                   <span>{item.label}</span>
-                </button>
+                </a>
               );
             })}
           </nav>
