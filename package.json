@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@tailwindcss/vite": "^4.3.4",
+    "tailwindcss": "^4.3.4"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

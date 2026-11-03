@@ -184,12 +184,11 @@ export default function TasbihPanel({ isActive, showToast }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isActive, increment, undoLast, resetTasbihCounter]);
 
-  // SVG ring strokeDashoffset calculation
   const pct = target > 0 ? count / target : 0;
   const strokeDashoffset = CIRCUMFERENCE * (1 - Math.min(pct, 1));
 
   return (
-    <section id="panel-tasbih" className="tasbih-panel active" role="tabpanel">
+    <section className="max-w-4xl mx-auto px-4 md:px-8 py-4" role="tabpanel">
       <DhikrSelector
         dhikrs={dhikrs}
         activeIdx={activeIdx}
@@ -209,20 +208,28 @@ export default function TasbihPanel({ isActive, showToast }) {
         ripples={ripples}
       />
 
-      <div className="controls" role="group" aria-label="أدوات التحكم">
-        <button className="ctrl-btn" onClick={undoLast}>
+      <div className="flex flex-wrap items-center justify-center gap-3 my-6" role="group" aria-label="أدوات التحكم">
+        <button
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold-bright hover:border-gold-bright/40 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          onClick={undoLast}
+        >
           <i className="fas fa-arrow-right"></i> تراجع
         </button>
-        <button className="ctrl-btn danger" onClick={resetTasbihCounter}>
+        <button
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/30 bg-bg-card text-rose-400 hover:text-rose-300 hover:border-rose-500/60 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          onClick={resetTasbihCounter}
+        >
           <i className="fas fa-undo-alt"></i> إعادة
         </button>
-        <button className="ctrl-btn" onClick={saveToHistory}>
+        <button
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold-bright hover:border-gold-bright/40 text-xs md:text-sm font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+          onClick={saveToHistory}
+        >
           <i className="fas fa-save"></i> حفظ
         </button>
-        <div className="custom-target-wrap">
-          <label htmlFor="customTarget">الهدف:</label>
+        <div className="flex items-center gap-2 bg-bg-card p-1.5 rounded-xl border border-border-theme text-xs md:text-sm shadow-sm">
+          <label htmlFor="customTarget" className="text-text-muted px-1">الهدف:</label>
           <input
-            className="custom-target-input"
             id="customTarget"
             type="number"
             min="1"
@@ -230,8 +237,12 @@ export default function TasbihPanel({ isActive, showToast }) {
             placeholder="33"
             value={customTargetInput}
             onChange={(e) => setCustomTargetInput(e.target.value)}
+            className="w-16 px-2.5 py-1 rounded-lg bg-bg-deep border border-border-theme text-text-main text-center text-sm font-bold focus:outline-none focus:border-gold-bright"
           />
-          <button className="set-target-btn" onClick={handleSetCustomTarget}>
+          <button
+            className="px-3.5 py-1.5 rounded-lg bg-gold-bright text-bg-deep font-bold text-xs hover:bg-gold-dim transition active:scale-95 cursor-pointer"
+            onClick={handleSetCustomTarget}
+          >
             تعيين
           </button>
         </div>

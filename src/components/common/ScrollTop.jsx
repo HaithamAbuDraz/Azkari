@@ -20,11 +20,13 @@ export default function ScrollTop() {
 
   return (
     <button
-      className={`scroll-top ${visible ? 'visible' : ''}`}
+      className={`fixed bottom-6 left-6 z-40 w-11 h-11 rounded-full bg-gold-bright text-bg-deep flex items-center justify-center shadow-xl hover:bg-gold-dim transition-all duration-300 active:scale-95 cursor-pointer ${
+        visible ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'
+      }`}
       onClick={scrollToTop}
       aria-label="العودة للأعلى"
     >
-      <i className="fas fa-arrow-up"></i>
+      <i className="fas fa-arrow-up text-sm"></i>
     </button>
   );
 }

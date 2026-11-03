@@ -97,7 +97,7 @@ export default function App() {
   );
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col font-tajawal text-text-main selection:bg-gold-bright/30">
       <Toast toast={toast} onClose={closeToast} />
 
       <MobileNav
@@ -117,7 +117,7 @@ export default function App() {
 
       <Hero activeTab={activeTab} />
 
-      <main id="main-content">
+      <main id="main-content" className="flex-1 py-4">
         {activeTab === 'tasbih' ? (
           <TasbihPanel isActive={true} showToast={showToast} />
         ) : (
@@ -143,6 +143,6 @@ export default function App() {
       <ScrollTop />
 
       <Footer onShowToast={showToast} />
-    </>
+    </div>
   );
 }

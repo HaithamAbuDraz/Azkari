@@ -20,7 +20,9 @@ export default function Toast({ toast, onClose }) {
 
   return (
     <div
-      className={`toast ${visible ? 'show' : ''}`}
+      className={`fixed top-20 left-1/2 -translate-x-1/2 z-50 px-6 py-2.5 rounded-full bg-bg-card border border-gold-dim text-gold-bright text-xs md:text-sm font-semibold shadow-2xl transition-all duration-300 flex items-center gap-2 pointer-events-none ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+      }`}
       role="alert"
       aria-live="polite"
       dangerouslySetInnerHTML={{ __html: content }}
