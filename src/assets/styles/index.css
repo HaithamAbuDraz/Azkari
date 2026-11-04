@@ -215,7 +215,221 @@ input[type='range'].tasbih-slider::-moz-range-thumb {
     box-shadow 0.15s ease;
 }
 
-/* Button pulse aura */
+/* ============================================================
+   ZIKR CARD — MOTION SYSTEM
+   All animations use transform/opacity only (no layout thrash).
+   Durations: 200–400ms micro, 400–600ms page transitions.
+   ============================================================ */
+
+/* ── Card entrance (staggered via --card-delay custom prop) ── */
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-enter {
+  animation: cardEnter 420ms cubic-bezier(0.25, 0, 0.1, 1) both;
+  animation-delay: var(--card-delay, 0ms);
+}
+
+/* ── Text/element stagger reveals ── */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-reveal {
+  animation: fadeSlideUp 350ms cubic-bezier(0, 0, 0.2, 1) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+/* ── Number roll: incoming (from above) ── */
+@keyframes numberRollIn {
+  from {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Number roll: outgoing (falls down) ── */
+@keyframes numberRollOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(60%);
+  }
+}
+
+.number-roll-in {
+  animation: numberRollIn 180ms cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+.number-roll-out {
+  animation: numberRollOut 160ms ease-in both;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ── Completion badge entrance ── */
+@keyframes badgeSettle {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.completion-badge-enter {
+  animation: badgeSettle 320ms cubic-bezier(0.34, 1.02, 0.64, 1) both;
+}
+
+/* ── Completion shimmer: single horizontal light sweep ── */
+@keyframes shimmerPass {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.card-completion-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-completion-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(197, 161, 91, 0.09) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmerPass 700ms ease-out 200ms 1 forwards;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Completion card border glow ── */
+@keyframes completionGlow {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  40% {
+    box-shadow:
+      0 0 0 2px var(--gold),
+      0 0 18px 2px var(--gold-glow);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1.5px var(--gold-dim),
+      0 0 6px 0 var(--gold-glow);
+  }
+}
+
+.card-completion-glow {
+  animation: completionGlow 1800ms cubic-bezier(0.25, 0, 0.1, 1) forwards;
+}
+
+/* ── Milestone ring glow pulse (25 / 50 / 75%) ── */
+@keyframes milestoneGlow {
+  0% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(197, 161, 91, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.milestone-pulse {
+  animation: milestoneGlow 400ms ease-in-out 1;
+}
+
+/* ── Favorite button: scale bounce on toggle ── */
+@keyframes heartBounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.35);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.favorite-bounce {
+  animation: heartBounce 300ms cubic-bezier(0.25, 0, 0.1, 1);
+}
+
+/* ── Reset button attention flash (after any decrement) ── */
+@keyframes resetFlash {
+  0%,
+  100% {
+    color: var(--text-muted);
+  }
+  50% {
+    color: var(--gold);
+  }
+}
+
+.reset-flash {
+  animation: resetFlash 300ms ease-in-out 2;
+}
+
+/* ── Session-complete toast slide-in from bottom ── */
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toastSlideUp 400ms cubic-bezier(0.25, 0, 0.1, 1) both;
+}
+
+/* ── Button pulse aura ── */
 @keyframes tasbihGlow {
   0%,
   100% {
@@ -232,4 +446,67 @@ input[type='range'].tasbih-slider::-moz-range-thumb {
 
 .tasbih-glow-aura {
   animation: tasbihGlow 4s ease-in-out infinite;
+}
+
+/* ============================================================
+   REDUCED MOTION — Override all animations
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .card-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .text-reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .number-roll-in,
+  .number-roll-out {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .completion-badge-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .card-completion-shimmer::after {
+    display: none !important;
+  }
+
+  .card-completion-glow {
+    animation: none !important;
+    box-shadow: 0 0 0 1.5px var(--gold-dim) !important;
+  }
+
+  .milestone-pulse {
+    animation: none !important;
+  }
+
+  .favorite-bounce {
+    animation: none !important;
+  }
+
+  .reset-flash {
+    animation: none !important;
+  }
+
+  .toast-enter {
+    animation: none !important;
+  }
+
+  .ripple {
+    display: none !important;
+  }
+
+  .tasbih-glow-aura {
+    animation: none !important;
+  }
 }
