@@ -42,6 +42,9 @@ export function useAzkarCounters(showToast) {
         const nextCounters = { ...prev, [cardId]: nextVal };
 
         if (nextVal === 0) {
+          // Single-card completion haptic: two gentle pulses
+          triggerHaptic([20, 60, 20]);
+
           const list = azkarData[tabKey] || [];
           const allDone = list.every((item, idx) => {
             const id = `${tabKey}-${idx}`;
@@ -50,8 +53,10 @@ export function useAzkarCounters(showToast) {
           });
 
           if (allDone && list.length > 0) {
+            // Full-session completion — richer haptic pattern
+            setTimeout(() => triggerHaptic([30, 80, 30, 80, 60]), 350);
             showToast(
-              'ما شاء الله! اكتملت جميع الأذكار في هذا القسم <i class="fas fa-trophy text-gold"></i>'
+              'ما شاء الله! اكتملت جميع الأذكار في هذا القسم <i class="fas fa-check-circle text-gold"></i>'
             );
           } else {
             showToast(
