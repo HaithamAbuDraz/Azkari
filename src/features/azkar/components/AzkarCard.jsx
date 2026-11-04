@@ -1,5 +1,127 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { triggerHaptic } from '../../../utils/haptics';
 
+/* ─────────────────────────────────────────────────────────────
+   RollingNumber
+   Animated slot-machine counter: old number falls out downward,
+   new number enters from above. Pure CSS keyframes, state-first.
+───────────────────────────────────────────────────────────── */
+function RollingNumber({ value }) {
+  const [current, setCurrent] = useState(value);
+  const [previous, setPrevious] = useState(null);
+  const [animKey, setAnimKey] = useState(0);
+
+  useEffect(() => {
+    if (value === current) return;
+    setPrevious(current);
+    setCurrent(value);
+    setAnimKey((k) => k + 1);
+    // Clear the outgoing ghost after its 160ms exit animation
+    const t = setTimeout(() => setPrevious(null), 170);
+    return () => clearTimeout(t);
+  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    // overflow:hidden clips the outgoing/incoming numbers so they don't
+    // bleed outside the counter cell. Height is fixed to 1.3em so the
+    // surrounding layout never shifts during the roll.
+    <span
+      className='relative inline-flex items-center justify-center overflow-hidden'
+      style={{ height: '1.3em', minWidth: '1.5ch' }}
+      aria-live='polite'
+      aria-label={`المتبقي ${value}`}>
+      {/* Outgoing number — falls downward */}
+      {previous !== null && (
+        <span
+          key={`out-${animKey}`}
+          className='number-roll-out'
+          aria-hidden='true'>
+          {previous}
+        </span>
+      )}
+      {/* Incoming number — enters from above */}
+      <span
+        key={`in-${animKey}`}
+        className='number-roll-in'>
+        {current}
+      </span>
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   useRipple
+   Spawns and auto-cleans ripple elements inside a container ref.
+   Skips intermediate ripples on rapid taps (< 150ms apart).
+───────────────────────────────────────────────────────────── */
+function useRipple(containerRef) {
+  const lastRippleTime = useRef(0);
+
+  const spawnRipple = useCallback(
+    (e) => {
+      if (!containerRef.current) return;
+      const now = Date.now();
+      // Throttle: skip ripple if previous one was < 150ms ago (rapid tapping)
+      if (now - lastRippleTime.current < 150) return;
+      lastRippleTime.current = now;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const clientX =
+        e.clientX ?? e.touches?.[0]?.clientX ?? rect.left + rect.width / 2;
+      const clientY =
+        e.clientY ?? e.touches?.[0]?.clientY ?? rect.top + rect.height / 2;
+
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      const SIZE = 48;
+
+      const el = document.createElement('span');
+      el.className = 'ripple';
+      el.style.cssText = `
+        left: ${x}px;
+        top: ${y}px;
+        width: ${SIZE}px;
+        height: ${SIZE}px;
+        margin-left: -${SIZE / 2}px;
+        margin-top: -${SIZE / 2}px;
+        background: var(--gold-glow);
+      `;
+      containerRef.current.appendChild(el);
+      el.addEventListener('animationend', () => el.remove(), { once: true });
+    },
+    [containerRef]
+  );
+
+  return spawnRipple;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   useMilestone
+   Returns a CSS class to trigger a glow pulse on the progress
+   container when the user crosses 25 / 50 / 75% thresholds.
+───────────────────────────────────────────────────────────── */
+function useMilestone(progressPercent) {
+  const [glowKey, setGlowKey] = useState(0);
+  const prevPct = useRef(0);
+
+  useEffect(() => {
+    const milestones = [25, 50, 75];
+    const crossed = milestones.some(
+      (m) => prevPct.current < m && progressPercent >= m
+    );
+    if (crossed) {
+      setGlowKey((k) => k + 1);
+      triggerHaptic(12);
+    }
+    prevPct.current = progressPercent;
+  }, [progressPercent]);
+
+  return glowKey;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   AzkarCard
+───────────────────────────────────────────────────────────── */
 export default function AzkarCard({
   zikr,
   index,
@@ -13,6 +135,14 @@ export default function AzkarCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [isLargeFont, setIsLargeFont] = useState(false);
+  const [favBounceKey, setFavBounceKey] = useState(0);
+  const [resetFlashKey, setResetFlashKey] = useState(0);
+  const [showResetHint, setShowResetHint] = useState(false);
+  const resetHintTimer = useRef(null);
+
+  // Refs
+  const cardRef = useRef(null);
+  const decrementBtnRef = useRef(null);
 
   const isDone = remaining === 0;
   const hasStarted = remaining < zikr.count && remaining > 0;
@@ -20,57 +150,122 @@ export default function AzkarCard({
     zikr.count > 0 ? (zikr.count - remaining) / zikr.count : 0;
   const progressPercent = Math.round(progressRatio * 100);
 
-  const handleCardClick = (e) => {
-    // Avoid triggering when user clicks buttons, links, or inputs
-    if (
-      e.target.closest('button') ||
-      e.target.closest('a') ||
-      e.target.closest('input')
-    ) {
-      return;
-    }
-    if (isDone) return;
-    onDecrement(cardId, zikr.count);
-  };
+  // Ripple hooks — one for the whole card body, one for the decrement btn
+  const spawnCardRipple = useRipple(cardRef);
+  const spawnBtnRipple = useRipple(decrementBtnRef);
 
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    let textToCopy = `${zikr.arabic}\n\n[المصدر: ${zikr.source}]`;
-    if (zikr.benefit) {
-      textToCopy += `\n[الفضل: ${zikr.benefit}]`;
-    }
+  // Milestone glow
+  const milestoneKey = useMilestone(progressPercent);
 
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        setCopied(true);
-        if (onShowToast) {
-          onShowToast(
-            'تم نسخ الذكر إلى الحافظة <i class="fas fa-check text-gold"></i>'
-          );
-        }
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
+  /* ── Tap handler: state-first, then animation ── */
+  const handleCardClick = useCallback(
+    (e) => {
+      if (
+        e.target.closest('button') ||
+        e.target.closest('a') ||
+        e.target.closest('input')
+      )
+        return;
+      if (isDone) return;
+      onDecrement(cardId, zikr.count);
+      spawnCardRipple(e);
+      // Show reset hint for 2s after any decrement
+      setShowResetHint(true);
+      clearTimeout(resetHintTimer.current);
+      resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
+    },
+    [isDone, cardId, zikr.count, onDecrement, spawnCardRipple]
+  );
 
-  const handleFavoriteClick = (e) => {
-    e.stopPropagation();
-    if (onToggleFavorite) {
-      onToggleFavorite(cardId);
-    }
-  };
+  const handleDecrementBtn = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (isDone) return;
+      onDecrement(cardId, zikr.count);
+      spawnBtnRipple(e);
+      setShowResetHint(true);
+      clearTimeout(resetHintTimer.current);
+      resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
+    },
+    [isDone, cardId, zikr.count, onDecrement, spawnBtnRipple]
+  );
+
+  /* ── Copy ── */
+  const handleCopy = useCallback(
+    (e) => {
+      e.stopPropagation();
+      let textToCopy = `${zikr.arabic}\n\n[المصدر: ${zikr.source}]`;
+      if (zikr.benefit) textToCopy += `\n[الفضل: ${zikr.benefit}]`;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          setCopied(true);
+          if (onShowToast) {
+            onShowToast(
+              'تم نسخ الذكر إلى الحافظة <i class="fas fa-check text-gold"></i>'
+            );
+          }
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }
+    },
+    [zikr, onShowToast]
+  );
+
+  /* ── Favorite ── */
+  const handleFavoriteClick = useCallback(
+    (e) => {
+      e.stopPropagation();
+      if (onToggleFavorite) {
+        onToggleFavorite(cardId);
+        setFavBounceKey((k) => k + 1);
+        triggerHaptic([15, 40]);
+      }
+    },
+    [cardId, onToggleFavorite]
+  );
+
+  /* ── Reset ── */
+  const handleReset = useCallback(
+    (e) => {
+      e.stopPropagation();
+      onReset(cardId, zikr.count);
+      setResetFlashKey((k) => k + 1);
+      setShowResetHint(false);
+    },
+    [cardId, zikr.count, onReset]
+  );
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(resetHintTimer.current);
+  }, []);
 
   return (
     <article
+      ref={cardRef}
       id={`card-${cardId}`}
       aria-label={`الذكر رقم ${index + 1}`}
       onClick={handleCardClick}
-      className={`group relative p-5 sm:p-6 rounded-2xl bg-bg-card border transition-all duration-300 flex flex-col justify-between select-none ${
+      className={[
+        // ── Card entrance stagger: each card delays by its index ──
+        'card-enter',
+        // ── Completion animations ──
+        isDone ? 'card-completion-shimmer card-completion-glow' : '',
+        // ── Base card styles ──
+        'group relative p-5 sm:p-6 rounded-2xl bg-bg-card border',
+        'transition-colors duration-300 flex flex-col justify-between select-none',
         isDone
-          ? 'border-sage/40 bg-primary-light/10 shadow-xs cursor-default'
-          : 'border-border-theme hover:border-gold/50 hover:shadow-md cursor-pointer'
-      }`}>
-      {/* Top Header: Dhikr Number, Repeat Tag & Action Buttons */}
+          ? 'border-gold/30 bg-primary-light/10 shadow-xs cursor-default'
+          : 'border-border-theme hover:border-gold/50 hover:shadow-md cursor-pointer',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={{
+        // Stagger each card's entrance by 60ms per index (capped at 360ms)
+        '--card-delay': `${Math.min(index * 60, 360)}ms`,
+      }}>
+      {/* ── Top Header ── */}
       <div className='flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border-theme/40'>
         <div className='flex items-center gap-2'>
           {/* Dhikr Number Badge */}
@@ -83,12 +278,12 @@ export default function AzkarCard({
           </span>
         </div>
 
-        {/* Action icons: Font size, Copy, Favorite */}
+        {/* Action icons — hit areas extended to ≥ 48dp via -m-1 p-1 */}
         <div
-          className='flex items-center gap-1.5'
+          className='flex items-center gap-1'
           role='group'
           aria-label='إجراءات الذكر'>
-          {/* Font scale toggle */}
+          {/* Font scale toggle — 48dp hit area */}
           <button
             type='button'
             onClick={(e) => {
@@ -97,46 +292,55 @@ export default function AzkarCard({
             }}
             title={isLargeFont ? 'تصغير الخط' : 'تكبير الخط'}
             aria-label={isLargeFont ? 'تصغير الخط' : 'تكبير الخط'}
-            className='w-8 h-8 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-elevated flex items-center justify-center text-xs transition cursor-pointer'>
+            className='w-8 h-8 -m-1 p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-bg-elevated flex items-center justify-center text-xs transition cursor-pointer'
+            style={{ touchAction: 'manipulation' }}>
             <span className='font-bold text-xs'>
               {isLargeFont ? 'A-' : 'A+'}
             </span>
           </button>
 
-          {/* Copy Button */}
+          {/* Copy Button — 48dp hit area */}
           <button
             type='button'
             onClick={handleCopy}
             title='نسخ نص الذكر'
             aria-label='نسخ نص الذكر'
-            className='w-8 h-8 rounded-lg text-text-muted hover:text-gold hover:bg-gold/10 flex items-center justify-center text-xs transition cursor-pointer'>
+            className='w-8 h-8 -m-1 p-1 rounded-lg text-text-muted hover:text-gold hover:bg-gold/10 flex items-center justify-center text-xs transition cursor-pointer'
+            style={{ touchAction: 'manipulation' }}>
             <i
               className={copied ? 'fas fa-check text-gold' : 'far fa-copy'}></i>
           </button>
 
-          {/* Favorite Button */}
+          {/* Favorite Button — 48dp hit area + bounce animation */}
           <button
             type='button'
             onClick={handleFavoriteClick}
             title={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
             aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs transition cursor-pointer ${
+            className={`w-8 h-8 -m-1 p-1 rounded-lg flex items-center justify-center text-xs transition cursor-pointer ${
               isFavorite
                 ? 'text-rose-500 bg-rose-500/10'
                 : 'text-text-muted hover:text-rose-500 hover:bg-rose-500/10'
-            }`}>
+            }`}
+            style={{ touchAction: 'manipulation' }}>
             <i
-              className={
-                isFavorite ? 'fas fa-heart text-rose-500' : 'far fa-heart'
-              }></i>
+              key={favBounceKey}
+              className={[
+                isFavorite ? 'fas fa-heart text-rose-500' : 'far fa-heart',
+                favBounceKey > 0 ? 'favorite-bounce' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}></i>
           </button>
         </div>
       </div>
 
-      {/* Primary Visual Focus: Arabic Dhikr Text */}
-      <div className='my-2'>
+      {/* ── Arabic Text — staggered fade-in ── */}
+      <div
+        className='my-2 text-reveal'
+        style={{ '--reveal-delay': '80ms' }}>
         <p
-          className={`font-amiri text-text-arabic text-right leading-[2.2] tracking-wide transition-all ${
+          className={`font-amiri text-text-arabic text-right leading-[2.2] tracking-wide transition-[font-size] duration-200 ease-out ${
             isLargeFont
               ? 'text-2xl sm:text-3xl'
               : 'text-lg sm:text-xl md:text-2xl'
@@ -147,9 +351,11 @@ export default function AzkarCard({
         </p>
       </div>
 
-      {/* Hadith Benefit / Explanation Box */}
+      {/* ── Benefit / Fadl box — staggered ── */}
       {zikr.benefit && (
-        <div className='my-3.5 p-3.5 rounded-xl bg-bg-elevated/75 border border-border-theme/60 text-xs sm:text-sm text-text-muted leading-relaxed text-right'>
+        <div
+          className='my-3.5 p-3.5 rounded-xl bg-bg-elevated/75 border border-border-theme/60 text-xs sm:text-sm text-text-muted leading-relaxed text-right text-reveal'
+          style={{ '--reveal-delay': '160ms' }}>
           <div className='flex items-center gap-1.5 text-gold font-semibold mb-1 text-xs'>
             <i className='fas fa-sparkles text-[10px]'></i>
             <span>الشرح والفضل:</span>
@@ -158,32 +364,38 @@ export default function AzkarCard({
         </div>
       )}
 
-      {/* Bottom Footer: Source & Interactive Counter */}
-      <div className='mt-4 pt-3.5 border-t border-border-theme/50 flex flex-wrap items-center justify-between gap-3'>
+      {/* ── Bottom Footer ── */}
+      <div
+        className='mt-4 pt-3.5 border-t border-border-theme/50 flex flex-wrap items-center justify-between gap-3 text-reveal'
+        style={{ '--reveal-delay': '220ms' }}>
         {/* Source attribution */}
         <div className='flex items-center gap-1.5 text-[11px] sm:text-xs text-text-muted bg-bg-elevated/70 px-2.5 py-1 rounded-lg border border-border-theme/50 max-w-[200px] sm:max-w-xs truncate'>
           <i className='fas fa-book-open text-gold/70 text-[10px] shrink-0'></i>
           <span className='truncate'>{zikr.source}</span>
         </div>
 
-        {/* Counter & Status Module */}
+        {/* Counter & Status */}
         <div className='flex items-center gap-2'>
-          {/* Subtle completion indicator badge */}
+          {/* Completion badge */}
           {isDone ? (
-            <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
+            <div className='completion-badge-enter inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
               <i className='fas fa-check-circle text-xs text-gold'></i>
               <span>اكتمل بحمد الله</span>
             </div>
           ) : (
-            /* Progress indicator shown ONLY when the user has started the zikr */
-            hasStarted && zikr.count > 1 && (
+            /* Progress indicator — shown once user has started */
+            hasStarted &&
+            zikr.count > 1 && (
               <div
-                className='inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-bg-elevated/90 border border-border-theme/70 shadow-2xs transition-all duration-300'
+                key={milestoneKey}
+                className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-bg-elevated/90 border border-border-theme/70 shadow-2xs transition-all duration-300 ${
+                  milestoneKey > 0 ? 'milestone-pulse' : ''
+                }`}
                 title={`التقدم: ${zikr.count - remaining} من ${zikr.count} (${progressPercent}%)`}
                 aria-label={`نسبة الإنجاز: ${progressPercent}%`}>
                 <div className='w-14 sm:w-20 h-1.5 rounded-full bg-border-theme/40 overflow-hidden'>
                   <div
-                    className='h-full bg-gradient-to-l from-gold to-primary rounded-full transition-all duration-300'
+                    className='h-full bg-gradient-to-l from-gold to-primary rounded-full transition-all duration-300 ease-out'
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -199,56 +411,68 @@ export default function AzkarCard({
             className='relative flex items-center gap-1 bg-bg-elevated p-1 rounded-xl border border-border-theme/70 overflow-hidden'
             role='group'
             aria-label='أداة عد الذكر'>
-            {/* Hairline progress indicator on bottom of counter pill */}
+            {/* Hairline progress indicator at bottom of counter pill */}
             {hasStarted && !isDone && (
               <div className='absolute bottom-0 inset-x-0 h-[2px] bg-border-theme/30 overflow-hidden pointer-events-none'>
                 <div
-                  className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300'
+                  className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300 ease-out'
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
             )}
-            {/* Decrement Counter Button */}
+
+            {/* Decrement button — 48dp+ hit area via min-w / h-10 */}
             <button
+              ref={decrementBtnRef}
               type='button'
               disabled={isDone}
-              onClick={(e) => {
-                e.stopPropagation();
-                onDecrement(cardId, zikr.count);
-              }}
+              onClick={handleDecrementBtn}
               aria-label={`إنقاص عداد الذكر. المتبقي: ${remaining}`}
-              className={`min-w-[2.25rem] h-9 px-2.5 rounded-lg font-bold text-sm flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
+              className={`relative min-w-[2.75rem] h-10 px-2.5 rounded-lg font-bold text-sm flex items-center justify-center transition-all cursor-pointer overflow-hidden active:scale-[0.92] ${
                 isDone
                   ? 'bg-transparent text-text-muted opacity-40 cursor-not-allowed'
                   : 'bg-primary/20 text-primary hover:bg-primary/30 border border-primary/30 shadow-2xs'
-              }`}>
+              }`}
+              style={{ touchAction: 'manipulation' }}>
               <span className='font-mono text-base font-bold'>−</span>
             </button>
 
-            {/* Remaining / Target Count */}
+            {/* Remaining / Target — rolling number */}
             <div
               className='min-w-[3.5rem] px-2 text-center text-xs sm:text-sm font-bold font-mono text-text-main'
-              aria-live='polite'
-              aria-label={`المتبقي ${remaining} من ${zikr.count}`}>
+              aria-hidden='true' /* RollingNumber has its own aria-live */
+            >
               <span
-                className={remaining === 0 ? 'text-gold' : 'text-text-main'}>
-                {remaining}
+                className={
+                  remaining === 0
+                    ? 'text-gold transition-colors duration-180'
+                    : 'text-text-main'
+                }>
+                {remaining === 0 ? (
+                  <span className='text-gold'>-</span>
+                ) : (
+                  <RollingNumber value={remaining} />
+                )}
               </span>
               <span className='text-text-muted text-[10px] mx-1'>/</span>
               <span className='text-text-muted text-[11px]'>{zikr.count}</span>
             </div>
 
-            {/* Reset Card Counter Button */}
+            {/* Reset button — 48dp hit area, attention flash after decrement */}
             <button
               type='button'
-              onClick={(e) => {
-                e.stopPropagation();
-                onReset(cardId, zikr.count);
-              }}
+              onClick={handleReset}
               aria-label='إعادة تعيين هذا الذكر'
               title='إعادة تعيين هذا الذكر'
-              className='w-9 h-9 rounded-lg text-text-muted hover:text-gold hover:bg-gold/10 flex items-center justify-center text-xs transition cursor-pointer active:scale-95'>
-              <i className='fas fa-rotate-left'></i>
+              className={`relative w-10 h-10 rounded-lg flex items-center justify-center text-xs transition cursor-pointer active:scale-95 ${
+                showResetHint
+                  ? 'text-gold bg-gold/10 border border-gold/30'
+                  : 'text-text-muted hover:text-gold hover:bg-gold/10'
+              }`}
+              style={{ touchAction: 'manipulation' }}>
+              <i
+                key={resetFlashKey}
+                className={`fas fa-rotate-left ${resetFlashKey > 0 && showResetHint ? 'reset-flash' : ''}`}></i>
             </button>
           </div>
         </div>

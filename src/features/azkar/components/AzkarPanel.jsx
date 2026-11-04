@@ -219,13 +219,13 @@ export default function AzkarPanel({
         </div>
       ) : (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6'>
-          {filteredItems.map(({ zikr, originalIdx, cardId }) => {
+          {filteredItems.map(({ zikr, originalIdx, cardId }, filteredIndex) => {
             const remaining = counters[cardId] ?? zikr.count;
             return (
               <AzkarCard
                 key={cardId}
                 zikr={zikr}
-                index={originalIdx}
+                index={filteredIndex}
                 cardId={cardId}
                 remaining={remaining}
                 onDecrement={onDecrement}
