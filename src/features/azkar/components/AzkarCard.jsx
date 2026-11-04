@@ -167,23 +167,11 @@ export default function AzkarCard({
         {/* Counter & Status Module */}
         <div className='flex items-center gap-2'>
           {/* Subtle completion indicator badge */}
-          {isDone ? (
+          {isDone && (
             <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
               <i className='fas fa-check-circle text-xs text-gold'></i>
               <span>اكتمل بحمد الله</span>
             </div>
-          ) : (
-            /* Progress bar mini indicator */
-            zikr.count > 1 && (
-              <div
-                className='w-12 sm:w-16 h-1.5 rounded-full bg-bg-elevated overflow-hidden border border-border-theme/40'
-                title={`التقدم: ${zikr.count - remaining} من ${zikr.count}`}>
-                <div
-                  className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300'
-                  style={{ width: `${Math.round(progressRatio * 100)}%` }}
-                />
-              </div>
-            )
           )}
 
           {/* Interactive Counter Controls */}
