@@ -15,8 +15,10 @@ export default function AzkarCard({
   const [isLargeFont, setIsLargeFont] = useState(false);
 
   const isDone = remaining === 0;
+  const hasStarted = remaining < zikr.count && remaining > 0;
   const progressRatio =
     zikr.count > 0 ? (zikr.count - remaining) / zikr.count : 0;
+  const progressPercent = Math.round(progressRatio * 100);
 
   const handleCardClick = (e) => {
     // Avoid triggering when user clicks buttons, links, or inputs
@@ -167,18 +169,45 @@ export default function AzkarCard({
         {/* Counter & Status Module */}
         <div className='flex items-center gap-2'>
           {/* Subtle completion indicator badge */}
-          {isDone && (
+          {isDone ? (
             <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
               <i className='fas fa-check-circle text-xs text-gold'></i>
               <span>اكتمل بحمد الله</span>
             </div>
+          ) : (
+            /* Progress indicator shown ONLY when the user has started the zikr */
+            hasStarted && zikr.count > 1 && (
+              <div
+                className='inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-bg-elevated/90 border border-border-theme/70 shadow-2xs transition-all duration-300'
+                title={`التقدم: ${zikr.count - remaining} من ${zikr.count} (${progressPercent}%)`}
+                aria-label={`نسبة الإنجاز: ${progressPercent}%`}>
+                <div className='w-14 sm:w-20 h-1.5 rounded-full bg-border-theme/40 overflow-hidden'>
+                  <div
+                    className='h-full bg-gradient-to-l from-gold to-primary rounded-full transition-all duration-300'
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <span className='font-mono text-[10px] sm:text-[11px] font-bold text-gold'>
+                  {progressPercent}%
+                </span>
+              </div>
+            )
           )}
 
           {/* Interactive Counter Controls */}
           <div
-            className='flex items-center gap-1 bg-bg-elevated p-1 rounded-xl border border-border-theme/70'
+            className='relative flex items-center gap-1 bg-bg-elevated p-1 rounded-xl border border-border-theme/70 overflow-hidden'
             role='group'
             aria-label='أداة عد الذكر'>
+            {/* Hairline progress indicator on bottom of counter pill */}
+            {hasStarted && !isDone && (
+              <div className='absolute bottom-0 inset-x-0 h-[2px] bg-border-theme/30 overflow-hidden pointer-events-none'>
+                <div
+                  className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300'
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            )}
             {/* Decrement Counter Button */}
             <button
               type='button'
