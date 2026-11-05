@@ -377,33 +377,11 @@ export default function AzkarCard({
         {/* Counter & Status */}
         <div className='flex items-center gap-2'>
           {/* Completion badge */}
-          {isDone ? (
+          {isDone && (
             <div className='completion-badge-enter inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
               <i className='fas fa-check-circle text-xs text-gold'></i>
               <span>اكتمل بحمد الله</span>
             </div>
-          ) : (
-            /* Progress indicator — shown once user has started */
-            hasStarted &&
-            zikr.count > 1 && (
-              <div
-                key={milestoneKey}
-                className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-bg-elevated/90 border border-border-theme/70 shadow-2xs transition-all duration-300 ${
-                  milestoneKey > 0 ? 'milestone-pulse' : ''
-                }`}
-                title={`التقدم: ${zikr.count - remaining} من ${zikr.count} (${progressPercent}%)`}
-                aria-label={`نسبة الإنجاز: ${progressPercent}%`}>
-                <div className='w-14 sm:w-20 h-1.5 rounded-full bg-border-theme/40 overflow-hidden'>
-                  <div
-                    className='h-full bg-gradient-to-l from-gold to-primary rounded-full transition-all duration-300 ease-out'
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-                <span className='font-mono text-[10px] sm:text-[11px] font-bold text-gold'>
-                  {progressPercent}%
-                </span>
-              </div>
-            )
           )}
 
           {/* Interactive Counter Controls */}
@@ -415,7 +393,9 @@ export default function AzkarCard({
             {hasStarted && !isDone && (
               <div className='absolute bottom-0 inset-x-0 h-[2px] bg-border-theme/30 overflow-hidden pointer-events-none'>
                 <div
-                  className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300 ease-out'
+                  className={`h-full bg-gradient-to-l from-gold to-primary transition-all duration-300 ease-out ${
+                    milestoneKey > 0 ? 'milestone-pulse' : ''
+                  }`}
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
