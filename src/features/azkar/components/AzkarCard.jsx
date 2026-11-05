@@ -337,10 +337,10 @@ export default function AzkarCard({
 
       {/* ── Arabic Text — staggered fade-in ── */}
       <div
-        className='my-2 text-reveal'
+        className='my-auto py-2 text-reveal text-center'
         style={{ '--reveal-delay': '80ms' }}>
         <p
-          className={`font-amiri text-text-arabic text-right leading-[2.2] tracking-wide transition-[font-size] duration-200 ease-out ${
+          className={`font-amiri text-text-arabic text-center leading-[2.2] tracking-wide transition-[font-size] duration-200 ease-out ${
             isLargeFont
               ? 'text-2xl sm:text-3xl'
               : 'text-lg sm:text-xl md:text-2xl'
