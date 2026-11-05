@@ -112,8 +112,34 @@ export default function Header({
               type='button'
               onClick={onOpenMobileNav}
               aria-label='فتح قائمة التنقل'
-              className='lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-border-theme bg-bg-card text-text-main hover:border-gold/40 hover:bg-bg-elevated transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60'>
-              <i className='fas fa-bars-staggered text-base'></i>
+              className='lg:hidden flex items-center justify-center w-10 h-10 rounded-xl border border-border-theme bg-bg-card text-text-main hover:text-gold hover:border-gold/40 hover:bg-bg-elevated active:scale-95 transition-all duration-200 cursor-pointer shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60'>
+              <svg
+                className='w-5 h-5'
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth='2'
+                strokeLinecap='round'
+                strokeLinejoin='round'>
+                <line
+                  x1='4'
+                  y1='6.5'
+                  x2='20'
+                  y2='6.5'
+                />
+                <line
+                  x1='4'
+                  y1='12'
+                  x2='20'
+                  y2='12'
+                />
+                <line
+                  x1='4'
+                  y1='17.5'
+                  x2='20'
+                  y2='17.5'
+                />
+              </svg>
             </button>
           </div>
         </div>
