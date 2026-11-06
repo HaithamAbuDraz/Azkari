@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15271f"/>
+      <stop offset="50%" stop-color="#0f1c16"/>
+      <stop offset="100%" stop-color="#09120e"/>
+    </linearGradient>
+
+    <!-- Subtle Border Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2c589" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#c5a15b" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#9e7d3f" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <!-- Rich Gold Emblem Gradient -->
+    <linearGradient id="goldGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#f5e0aa"/>
+      <stop offset="35%" stop-color="#e0be77"/>
+      <stop offset="70%" stop-color="#c5a15b"/>
+      <stop offset="100%" stop-color="#ab873e"/>
+    </linearGradient>
+
+    <!-- Center Radial Glow -->
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c5a15b" stop-opacity="0.32"/>
+      <stop offset="45%" stop-color="#c5a15b" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#c5a15b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- Outer Border -->
+  <rect x="6" y="6" width="500" height="500" rx="106" fill="none" stroke="url(#borderGrad)" stroke-width="6"/>
+
+  <!-- Radial Glow Behind Star -->
+  <circle cx="256" cy="256" r="185" fill="url(#goldGlow)"/>
+
+  <!-- The Exact Header Islamic Star Emblem -->
+  <polygon
+    points="256,106 290.62,175.23 367.06,144.94 336.77,221.39 406,256 336.77,290.62 367.06,367.06 290.62,336.77 256,406 221.38,336.77 144.94,367.06 175.23,290.62 106,256 175.23,221.39 144.94,144.94 221.38,175.23"
+    fill="none"
+    stroke="url(#goldGrad)"
+    stroke-width="26"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Center Circle -->
+  <circle
+    cx="256"
+    cy="256"
+    r="36"
+    fill="url(#goldGrad)"
+  />
+</svg>
