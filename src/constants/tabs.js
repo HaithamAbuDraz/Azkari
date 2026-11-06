@@ -49,6 +49,13 @@ export const NAV_ITEMS = [
     fullLabel: 'التسبيح الرقمي',
     icon: 'fas fa-hands-praying',
   },
+  {
+    id: 'prayers',
+    path: '/prayers',
+    label: 'المواقيت',
+    fullLabel: 'مواقيت الصلاة والقبلة',
+    icon: 'fas fa-mosque',
+  },
 ];
 
 export const VALID_ROUTES = [
@@ -58,6 +65,7 @@ export const VALID_ROUTES = [
   'sleep',
   'various',
   'tasbih',
+  'prayers',
 ];
 
 export const TAB_TITLES = {
@@ -67,6 +75,7 @@ export const TAB_TITLES = {
   sleep: 'أذكار النوم',
   various: 'أذكار متنوعة',
   tasbih: 'التسبيح الرقمي',
+  prayers: 'مواقيت الصلاة والقبلة',
 };
 
 export const TAB_DESCRIPTIONS = {
@@ -82,6 +91,8 @@ export const TAB_DESCRIPTIONS = {
     'أذكار متنوعة - مجموعة من الأذكار والأدعية الإسلامية لجميع المناسبات اليومية.',
   tasbih:
     'التسبيح الرقمي - عداد تسبيح إلكتروني لتسبيح الله وذكر الله. سبحان الله وبحمده، سبحان الله العظيم.',
+  prayers:
+    'مواقيت الصلاة اليومية، العد التنازلي للصلاة القادمة، اتجاه القبلة والتقويم الهجري بدقة حسب موقعك الجغرافي.',
 };
 
 export function getDefaultTab() {

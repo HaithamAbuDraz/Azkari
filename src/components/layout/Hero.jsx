@@ -4,6 +4,7 @@ import { useClock } from '../../hooks';
 export default function Hero({ activeTab }) {
   const clock = useClock();
   const isTasbih = activeTab === 'tasbih';
+  const isPrayers = activeTab === 'prayers';
 
   return (
     <section
@@ -35,27 +36,37 @@ export default function Hero({ activeTab }) {
       <div className='inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium bg-gold/10 border border-gold/25 text-gold mb-3 shadow-2xs'>
         <i
           className={
-            isTasbih
-              ? 'fas fa-hands-praying text-[11px]'
-              : 'fas fa-heart text-[11px]'
+            isPrayers
+              ? 'fas fa-mosque text-[11px]'
+              : isTasbih
+                ? 'fas fa-hands-praying text-[11px]'
+                : 'fas fa-heart text-[11px]'
           }></i>
         <span className='font-tajawal'>
-          {isTasbih
-            ? 'فَسَبِّحْ بِحَمْدِ رَبِّكَ وَكُن مِّنَ السَّاجِدِينَ'
-            : 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
+          {isPrayers
+            ? 'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا'
+            : isTasbih
+              ? 'فَسَبِّحْ بِحَمْدِ رَبِّكَ وَكُن مِّنَ السَّاجِدِينَ'
+              : 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
         </span>
       </div>
 
       {/* Main Spiritual Heading */}
       <h1 className='text-3xl sm:text-4xl font-bold font-amiri text-text-arabic mb-3 leading-tight tracking-normal'>
-        {isTasbih ? 'مسبحتي' : 'رفيقك اليومي للذكر والطمأنينة'}
+        {isPrayers
+          ? 'مواقيت الصلاة والقبلة'
+          : isTasbih
+            ? 'مسبحتي'
+            : 'رفيقك اليومي للذكر والطمأنينة'}
       </h1>
 
       {/* Supporting subtitle about remembering Allah */}
       <p className='text-sm sm:text-base text-text-muted max-w-2xl mx-auto mb-5 leading-relaxed font-tajawal'>
-        {isTasbih
-          ? 'مسبحة إلكترونية لتسبيح الله وذكره في كل وقت، بقلبٍ مطمئن ولسانٍ رطب.'
-          : 'اجعل ذكر الله جزءاً من يومك، وامنح قلبك لحظات من السكينة والطمأنينة.'}
+        {isPrayers
+          ? 'أوقات الصلوات الخمس بدقة، العد التنازلي للأذان، واتجاه القبلة نحو الكعبة المشرفة.'
+          : isTasbih
+            ? 'مسبحة إلكترونية لتسبيح الله وذكره في كل وقت، بقلبٍ مطمئن ولسانٍ رطب.'
+            : 'اجعل ذكر الله جزءاً من يومك، وامنح قلبك لحظات من السكينة والطمأنينة.'}
       </p>
 
       {/* Subtle Status Bar showing Time, Day/Date & Current Period */}
