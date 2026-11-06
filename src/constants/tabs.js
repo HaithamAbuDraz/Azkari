@@ -86,8 +86,7 @@ export const TAB_DESCRIPTIONS = {
 
 export function getDefaultTab() {
   const h = new Date().getHours();
-  if (h >= 5 && h < 10) return 'morning';
-  if (h >= 17 && h < 21) return 'evening';
-  if (h >= 21 || h < 5) return 'sleep';
-  return 'morning';
+  if (h >= 5 && h < 12) return 'morning';
+  if (h >= 12 && h < 20) return 'evening';
+  return 'sleep';
 }
