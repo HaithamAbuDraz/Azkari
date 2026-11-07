@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import AzkarCard from './AzkarCard';
+import { matchesArabicSearch } from '../../../utils/arabic';
 
 export default function AzkarPanel({
   tabKey,
@@ -49,11 +50,11 @@ export default function AzkarPanel({
         if (filterMode === 'completed' && remaining > 0) return false;
         if (filterMode === 'favorites' && !isCardFavorite) return false;
 
-        // Apply search query
+        // Apply search query (with diacritics tolerance & normalization)
         if (!query) return true;
-        const textMatch = (zikr.arabic || '').toLowerCase().includes(query);
-        const benefitMatch = (zikr.benefit || '').toLowerCase().includes(query);
-        const sourceMatch = (zikr.source || '').toLowerCase().includes(query);
+        const textMatch = matchesArabicSearch(zikr.arabic, query);
+        const benefitMatch = matchesArabicSearch(zikr.benefit, query);
+        const sourceMatch = matchesArabicSearch(zikr.source, query);
         return textMatch || benefitMatch || sourceMatch;
       });
   }, [items, tabKey, counters, isFavorite, filterMode, searchQuery]);
