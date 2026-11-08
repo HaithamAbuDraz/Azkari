@@ -1,10 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import azkarData from '../data/azkar-data.json';
 import { triggerHaptic } from '../utils/haptics';
+import { playMilestoneChime } from '../utils/sound';
 
 const STORAGE_KEY = 'azkar-counters';
 
 export function useAzkarCounters(showToast) {
+  const autoResetTimers = useRef({});
+
+  // Cleanup pending reset timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(autoResetTimers.current).forEach((t) => clearTimeout(t));
+    };
+  }, []);
+
   // Initialize counters directly from localStorage so there's no state flicker on page reload
   const [counters, setCounters] = useState(() => {
     if (typeof window === 'undefined') return {};
@@ -53,11 +63,33 @@ export function useAzkarCounters(showToast) {
           });
 
           if (allDone && list.length > 0) {
-            // Full-session completion — richer haptic pattern
+            // Full-session completion — richer haptic pattern & celebratory spiritual chime
             setTimeout(() => triggerHaptic([30, 80, 30, 80, 60]), 350);
+            try {
+              playMilestoneChime();
+            } catch {
+              // Ignore chime errors
+            }
+
             showToast(
-              'ما شاء الله! اكتملت جميع الأذكار في هذا القسم <i class="fas fa-check-circle text-gold"></i>'
+              'ما شاء الله! اكتملت جميع الأذكار وتم تجديد التقدم تلقائياً <i class="fas fa-check-circle text-gold"></i>'
             );
+
+            // Automatically refresh progress after a brief visual confirmation (1.2s)
+            if (autoResetTimers.current[tabKey]) {
+              clearTimeout(autoResetTimers.current[tabKey]);
+            }
+
+            autoResetTimers.current[tabKey] = setTimeout(() => {
+              setCounters((currentCounters) => {
+                const refreshed = { ...currentCounters };
+                list.forEach((item, idx) => {
+                  refreshed[`${tabKey}-${idx}`] = item.count;
+                });
+                return refreshed;
+              });
+              delete autoResetTimers.current[tabKey];
+            }, 1200);
           } else {
             showToast(
               'أحسنت! اكتمل الذكر بحمد الله <i class="fas fa-check-circle text-gold"></i>'
