@@ -1,8 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   POPULAR_CITIES,
   CALCULATION_METHODS,
+  MUEZZINS,
+  ALERT_TYPES,
 } from '../../../constants/prayers';
+import { preloadAdhanAudio } from '../../../utils/sound';
 
 export default function LocationModal({
   isOpen,
@@ -13,9 +16,28 @@ export default function LocationModal({
   isGpsLoading,
   currentMethod,
   onSelectMethod,
+  currentMuezzinId,
+  onSelectMuezzin,
+  currentAlertType,
+  onSelectAlertType,
+  onPreviewAlert,
+  onPreviewMuezzin,
+  isAdhanPlaying,
+  onStopAudio,
 }) {
   const [search, setSearch] = useState('');
   const [showMethods, setShowMethods] = useState(false);
+  const [showMuezzins, setShowMuezzins] = useState(false);
+  const [showAlertTypes, setShowAlertTypes] = useState(false);
+
+  // Preload top muezzin audio files for instant auditioning
+  useEffect(() => {
+    if (isOpen) {
+      MUEZZINS.slice(0, 5).forEach((m) => {
+        if (m.url) preloadAdhanAudio(m.url);
+      });
+    }
+  }, [isOpen]);
 
   const filteredCities = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -175,6 +197,152 @@ export default function LocationModal({
                     <span>{method.name}</span>
                     {active && <i className='fas fa-check text-xs'></i>}
                   </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Alert Type Selection Accordion */}
+        <div className='pt-3 border-t border-border-theme/60'>
+          <button
+            type='button'
+            onClick={() => setShowAlertTypes(!showAlertTypes)}
+            className='flex items-center justify-between w-full text-xs text-text-muted hover:text-text-main py-1 cursor-pointer'>
+            <span className='flex items-center gap-1.5'>
+              <i className='fas fa-bell text-gold/80 text-[11px]'></i>
+              <span>نوع التنبيه عند دخول وقت الصلاة</span>
+            </span>
+            <i
+              className={`fas fa-chevron-${
+                showAlertTypes ? 'up' : 'down'
+              } text-[10px]`}></i>
+          </button>
+
+          {showAlertTypes && (
+            <div className='mt-2.5 space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs'>
+              {ALERT_TYPES.map((type) => {
+                const active = (currentAlertType || 'full_adhan') === type.id;
+                return (
+                  <div
+                    key={type.id}
+                    onClick={() => onSelectAlertType(type.id)}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-right transition cursor-pointer select-none ${
+                      active
+                        ? 'bg-gold/20 text-gold font-bold border border-gold/40'
+                        : 'text-text-muted hover:text-text-main hover:bg-bg-elevated border border-transparent'
+                    }`}>
+                    <div className='flex items-center gap-2.5 flex-1 min-w-0'>
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 ${
+                          active
+                            ? 'bg-gold/20 text-gold'
+                            : 'bg-bg-elevated text-text-muted'
+                        }`}>
+                        <i className={type.icon}></i>
+                      </div>
+                      <div className='truncate'>
+                        <span className='font-bold block truncate'>
+                          {type.label}
+                        </span>
+                        <span className='text-[10px] text-text-muted font-normal block truncate'>
+                          {type.desc}
+                        </span>
+                      </div>
+                    </div>
+                    <div className='flex items-center gap-2 shrink-0 mr-2'>
+                      {onPreviewAlert && (
+                        <button
+                          type='button'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPreviewAlert(type.id);
+                          }}
+                          title={`تجربة ${type.label}`}
+                          className='px-2 py-1 rounded-lg text-[10px] bg-bg-elevated hover:bg-gold/20 text-gold border border-gold/30 transition cursor-pointer active:scale-95'>
+                          <i className='fas fa-play text-[9px] ml-1'></i>
+                          تجربة
+                        </button>
+                      )}
+                      {active && (
+                        <i className='fas fa-check text-xs text-gold'></i>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Muezzin Voice Selection Accordion */}
+        <div className='pt-3 border-t border-border-theme/60'>
+          <button
+            type='button'
+            onClick={() => setShowMuezzins(!showMuezzins)}
+            className='flex items-center justify-between w-full text-xs text-text-muted hover:text-text-main py-1 cursor-pointer'>
+            <span className='flex items-center gap-1.5'>
+              <i className='fas fa-mosque text-gold/80 text-[11px]'></i>
+              <span>صوت الأذان والمؤذن ({MUEZZINS.length} مؤذنين)</span>
+            </span>
+            <i
+              className={`fas fa-chevron-${
+                showMuezzins ? 'up' : 'down'
+              } text-[10px]`}></i>
+          </button>
+
+          {showMuezzins && (
+            <div className='mt-2.5 space-y-1.5 max-h-48 overflow-y-auto pr-1 text-xs'>
+              {currentAlertType === 'short_reminder' && (
+                <div className='p-2 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 mb-2'>
+                  <i className='fas fa-circle-info mr-1 text-amber-400'></i>
+                  <span>
+                    أنت مفعل حالياً التنبيه الصوتي الناطق (حان الآن موعد
+                    أذان...). اختيار المؤذن أدناه ينطبق عند اختيار الأذان الكامل
+                    أو التكبيرات.
+                  </span>
+                </div>
+              )}
+              {MUEZZINS.map((muezzin) => {
+                const active = (currentMuezzinId || 'mishary') === muezzin.id;
+                return (
+                  <div
+                    key={muezzin.id}
+                    onClick={() => onSelectMuezzin(muezzin.id)}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-right transition cursor-pointer select-none ${
+                      active
+                        ? 'bg-gold/20 text-gold font-bold border border-gold/40'
+                        : 'text-text-muted hover:text-text-main hover:bg-bg-elevated border border-transparent'
+                    }`}>
+                    <div className='truncate flex-1 min-w-0'>
+                      <span className='block font-bold truncate'>
+                        {muezzin.name}
+                      </span>
+                      {muezzin.location && (
+                        <span className='text-[10px] text-text-muted font-normal block truncate'>
+                          {muezzin.location}
+                        </span>
+                      )}
+                    </div>
+                    <div className='flex items-center gap-2 shrink-0 mr-2'>
+                      {onPreviewMuezzin && (
+                        <button
+                          type='button'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPreviewMuezzin(muezzin.id);
+                          }}
+                          title={`استماع لصوت ${muezzin.name}`}
+                          className='px-2 py-1 rounded-lg text-[10px] bg-bg-elevated hover:bg-gold/20 text-gold border border-gold/30 transition cursor-pointer active:scale-95'>
+                          <i className='fas fa-play text-[9px] ml-1'></i>
+                          استماع
+                        </button>
+                      )}
+                      {active && (
+                        <i className='fas fa-check text-xs text-gold'></i>
+                      )}
+                    </div>
+                  </div>
                 );
               })}
             </div>

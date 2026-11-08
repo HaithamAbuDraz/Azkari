@@ -4,6 +4,7 @@ import NextPrayerHero from './components/NextPrayerHero';
 import PrayerCardsGrid from './components/PrayerCardsGrid';
 import QiblaCompass from './components/QiblaCompass';
 import LocationModal from './components/LocationModal';
+import AdhanBanner from './components/AdhanBanner';
 
 export default function PrayerTimesPanel({ showToast, onSelectTab }) {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
@@ -22,6 +23,19 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
     refetch,
     prayerSchedule,
     qibla,
+    alertType,
+    setAlertType,
+    muezzinId,
+    setMuezzinId,
+    currentMuezzin,
+    isAdhanPlaying,
+    activeAdhanPrayer,
+    autoplayBlocked,
+    startAdhan,
+    stopAdhan,
+    toggleAdhanTest,
+    previewAlert,
+    previewMuezzin,
   } = usePrayerTimes(showToast);
 
   return (
@@ -89,6 +103,9 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         audioEnabled={audioEnabled}
         onToggleAudio={() => setAudioEnabled(!audioEnabled)}
         hijriDate={hijriDate}
+        isAdhanPlaying={isAdhanPlaying}
+        onToggleAdhanTest={toggleAdhanTest}
+        alertType={alertType}
       />
 
       {/* 6 Prayer Times Cards Grid */}
@@ -126,7 +143,19 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         </div>
       )}
 
-      {/* Location Modal */}
+      {/* Floating Adhan Alert Banner when prayer arrives or is playing */}
+      <AdhanBanner
+        isAdhanPlaying={isAdhanPlaying}
+        activePrayer={activeAdhanPrayer}
+        autoplayBlocked={autoplayBlocked}
+        onStartAdhan={startAdhan}
+        onStopAdhan={stopAdhan}
+        currentMuezzin={currentMuezzin}
+        onSelectTab={onSelectTab}
+        alertType={alertType}
+      />
+
+      {/* Location & Audio Settings Modal */}
       <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
@@ -136,6 +165,14 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         isGpsLoading={gpsLoading}
         currentMethod={location.method || 4}
         onSelectMethod={setMethod}
+        currentMuezzinId={muezzinId}
+        onSelectMuezzin={setMuezzinId}
+        currentAlertType={alertType}
+        onSelectAlertType={setAlertType}
+        onPreviewAlert={previewAlert}
+        onPreviewMuezzin={previewMuezzin}
+        isAdhanPlaying={isAdhanPlaying}
+        onStopAudio={stopAdhan}
       />
     </section>
   );

@@ -7,6 +7,9 @@ export default function NextPrayerHero({
   audioEnabled,
   onToggleAudio,
   hijriDate,
+  isAdhanPlaying,
+  onToggleAdhanTest,
+  alertType,
 }) {
   if (!prayerSchedule?.nextPrayer) return null;
 
@@ -71,12 +74,58 @@ export default function NextPrayerHero({
 
         {/* Right: Large Countdown Box & Audio Toggle */}
         <div className='flex flex-col items-center md:items-end w-full md:w-auto'>
-          <div className='flex items-center gap-3 mb-2'>
-            <span className='text-xs text-text-muted font-medium'>
-              الوقت المتبقي للأذان:
-            </span>
+          <div className='flex items-center gap-2 mb-2 flex-wrap justify-center md:justify-end'>
+            {/* Audio Preview / Stop Test Button */}
+            <button
+              type='button'
+              onClick={onToggleAdhanTest}
+              title={
+                isAdhanPlaying
+                  ? 'إيقاف الصوت الحالي'
+                  : alertType === 'short_reminder'
+                    ? 'تجربة التنبيه الصوتي الناطق'
+                    : 'تجربة الاستماع للأذان'
+              }
+              aria-label={
+                isAdhanPlaying
+                  ? 'إيقاف الصوت'
+                  : alertType === 'short_reminder'
+                    ? 'تجربة التنبيه الصوتي الناطق'
+                    : 'تجربة الاستماع للأذان'
+              }
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs border ${
+                isAdhanPlaying
+                  ? 'bg-rose-500/20 text-rose-400 border-rose-500/50 animate-pulse'
+                  : 'bg-bg-elevated text-text-muted hover:text-gold border-border-theme hover:border-gold/40'
+              }`}>
+              <i
+                className={`text-[10px] ${
+                  isAdhanPlaying
+                    ? 'fas fa-stop'
+                    : alertType === 'short_reminder'
+                      ? 'fas fa-bullhorn text-gold'
+                      : 'fas fa-volume-high text-gold'
+                }`}></i>
+              <span>
+                {isAdhanPlaying
+                  ? alertType === 'short_reminder'
+                    ? 'إيقاف التنبيه'
+                    : alertType === 'takbeerat'
+                      ? 'إيقاف التكبيرات'
+                      : alertType === 'chime'
+                        ? 'إيقاف الرنين'
+                        : 'إيقاف الأذان'
+                  : alertType === 'short_reminder'
+                    ? 'تجربة التنبيه الناطق'
+                    : alertType === 'takbeerat'
+                      ? 'تجربة التكبيرات'
+                      : alertType === 'chime'
+                        ? 'تجربة الرنين'
+                        : 'تجربة الأذان'}
+              </span>
+            </button>
 
-            {/* Audio chime toggle */}
+            {/* Audio notification toggle */}
             <button
               type='button'
               onClick={onToggleAudio}
@@ -136,4 +185,3 @@ export default function NextPrayerHero({
     </div>
   );
 }
-
