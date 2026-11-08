@@ -20,6 +20,94 @@ export const PRAYER_KEYS = [
   { key: 'Isha', label: 'العشاء', icon: 'fas fa-moon', desc: 'صلاة العشاء' },
 ];
 
+// Alert Types for Prayer Arrival
+export const ALERT_TYPES = [
+  {
+    id: 'full_adhan',
+    label: 'أذان كامل',
+    icon: 'fas fa-mosque',
+    desc: 'تشغيل الأذان كاملاً بصوت المؤذن المختار',
+  },
+  {
+    id: 'short_reminder',
+    label: 'تنبيه صوتي ناطق',
+    icon: 'fas fa-bullhorn',
+    desc: 'نطق صوتي: "حان الآن موعد أذان صلاة {اسم الصلاة}"',
+  },
+  {
+    id: 'takbeerat',
+    label: 'تكبيرات فقط',
+    icon: 'fas fa-volume-low',
+    desc: 'تكبيرات الأذان الأولى (الله أكبر الله أكبر)',
+  },
+  {
+    id: 'chime',
+    label: 'رنين خافت',
+    icon: 'fas fa-bell',
+    desc: 'نغمة تنبيهية لطيفة وهادئة',
+  },
+];
+
+// Available Muezzin voices
+export const MUEZZINS = [
+  {
+    id: 'mishary',
+    name: 'الشيخ مشاري راشد العفاسي',
+    location: 'محلي (دون إنترنت) والكويت',
+    url: '/assets/audio/adhan.mp3',
+    fallbackUrl: 'https://cdn.aladhan.com/audio/adhans/a9.mp3',
+  },
+  {
+    id: 'ali_mulla',
+    name: 'الشيخ علي ملا',
+    location: 'أذان المسجد الحرام بمكة المكرمة',
+    url: 'https://cdn.aladhan.com/audio/adhans/a4.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'madinah',
+    name: 'أذان المسجد النبوي الشريف',
+    location: 'المدينة المنورة',
+    url: 'https://cdn.aladhan.com/audio/adhans/a5.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'aqsa',
+    name: 'أذان المسجد الأقصى المبارك',
+    location: 'القدس الشريف',
+    url: 'https://cdn.aladhan.com/audio/adhans/a3.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'abdulbasit',
+    name: 'الشيخ عبد الباسط عبد الصمد',
+    location: 'جمهورية مصر العربية',
+    url: 'https://cdn.aladhan.com/audio/adhans/a6.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'alnafees',
+    name: 'الشيخ أحمد النفيس',
+    location: 'الكويت',
+    url: 'https://cdn.aladhan.com/audio/adhans/a1.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'zahrani',
+    name: 'الشيخ منصور الزهراني',
+    location: 'المملكة العربية السعودية',
+    url: 'https://cdn.aladhan.com/audio/adhans/a11-mansour-al-zahrani.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+  {
+    id: 'turkey',
+    name: 'حافظ مصطفى أوزجان',
+    location: 'تركيا',
+    url: 'https://cdn.aladhan.com/audio/adhans/a2.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
+  },
+];
+
 // Calculation methods supported by Aladhan API
 export const CALCULATION_METHODS = [
   { id: 4, name: 'جامعة أم القرى (مكة المكرمة)' },
