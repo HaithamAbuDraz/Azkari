@@ -78,3 +78,270 @@ export function playMilestoneChime() {
     // Graceful fallback
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Adhan Audio & Reminder Player
+   High-performance preloading pool & instant playback
+───────────────────────────────────────────────────────────── */
+let adhanAudio = null;
+let takbeeratTimeout = null;
+const audioPool = new Map();
+
+/**
+ * Preloads an audio file in the background so it plays with zero lag.
+ */
+export function preloadAdhanAudio(url) {
+  if (typeof window === 'undefined' || !url) return;
+  if (audioPool.has(url)) return;
+
+  try {
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = url;
+    audio.load();
+    audioPool.set(url, audio);
+  } catch {
+    // Ignore preload errors
+  }
+}
+
+/**
+ * Plays Adhan audio with sub-second instant startup.
+ * Uses pre-buffered audio pool and auto-fallbacks if remote CDN lags.
+ */
+export function playAdhanAudio(
+  audioUrl = '/assets/audio/adhan.mp3',
+  onEnded,
+  maxDurationSec = 0
+) {
+  if (typeof window === 'undefined')
+    return Promise.reject(new Error('No window'));
+
+  // Stop active audio
+  stopAdhanAudio();
+
+  try {
+    let audio = audioPool.get(audioUrl);
+
+    if (!audio) {
+      audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = audioUrl;
+      audioPool.set(audioUrl, audio);
+    }
+
+    adhanAudio = audio;
+    audio.currentTime = 0;
+
+    if (onEnded) {
+      const handleEnded = () => {
+        audio.removeEventListener('ended', handleEnded);
+        onEnded();
+      };
+      audio.addEventListener('ended', handleEnded, { once: true });
+    }
+
+    if (maxDurationSec > 0) {
+      takbeeratTimeout = setTimeout(() => {
+        stopAdhanAudio();
+        if (onEnded) onEnded();
+      }, maxDurationSec * 1000);
+    }
+
+    const playPromise = audio.play();
+
+    // Fast-fallback: If remote CDN takes more than 1.2s to start buffering,
+    // switch immediately to bundled local audio so the user never waits.
+    if (audioUrl !== '/assets/audio/adhan.mp3' && playPromise) {
+      const fallbackTimer = setTimeout(() => {
+        if (audio.readyState < 2 && adhanAudio === audio) {
+          console.warn(
+            'Remote Adhan CDN lagging, switching to instant local audio'
+          );
+          playAdhanAudio('/assets/audio/adhan.mp3', onEnded, maxDurationSec);
+        }
+      }, 1200);
+
+      playPromise
+        .then(() => clearTimeout(fallbackTimer))
+        .catch(() => clearTimeout(fallbackTimer));
+    }
+
+    return playPromise;
+  } catch (err) {
+    if (audioUrl !== '/assets/audio/adhan.mp3') {
+      return playAdhanAudio('/assets/audio/adhan.mp3', onEnded, maxDurationSec);
+    }
+    return Promise.reject(err);
+  }
+}
+
+export function stopAdhanAudio() {
+  if (takbeeratTimeout) {
+    clearTimeout(takbeeratTimeout);
+    takbeeratTimeout = null;
+  }
+  if (adhanAudio) {
+    try {
+      adhanAudio.pause();
+      adhanAudio.currentTime = 0;
+    } catch {
+      // Ignore pause error
+    }
+    adhanAudio = null;
+  }
+  stopPrayerReminder();
+}
+
+export function isAdhanAudioPlaying() {
+  return !!(adhanAudio && !adhanAudio.paused && !adhanAudio.ended);
+}
+
+// Pronunciation mapping with diacritics for natural, accurate Arabic TTS
+const PRAYER_PRONUNCIATION = {
+  الفجر: 'الْفَجْر',
+  Fajr: 'الْفَجْر',
+  الشروق: 'الشُّرُوق',
+  Sunrise: 'الشُّرُوق',
+  الظهر: 'الظُّهْر',
+  Dhuhr: 'الظُّهْر',
+  العصر: 'الْعَصْر',
+  Asr: 'الْعَصْر',
+  المغرب: 'الْمَغْرِب',
+  Maghrib: 'الْمَغْرِب',
+  العشاء: 'الْعِشَاء',
+  Isha: 'الْعِشَاء',
+};
+
+let activeUtterance = null;
+let reminderTimer = null;
+let cachedVoices = [];
+
+function refreshVoices() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      cachedVoices = window.speechSynthesis.getVoices() || [];
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  refreshVoices();
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  }
+}
+
+/**
+ * Speaks the Arabic prayer reminder:
+ * "حَانَ الآنَ مَوْعِدُ أَذَانِ صَلَاةِ {اسم الصلاة}"
+ * Accompanied by a soft spiritual chime and auto-dismiss handler.
+ */
+export function speakPrayerReminder(prayerLabel = 'الصلاة', onEnded) {
+  if (typeof window === 'undefined') return;
+
+  stopPrayerReminder();
+
+  // Play gentle spiritual chime
+  try {
+    playMilestoneChime();
+  } catch {
+    // Ignore chime error
+  }
+
+  const cleanPrayer = (prayerLabel || '').replace(/^صلاة\s+/, '').trim();
+  const prayerTashkeel = PRAYER_PRONUNCIATION[cleanPrayer] || cleanPrayer;
+  const diacriticsText =
+    prayerTashkeel && prayerTashkeel !== 'الصلاة'
+      ? `حَانَ الآنَ مَوْعِدُ أَذَانِ صَلَاةِ ${prayerTashkeel}`
+      : 'حَانَ الآنَ مَوْعِدُ أَذَانِ الصَّلَاة';
+
+  if (!('speechSynthesis' in window)) {
+    if (onEnded) setTimeout(onEnded, 3000);
+    return;
+  }
+
+  try {
+    // Resume audio context/speech queue if paused
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(diacriticsText);
+    activeUtterance = utterance; // Prevent Chromium Garbage Collection bug
+
+    utterance.lang = 'ar-SA';
+    utterance.rate = 0.88; // Clear, dignified recitation speed
+    utterance.pitch = 1.0;
+
+    // Detect best Arabic voice (Saudi, Egyptian, Arab, or generic Arabic)
+    const voices = cachedVoices.length
+      ? cachedVoices
+      : window.speechSynthesis.getVoices() || [];
+
+    const arabicVoice =
+      voices.find((v) => v.lang === 'ar-SA') ||
+      voices.find(
+        (v) =>
+          v.lang &&
+          (v.lang.toLowerCase().startsWith('ar') ||
+            v.lang.toLowerCase().includes('ar'))
+      ) ||
+      voices.find(
+        (v) =>
+          /arabic/i.test(v.name) ||
+          /hoda/i.test(v.name) ||
+          /naayf/i.test(v.name) ||
+          /maged/i.test(v.name) ||
+          /tarik/i.test(v.name) ||
+          /salma/i.test(v.name)
+      );
+
+    if (arabicVoice) {
+      utterance.voice = arabicVoice;
+      utterance.lang = arabicVoice.lang;
+    }
+
+    let isFinished = false;
+    const finish = () => {
+      if (isFinished) return;
+      isFinished = true;
+      activeUtterance = null;
+      if (reminderTimer) {
+        clearTimeout(reminderTimer);
+        reminderTimer = null;
+      }
+      if (onEnded) onEnded();
+    };
+
+    utterance.onend = finish;
+    utterance.onerror = finish;
+
+    // Safety timeout: auto-dismiss after 4.5 seconds so UI never gets stuck
+    reminderTimer = setTimeout(finish, 4500);
+
+    // Speak within active user interaction
+    window.speechSynthesis.speak(utterance);
+  } catch (err) {
+    console.warn('Speech synthesis error:', err);
+    activeUtterance = null;
+    if (onEnded) onEnded();
+  }
+}
+
+export function stopPrayerReminder() {
+  if (reminderTimer) {
+    clearTimeout(reminderTimer);
+    reminderTimer = null;
+  }
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      activeUtterance = null;
+      window.speechSynthesis.cancel();
+    } catch {
+      // Ignore
+    }
+  }
+}

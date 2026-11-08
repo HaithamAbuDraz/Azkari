@@ -2,15 +2,26 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   POPULAR_CITIES,
   PRAYER_KEYS,
+  MUEZZINS,
+  ALERT_TYPES,
   FALLBACK_TIMINGS,
   calculateQiblaDirection,
   calculateDistanceToKaaba,
   formatPrayerTime12h,
 } from '../constants/prayers';
-import { playMilestoneChime } from '../utils/sound';
+import {
+  playAdhanAudio,
+  preloadAdhanAudio,
+  stopAdhanAudio,
+  speakPrayerReminder,
+  stopPrayerReminder,
+  playMilestoneChime,
+} from '../utils/sound';
 
 const LOCATION_STORAGE_KEY = 'azkari-prayer-location';
 const NOTIFICATIONS_STORAGE_KEY = 'azkari-prayer-audio-enabled';
+const MUEZZIN_STORAGE_KEY = 'azkari-prayer-muezzin';
+const ALERT_TYPE_STORAGE_KEY = 'azkari-prayer-alert-type';
 
 function getTodayKey() {
   const d = new Date();
@@ -49,7 +60,33 @@ export function usePrayerTimes(showToast) {
     }
   });
 
-  // Track if adhan chime was played for the current prayer
+  // Selected muezzin
+  const [muezzinId, setMuezzinId] = useState(() => {
+    if (typeof window === 'undefined') return MUEZZINS[0].id;
+    try {
+      const saved = localStorage.getItem(MUEZZIN_STORAGE_KEY);
+      return saved || MUEZZINS[0].id;
+    } catch {
+      return MUEZZINS[0].id;
+    }
+  });
+
+  // Selected Alert Type (Full Adhan, Short Voice Reminder, Takbeerat, Chime)
+  const [alertType, setAlertType] = useState(() => {
+    if (typeof window === 'undefined') return ALERT_TYPES[0].id;
+    try {
+      const saved = localStorage.getItem(ALERT_TYPE_STORAGE_KEY);
+      return saved || ALERT_TYPES[0].id;
+    } catch {
+      return ALERT_TYPES[0].id;
+    }
+  });
+
+  const [isAdhanPlaying, setIsAdhanPlaying] = useState(false);
+  const [activeAdhanPrayer, setActiveAdhanPrayer] = useState(null);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+  // Track if adhan was triggered for the current prayer
   const lastChimedPrayer = useRef(null);
 
   // Keep live time ticking every second
@@ -80,6 +117,31 @@ export function usePrayerTimes(showToast) {
       // Ignore
     }
   }, [audioEnabled]);
+
+  // Save muezzin setting
+  useEffect(() => {
+    try {
+      localStorage.setItem(MUEZZIN_STORAGE_KEY, muezzinId);
+    } catch {
+      // Ignore
+    }
+  }, [muezzinId]);
+
+  // Save alert type setting
+  useEffect(() => {
+    try {
+      localStorage.setItem(ALERT_TYPE_STORAGE_KEY, alertType);
+    } catch {
+      // Ignore
+    }
+  }, [alertType]);
+
+  // Clean up audio on unmount
+  useEffect(() => {
+    return () => {
+      stopAdhanAudio();
+    };
+  }, []);
 
   // Fetch Prayer Times
   const fetchTimings = useCallback(async (loc) => {
@@ -298,21 +360,193 @@ export function usePrayerTimes(showToast) {
     };
   }, [timings, now]);
 
-  // Audio chime on prayer arrival
+  // Selected muezzin object
+  const currentMuezzin = useMemo(() => {
+    return MUEZZINS.find((m) => m.id === muezzinId) || MUEZZINS[0];
+  }, [muezzinId]);
+
+  // Preload audio files for instant, zero-delay playback
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    preloadAdhanAudio('/assets/audio/adhan.mp3');
+    if (currentMuezzin?.url) preloadAdhanAudio(currentMuezzin.url);
+    if (currentMuezzin?.fallbackUrl)
+      preloadAdhanAudio(currentMuezzin.fallbackUrl);
+  }, [currentMuezzin]);
+
+  // Start playing Adhan or Prayer Reminder
+  const startAdhan = useCallback(
+    (prayerLabel = 'الصلاة') => {
+      // 1. Short voice reminder ("حان الآن موعد أذان صلاة {الاسم}")
+      if (alertType === 'short_reminder') {
+        setIsAdhanPlaying(true);
+        setActiveAdhanPrayer(prayerLabel);
+        setAutoplayBlocked(false);
+
+        speakPrayerReminder(prayerLabel, () => {
+          setIsAdhanPlaying(false);
+          setActiveAdhanPrayer(null);
+        });
+        return;
+      }
+
+      // 2. Chime only
+      if (alertType === 'chime') {
+        playMilestoneChime();
+        return;
+      }
+
+      // 3. Adhan or Takbeerat audio
+      const audioUrl =
+        currentMuezzin.url ||
+        currentMuezzin.fallbackUrl ||
+        '/assets/audio/adhan.mp3';
+
+      // Duration limit: 22s for takbeerat mode, full (0) for full adhan
+      const maxDuration = alertType === 'takbeerat' ? 22 : 0;
+
+      playAdhanAudio(
+        audioUrl,
+        () => {
+          setIsAdhanPlaying(false);
+          setActiveAdhanPrayer(null);
+          setAutoplayBlocked(false);
+        },
+        maxDuration
+      )
+        .then(() => {
+          setIsAdhanPlaying(true);
+          setActiveAdhanPrayer(prayerLabel);
+          setAutoplayBlocked(false);
+        })
+        .catch((err) => {
+          console.warn('Adhan autoplay blocked or failed:', err);
+          setIsAdhanPlaying(false);
+          setActiveAdhanPrayer(prayerLabel);
+          setAutoplayBlocked(true);
+        });
+    },
+    [currentMuezzin, alertType]
+  );
+
+  // Stop playing Adhan / Reminder
+  const stopAdhan = useCallback(() => {
+    stopAdhanAudio();
+    stopPrayerReminder();
+    setIsAdhanPlaying(false);
+    setActiveAdhanPrayer(null);
+    setAutoplayBlocked(false);
+  }, []);
+
+  // Preview / Toggle Adhan test
+  const toggleAdhanTest = useCallback(() => {
+    if (isAdhanPlaying) {
+      stopAdhan();
+    } else {
+      const nextLabel =
+        prayerSchedule?.nextPrayer &&
+        prayerSchedule.nextPrayer.key !== 'Sunrise'
+          ? prayerSchedule.nextPrayer.label
+          : 'الظهر';
+      const label = alertType === 'short_reminder' ? nextLabel : 'تجربة الأذان';
+      startAdhan(label);
+    }
+  }, [isAdhanPlaying, stopAdhan, startAdhan, alertType, prayerSchedule]);
+
+  // Preview a specific alert type on demand
+  const previewAlert = useCallback(
+    (typeId) => {
+      stopAdhan();
+      const nextLabel =
+        prayerSchedule?.nextPrayer &&
+        prayerSchedule.nextPrayer.key !== 'Sunrise'
+          ? prayerSchedule.nextPrayer.label
+          : 'الظهر';
+
+      if (typeId === 'short_reminder') {
+        setIsAdhanPlaying(true);
+        setActiveAdhanPrayer(nextLabel);
+        setAutoplayBlocked(false);
+        speakPrayerReminder(nextLabel, () => {
+          setIsAdhanPlaying(false);
+          setActiveAdhanPrayer(null);
+        });
+      } else if (typeId === 'chime') {
+        playMilestoneChime();
+      } else {
+        const audioUrl =
+          currentMuezzin.url ||
+          currentMuezzin.fallbackUrl ||
+          '/assets/audio/adhan.mp3';
+        const maxDuration = typeId === 'takbeerat' ? 22 : 0;
+        playAdhanAudio(
+          audioUrl,
+          () => {
+            setIsAdhanPlaying(false);
+            setActiveAdhanPrayer(null);
+          },
+          maxDuration
+        )
+          .then(() => {
+            setIsAdhanPlaying(true);
+            setActiveAdhanPrayer('تجربة الأذان');
+          })
+          .catch(() => {
+            setIsAdhanPlaying(false);
+          });
+      }
+    },
+    [stopAdhan, prayerSchedule, currentMuezzin]
+  );
+
+  // Preview a specific muezzin's adhan on demand
+  const previewMuezzin = useCallback(
+    (targetMuezzinId) => {
+      stopAdhan();
+      const target =
+        MUEZZINS.find((m) => m.id === targetMuezzinId) || currentMuezzin;
+      const audioUrl =
+        target.url || target.fallbackUrl || '/assets/audio/adhan.mp3';
+
+      playAdhanAudio(
+        audioUrl,
+        () => {
+          setIsAdhanPlaying(false);
+          setActiveAdhanPrayer(null);
+        },
+        0
+      )
+        .then(() => {
+          setIsAdhanPlaying(true);
+          setActiveAdhanPrayer(`أذان بصوت ${target.name}`);
+        })
+        .catch(() => {
+          setIsAdhanPlaying(false);
+        });
+    },
+    [stopAdhan, currentMuezzin]
+  );
+
+  // Play Adhan on prayer arrival
   useEffect(() => {
     if (!audioEnabled || !prayerSchedule?.nextPrayer) return;
 
     if (prayerSchedule.totalRemainingSeconds === 0) {
       const key = prayerSchedule.nextPrayer.key;
+      // Skip Sunrise as it is not a prayer call
+      if (key === 'Sunrise') return;
+
       if (lastChimedPrayer.current !== key) {
         lastChimedPrayer.current = key;
-        playMilestoneChime();
+        startAdhan(prayerSchedule.nextPrayer.label);
         if (showToast) {
-          showToast(`حان الآن موعد أذان ${prayerSchedule.nextPrayer.label}`);
+          showToast(
+            `حان الآن موعد أذان ${prayerSchedule.nextPrayer.label} <i class="fas fa-mosque text-gold"></i>`
+          );
         }
       }
     }
-  }, [prayerSchedule, audioEnabled, showToast]);
+  }, [prayerSchedule, audioEnabled, startAdhan, showToast]);
 
   // Qibla calculations
   const qibla = useMemo(() => {
@@ -344,5 +578,19 @@ export function usePrayerTimes(showToast) {
     refetch: () => fetchTimings(location),
     prayerSchedule,
     qibla,
+    // Adhan & reminder audio controls
+    alertType,
+    setAlertType,
+    muezzinId,
+    setMuezzinId,
+    currentMuezzin,
+    isAdhanPlaying,
+    activeAdhanPrayer,
+    autoplayBlocked,
+    startAdhan,
+    stopAdhan,
+    toggleAdhanTest,
+    previewAlert,
+    previewMuezzin,
   };
 }
