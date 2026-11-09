@@ -4,6 +4,7 @@ import { Header, MobileNav, Hero, Footer } from './components/layout';
 import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
 import { TasbihPanel } from './features/tasbih';
+import { PrayerTimesPanel } from './features/prayers';
 import {
   useTheme,
   useToast,
@@ -57,6 +58,11 @@ export default function App() {
           <TasbihPanel
             isActive={true}
             showToast={showToast}
+          />
+        ) : activeTab === 'prayers' ? (
+          <PrayerTimesPanel
+            showToast={showToast}
+            onSelectTab={switchTab}
           />
         ) : (
           Object.entries(PANELS).map(([tabKey, meta]) => {
