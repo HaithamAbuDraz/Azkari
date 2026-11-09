@@ -75,10 +75,24 @@ export function useAzkarCounters(showToast) {
               'ما شاء الله! اكتملت جميع الأذكار وتم تجديد التقدم تلقائياً <i class="fas fa-check-circle text-gold"></i>'
             );
 
-            // Automatically refresh progress after a brief visual confirmation (1.2s)
+            // Automatically refresh progress and smoothly scroll to top after a brief confirmation
             if (autoResetTimers.current[tabKey]) {
               clearTimeout(autoResetTimers.current[tabKey]);
             }
+
+            // Smoothly scroll up if the user is scrolled down towards the bottom
+            setTimeout(() => {
+              if (typeof window !== 'undefined') {
+                const scrollPos =
+                  window.scrollY || document.documentElement.scrollTop || 0;
+                if (scrollPos > 80) {
+                  window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth',
+                  });
+                }
+              }
+            }, 900);
 
             autoResetTimers.current[tabKey] = setTimeout(() => {
               setCounters((currentCounters) => {
