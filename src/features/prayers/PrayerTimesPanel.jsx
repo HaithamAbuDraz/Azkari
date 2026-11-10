@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { usePrayerTimes } from '../../hooks/usePrayerTimes';
+import { getDisplayCityName } from '../../utils/location';
 import NextPrayerHero from './components/NextPrayerHero';
 import PrayerCardsGrid from './components/PrayerCardsGrid';
 import QiblaCompass from './components/QiblaCompass';
@@ -38,6 +39,8 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
     previewMuezzin,
   } = usePrayerTimes(showToast);
 
+  const cityName = getDisplayCityName(location);
+
   return (
     <section
       className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6'
@@ -54,10 +57,21 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
               <span>مواقيت الصلاة والقبلة</span>
             </h2>
             <p className='text-xs sm:text-sm text-text-muted mt-0.5'>
-              حسب توقيت مدينة{' '}
-              <strong className='text-text-main font-semibold'>
-                {location.label || location.city}
-              </strong>
+              {gpsLoading ? (
+                <span className='inline-flex items-center gap-1.5 text-gold'>
+                  <i className='fas fa-spinner fa-spin text-[11px]'></i>
+                  <span>جاري تحديد مدينتك الحالية...</span>
+                </span>
+              ) : cityName ? (
+                <>
+                  حسب توقيت مدينة{' '}
+                  <strong className='text-text-main font-semibold'>
+                    {cityName}
+                  </strong>
+                </>
+              ) : (
+                <>حسب توقيت موقعك الحالي</>
+              )}
             </p>
           </div>
         </div>

@@ -305,20 +305,55 @@ export function calculateQiblaDirection(lat, lng) {
 }
 
 /**
- * Calculates great-circle distance between two coordinates in kilometers
+ * Default Aladhan calculation method IDs mapped by ISO-3166 alpha-2 country code.
  */
-export function calculateDistanceToKaaba(lat, lng) {
+const COUNTRY_CALCULATION_METHODS = {
+  SA: 4, // Umm al-Qura
+  EG: 5, // Egyptian General Authority of Survey
+  AE: 8, // Gulf Region
+  KW: 8,
+  QA: 8,
+  OM: 8,
+  BH: 8,
+  TR: 9, // Diyanet (Turkey)
+  FR: 12, // UOIF (France)
+  US: 2, // ISNA
+  CA: 2,
+  PK: 1, // University of Islamic Sciences, Karachi
+  IN: 1,
+  BD: 1,
+};
+
+/**
+ * Returns the recommended Aladhan calculation method ID for a country code.
+ */
+export function getRecommendedMethod(countryCode) {
+  if (!countryCode) return 3; // Muslim World League fallback
+  return COUNTRY_CALCULATION_METHODS[countryCode.toUpperCase()] || 3;
+}
+
+/**
+ * Calculates great-circle distance between two coordinates in kilometers (Haversine formula).
+ */
+export function calculateDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371; // Earth radius in km
-  const dLat = ((KAABA_COORDS.lat - lat) * Math.PI) / 180;
-  const dLon = ((KAABA_COORDS.lng - lng) * Math.PI) / 180;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lng2 - lng1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat * Math.PI) / 180) *
-      Math.cos((KAABA_COORDS.lat * Math.PI) / 180) *
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c);
+}
+
+/**
+ * Calculates great-circle distance from coordinates to the Kaaba in kilometers.
+ */
+export function calculateDistanceToKaaba(lat, lng) {
+  return calculateDistanceKm(lat, lng, KAABA_COORDS.lat, KAABA_COORDS.lng);
 }
 
 /**

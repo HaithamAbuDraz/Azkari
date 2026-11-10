@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDisplayCityName } from '../../../utils/location';
 
 export default function NextPrayerHero({
   prayerSchedule,
@@ -15,6 +16,7 @@ export default function NextPrayerHero({
 
   const { nextPrayer, countdownFormatted, progress, isNextTomorrow } =
     prayerSchedule;
+  const cityName = getDisplayCityName(location);
 
   return (
     <div className='relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-bg-card via-bg-elevated/80 to-bg-card border border-border-theme shadow-md mb-8 transition-all'>
@@ -45,7 +47,7 @@ export default function NextPrayerHero({
                     ? 'fas fa-location-crosshairs text-[11px]'
                     : 'fas fa-location-dot text-[11px]'
                 }></i>
-              <span>{location.label || location.city}</span>
+              <span>{cityName || 'موقعي الحالي'}</span>
               <i className='fas fa-chevron-down text-[9px] opacity-70 mr-0.5'></i>
             </button>
 

@@ -17,6 +17,10 @@ import {
   stopPrayerReminder,
   playMilestoneChime,
 } from '../utils/sound';
+import {
+  resolveLocationByCoords,
+  isUnresolvedGpsLocation,
+} from '../utils/location';
 
 const LOCATION_STORAGE_KEY = 'azkari-prayer-location';
 const NOTIFICATIONS_STORAGE_KEY = 'azkari-prayer-audio-enabled';
@@ -88,6 +92,7 @@ export function usePrayerTimes(showToast) {
 
   // Track if adhan was triggered for the current prayer
   const lastChimedPrayer = useRef(null);
+  const resolvedCoordsAttempted = useRef(new Set());
 
   // Keep live time ticking every second
   useEffect(() => {
@@ -216,7 +221,35 @@ export function usePrayerTimes(showToast) {
     fetchTimings(location);
   }, [location, fetchTimings]);
 
-  // Request GPS Location
+  // Backfill real city name if a legacy/unresolved GPS location was loaded from storage
+  useEffect(() => {
+    if (
+      !location?.lat ||
+      !location?.lng ||
+      !isUnresolvedGpsLocation(location)
+    ) {
+      return;
+    }
+
+    const coordKey = `${location.lat.toFixed(3)}_${location.lng.toFixed(3)}`;
+    if (resolvedCoordsAttempted.current.has(coordKey)) return;
+    resolvedCoordsAttempted.current.add(coordKey);
+
+    let cancelled = false;
+    resolveLocationByCoords(location.lat, location.lng).then((resolved) => {
+      if (cancelled || !resolved.label) return;
+      setLocation((prev) => ({
+        ...resolved,
+        method: prev?.method || resolved.method,
+      }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location]);
+
+  // Request GPS Location and resolve real city name
   const requestGpsLocation = useCallback(() => {
     if (!navigator.geolocation) {
       if (showToast)
@@ -226,24 +259,25 @@ export function usePrayerTimes(showToast) {
 
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
-        const newLoc = {
-          city: 'موقعي الحالي',
-          label: 'موقعي الحالي (GPS)',
-          country: '',
-          countryLabel: 'تحديد تلقائي',
-          lat: latitude,
-          lng: longitude,
-          method: 4,
-          isGps: true,
-        };
-        setLocation(newLoc);
-        setGpsLoading(false);
-        if (showToast) {
-          showToast(
-            'تم تحديد موقعك بنجاح وتحديث مواقيت الصلاة والقبلة <i class="fas fa-check-circle text-gold"></i>'
+        try {
+          const resolvedLoc = await resolveLocationByCoords(
+            latitude,
+            longitude
           );
+          setLocation(resolvedLoc);
+
+          if (showToast) {
+            const locationText = resolvedLoc.label
+              ? `في مدينة ${resolvedLoc.label}`
+              : 'الحالي';
+            showToast(
+              `تم تحديد موقعك ${locationText} وتحديث مواقيت الصلاة والقبلة <i class="fas fa-check-circle text-gold"></i>`
+            );
+          }
+        } finally {
+          setGpsLoading(false);
         }
       },
       (err) => {
