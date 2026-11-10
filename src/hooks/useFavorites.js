@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { triggerHaptic } from '../utils/haptics';
+import { migrateStoredFavorites } from '../utils/azkar';
 
 const STORAGE_KEY = 'azkar-favorites';
 
@@ -7,7 +8,7 @@ export function useFavorites(showToast) {
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      return saved ? migrateStoredFavorites(JSON.parse(saved)) : [];
     } catch {
       return [];
     }

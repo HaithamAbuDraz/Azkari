@@ -1,9 +1,21 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import azkarData from '../data/azkar-data.json';
+import {
+  getAzkarByCategory,
+  getCategoryTabFromCardId,
+  migrateStoredCounters,
+} from '../utils/azkar';
 import { triggerHaptic } from '../utils/haptics';
 import { playMilestoneChime } from '../utils/sound';
 
 const STORAGE_KEY = 'azkar-counters';
+
+function resetCategoryCounters(prev, list) {
+  const next = { ...prev };
+  list.forEach((item) => {
+    next[item.cardId] = item.count;
+  });
+  return next;
+}
 
 export function useAzkarCounters(showToast) {
   const autoResetTimers = useRef({});
@@ -22,7 +34,9 @@ export function useAzkarCounters(showToast) {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return {};
       const parsed = JSON.parse(saved);
-      return parsed && typeof parsed === 'object' ? parsed : {};
+      return parsed && typeof parsed === 'object'
+        ? migrateStoredCounters(parsed)
+        : {};
     } catch (e) {
       console.error('Failed to load azkar counters from localStorage:', e);
       return {};
@@ -48,19 +62,17 @@ export function useAzkarCounters(showToast) {
         const nextVal = current - 1;
         triggerHaptic(25);
 
-        const tabKey = cardId.split('-')[0];
+        const tabKey = getCategoryTabFromCardId(cardId);
         const nextCounters = { ...prev, [cardId]: nextVal };
 
         if (nextVal === 0) {
           // Single-card completion haptic: two gentle pulses
           triggerHaptic([20, 60, 20]);
 
-          const list = azkarData[tabKey] || [];
-          const allDone = list.every((item, idx) => {
-            const id = `${tabKey}-${idx}`;
-            const val = id === cardId ? 0 : (nextCounters[id] ?? item.count);
-            return val === 0;
-          });
+          const list = getAzkarByCategory(tabKey);
+          const allDone = list.every(
+            (item) => (nextCounters[item.cardId] ?? item.count) === 0
+          );
 
           if (allDone && list.length > 0) {
             // Full-session completion — richer haptic pattern & celebratory spiritual chime
@@ -95,13 +107,9 @@ export function useAzkarCounters(showToast) {
             }, 900);
 
             autoResetTimers.current[tabKey] = setTimeout(() => {
-              setCounters((currentCounters) => {
-                const refreshed = { ...currentCounters };
-                list.forEach((item, idx) => {
-                  refreshed[`${tabKey}-${idx}`] = item.count;
-                });
-                return refreshed;
-              });
+              setCounters((currentCounters) =>
+                resetCategoryCounters(currentCounters, list)
+              );
               delete autoResetTimers.current[tabKey];
             }, 1200);
           } else {
@@ -129,14 +137,8 @@ export function useAzkarCounters(showToast) {
   // Reset all counters for an entire panel/category (e.g., morning, evening)
   const resetPanel = useCallback(
     (tabKey) => {
-      const list = azkarData[tabKey] || [];
-      setCounters((prev) => {
-        const next = { ...prev };
-        list.forEach((item, idx) => {
-          next[`${tabKey}-${idx}`] = item.count;
-        });
-        return next;
-      });
+      const list = getAzkarByCategory(tabKey);
+      setCounters((prev) => resetCategoryCounters(prev, list));
       showToast(
         'تمت إعادة تعيين جميع أذكار هذا القسم <i class="fas fa-rotate-left text-gold"></i>'
       );

@@ -23,7 +23,7 @@ export default function AzkarPanel({
   // Calculate done count
   const done = useMemo(() => {
     return items.filter((zikr, idx) => {
-      const cardId = `${tabKey}-${idx}`;
+      const cardId = zikr.cardId || `${tabKey}-${idx}`;
       const rem = counters[cardId] ?? zikr.count;
       return rem === 0;
     }).length;
@@ -39,7 +39,7 @@ export default function AzkarPanel({
       .map((zikr, idx) => ({
         zikr,
         originalIdx: idx,
-        cardId: `${tabKey}-${idx}`,
+        cardId: zikr.cardId || `${tabKey}-${idx}`,
       }))
       .filter(({ zikr, cardId }) => {
         const remaining = counters[cardId] ?? zikr.count;
@@ -50,12 +50,15 @@ export default function AzkarPanel({
         if (filterMode === 'completed' && remaining > 0) return false;
         if (filterMode === 'favorites' && !isCardFavorite) return false;
 
-        // Apply search query (with diacritics tolerance & normalization)
+        // Apply search query (with diacritics tolerance, normalization, and tags)
         if (!query) return true;
         const textMatch = matchesArabicSearch(zikr.arabic, query);
         const benefitMatch = matchesArabicSearch(zikr.benefit, query);
         const sourceMatch = matchesArabicSearch(zikr.source, query);
-        return textMatch || benefitMatch || sourceMatch;
+        const tagsMatch = Array.isArray(zikr.tags)
+          ? zikr.tags.some((tag) => matchesArabicSearch(tag, query))
+          : false;
+        return textMatch || benefitMatch || sourceMatch || tagsMatch;
       });
   }, [items, tabKey, counters, isFavorite, filterMode, searchQuery]);
 

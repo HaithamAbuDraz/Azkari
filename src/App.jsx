@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import azkarData from './data/azkar-data.json';
+import { getAzkarByCategory } from './utils/azkar';
 import { Header, MobileNav, Hero, Footer } from './components/layout';
 import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
@@ -73,7 +73,7 @@ export default function App() {
                 tabKey={tabKey}
                 title={meta.title}
                 icon={meta.icon}
-                items={azkarData[tabKey] || []}
+                items={getAzkarByCategory(tabKey)}
                 counters={counters}
                 onDecrement={decrementCounter}
                 onResetCard={resetCardCounter}
