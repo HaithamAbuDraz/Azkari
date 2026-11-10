@@ -126,7 +126,7 @@ export default function TasbihPanel({ isActive, showToast }) {
         showToast(
           next
             ? 'تم تفعيل الاهتزاز <i class="fas fa-mobile-screen-button text-gold"></i>'
-            : 'تم تعطيل الاهتزاز <i class="fas fa-mobile text-text-muted"></i>'
+            : 'تم تعطيل الاهتزاز <span class="relative inline-flex items-center justify-center text-text-muted"><i class="fas fa-mobile-screen-button opacity-50"></i><span class="absolute w-3.5 h-[1.5px] bg-current -rotate-45 rounded-full pointer-events-none"></span></span>'
         );
       }
       return next;

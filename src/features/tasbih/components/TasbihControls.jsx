@@ -67,7 +67,16 @@ export default function TasbihControls({
               }`}
               title={hapticEnabled ? 'تعطيل الاهتزاز' : 'تفعيل الاهتزاز'}
               aria-label={hapticEnabled ? 'إيقاف الاهتزاز' : 'تشغيل الاهتزاز'}>
-              <i className='fas fa-mobile-screen-button text-[11px]'></i>
+              {hapticEnabled ? (
+                <i className='fas fa-mobile-screen-button text-[11px]'></i>
+              ) : (
+                <span
+                  className='relative inline-flex items-center justify-center text-[11px]'
+                  aria-hidden='true'>
+                  <i className='fas fa-mobile-screen-button opacity-50'></i>
+                  <span className='absolute w-3.5 h-[1.5px] bg-current -rotate-45 rounded-full pointer-events-none'></span>
+                </span>
+              )}
               <span className='hidden sm:inline'>الاهتزاز</span>
             </button>
           </div>
