@@ -35,11 +35,12 @@ export default function NextPrayerHero({
         <div className='flex flex-col items-center md:items-start text-center md:text-right'>
           {/* Top Pill with Location & Hijri Date */}
           <div className='flex flex-wrap items-center justify-center md:justify-start gap-2 mb-3.5'>
-            {/* City Selector Button */}
+            {/* City / Location Selector Button */}
             <button
               type='button'
-              onClick={onOpenLocationModal}
-              aria-label='تغيير المدينة والموقع الجغرافي'
+              onClick={() => onOpenLocationModal('location')}
+              aria-label='اختيار المدينة والموقع الجغرافي'
+              title='اختيار المدينة والموقع الجغرافي'
               className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 active:scale-95 transition cursor-pointer shadow-2xs'>
               <i
                 className={
@@ -47,7 +48,7 @@ export default function NextPrayerHero({
                     ? 'fas fa-location-crosshairs text-[11px]'
                     : 'fas fa-location-dot text-[11px]'
                 }></i>
-              <span>{cityName || 'موقعي الحالي'}</span>
+              <span>{cityName || 'اختيار المدينة والموقع'}</span>
               <i className='fas fa-chevron-down text-[9px] opacity-70 mr-0.5'></i>
             </button>
 

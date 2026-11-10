@@ -9,6 +9,12 @@ import AdhanBanner from './components/AdhanBanner';
 
 export default function PrayerTimesPanel({ showToast, onSelectTab }) {
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [modalInitialTab, setModalInitialTab] = useState('location');
+
+  const handleOpenModal = (tab = 'location') => {
+    setModalInitialTab(tab);
+    setIsLocationModalOpen(true);
+  };
 
   const {
     location,
@@ -30,6 +36,8 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
     setMuezzinId,
     currentMuezzin,
     isAdhanPlaying,
+    playingMuezzinId,
+    isAudioLoading,
     activeAdhanPrayer,
     autoplayBlocked,
     startAdhan,
@@ -77,15 +85,25 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         </div>
 
         {/* Action Controls */}
-        <div className='flex items-center gap-2.5 flex-wrap'>
-          {/* Change Location Button */}
+        <div className='flex items-center gap-2 flex-wrap'>
+          {/* Choose City & Location Button */}
           <button
             type='button'
-            onClick={() => setIsLocationModalOpen(true)}
-            aria-label='تغيير المدينة'
+            onClick={() => handleOpenModal('location')}
+            aria-label='اختيار المدينة والموقع'
             className='flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl border border-border-theme text-text-main hover:text-gold hover:border-gold/40 bg-bg-elevated transition cursor-pointer active:scale-95 shadow-2xs'>
             <i className='fas fa-location-dot text-gold text-xs'></i>
-            <span>تغيير المدينة</span>
+            <span>اختيار المدينة والموقع</span>
+          </button>
+
+          {/* Other Button: Prayer & Adhan Options */}
+          <button
+            type='button'
+            onClick={() => handleOpenModal('settings')}
+            aria-label='خيارات المواقيت والأذان'
+            className='flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl border border-border-theme text-text-main hover:text-gold hover:border-gold/40 bg-bg-elevated transition cursor-pointer active:scale-95 shadow-2xs'>
+            <i className='fas fa-sliders text-gold text-xs'></i>
+            <span>خيارات المواقيت والأذان</span>
           </button>
 
           {/* Refresh Button */}
@@ -113,7 +131,7 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
       <NextPrayerHero
         prayerSchedule={prayerSchedule}
         location={location}
-        onOpenLocationModal={() => setIsLocationModalOpen(true)}
+        onOpenLocationModal={handleOpenModal}
         audioEnabled={audioEnabled}
         onToggleAudio={() => setAudioEnabled(!audioEnabled)}
         hijriDate={hijriDate}
@@ -173,6 +191,7 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
       <LocationModal
         isOpen={isLocationModalOpen}
         onClose={() => setIsLocationModalOpen(false)}
+        initialTab={modalInitialTab}
         currentLocation={location}
         onSelectCity={selectCity}
         onRequestGps={requestGpsLocation}
@@ -186,6 +205,8 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         onPreviewAlert={previewAlert}
         onPreviewMuezzin={previewMuezzin}
         isAdhanPlaying={isAdhanPlaying}
+        playingMuezzinId={playingMuezzinId}
+        isAudioLoading={isAudioLoading}
         onStopAudio={stopAdhan}
       />
     </section>
