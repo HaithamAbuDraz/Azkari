@@ -48,62 +48,62 @@ export const ALERT_TYPES = [
   },
 ];
 
-// Available Muezzin voices
+// Available Muezzin voices (Local high-performance audio assets for zero-lag instant playback)
 export const MUEZZINS = [
   {
     id: 'mishary',
     name: 'الشيخ مشاري راشد العفاسي',
     location: 'محلي (دون إنترنت) والكويت',
     url: '/assets/audio/adhan.mp3',
-    fallbackUrl: 'https://cdn.aladhan.com/audio/adhans/a9.mp3',
+    fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'ali_mulla',
     name: 'الشيخ علي ملا',
     location: 'أذان المسجد الحرام بمكة المكرمة',
-    url: 'https://cdn.aladhan.com/audio/adhans/a4.mp3',
+    url: '/assets/audio/adhans/ali_mulla.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'madinah',
     name: 'أذان المسجد النبوي الشريف',
     location: 'المدينة المنورة',
-    url: 'https://cdn.aladhan.com/audio/adhans/a5.mp3',
+    url: '/assets/audio/adhans/madinah.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'aqsa',
     name: 'أذان المسجد الأقصى المبارك',
     location: 'القدس الشريف',
-    url: 'https://cdn.aladhan.com/audio/adhans/a3.mp3',
+    url: '/assets/audio/adhans/aqsa.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'abdulbasit',
     name: 'الشيخ عبد الباسط عبد الصمد',
     location: 'جمهورية مصر العربية',
-    url: 'https://cdn.aladhan.com/audio/adhans/a6.mp3',
+    url: '/assets/audio/adhans/abdulbasit.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'alnafees',
     name: 'الشيخ أحمد النفيس',
     location: 'الكويت',
-    url: 'https://cdn.aladhan.com/audio/adhans/a1.mp3',
+    url: '/assets/audio/adhans/alnafees.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'zahrani',
     name: 'الشيخ منصور الزهراني',
     location: 'المملكة العربية السعودية',
-    url: 'https://cdn.aladhan.com/audio/adhans/a11-mansour-al-zahrani.mp3',
+    url: '/assets/audio/adhans/zahrani.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
   {
     id: 'turkey',
     name: 'حافظ مصطفى أوزجان',
     location: 'تركيا',
-    url: 'https://cdn.aladhan.com/audio/adhans/a2.mp3',
+    url: '/assets/audio/adhans/turkey.mp3',
     fallbackUrl: '/assets/audio/adhan.mp3',
   },
 ];

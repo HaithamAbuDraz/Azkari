@@ -107,12 +107,17 @@ export function preloadAdhanAudio(url) {
 
 /**
  * Plays Adhan audio with sub-second instant startup.
- * Uses pre-buffered audio pool and auto-fallbacks if remote CDN lags.
+ * Uses pre-buffered audio pool.
+ * @param {string} audioUrl
+ * @param {() => void} [onEnded]
+ * @param {number} [maxDurationSec]
+ * @param {boolean} [allowFallback]
  */
 export function playAdhanAudio(
   audioUrl = '/assets/audio/adhan.mp3',
   onEnded,
-  maxDurationSec = 0
+  maxDurationSec = 0,
+  allowFallback = false
 ) {
   if (typeof window === 'undefined')
     return Promise.reject(new Error('No window'));
@@ -150,17 +155,26 @@ export function playAdhanAudio(
 
     const playPromise = audio.play();
 
-    // Fast-fallback: If remote CDN takes more than 1.2s to start buffering,
-    // switch immediately to bundled local audio so the user never waits.
-    if (audioUrl !== '/assets/audio/adhan.mp3' && playPromise) {
+    // Only apply fallback when explicitly allowed (e.g. automatic prayer time alert)
+    // and give remote CDN a reasonable 6s window so we don't hijack user previews.
+    if (
+      allowFallback &&
+      audioUrl !== '/assets/audio/adhan.mp3' &&
+      playPromise
+    ) {
       const fallbackTimer = setTimeout(() => {
         if (audio.readyState < 2 && adhanAudio === audio) {
           console.warn(
             'Remote Adhan CDN lagging, switching to instant local audio'
           );
-          playAdhanAudio('/assets/audio/adhan.mp3', onEnded, maxDurationSec);
+          playAdhanAudio(
+            '/assets/audio/adhan.mp3',
+            onEnded,
+            maxDurationSec,
+            false
+          );
         }
-      }, 1200);
+      }, 6000);
 
       playPromise
         .then(() => clearTimeout(fallbackTimer))
@@ -169,8 +183,13 @@ export function playAdhanAudio(
 
     return playPromise;
   } catch (err) {
-    if (audioUrl !== '/assets/audio/adhan.mp3') {
-      return playAdhanAudio('/assets/audio/adhan.mp3', onEnded, maxDurationSec);
+    if (allowFallback && audioUrl !== '/assets/audio/adhan.mp3') {
+      return playAdhanAudio(
+        '/assets/audio/adhan.mp3',
+        onEnded,
+        maxDurationSec,
+        false
+      );
     }
     return Promise.reject(err);
   }
