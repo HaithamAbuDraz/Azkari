@@ -9,6 +9,7 @@ export default function NextPrayerHero({
   onToggleAudio,
   hijriDate,
   isAdhanPlaying,
+  isAudioLoading,
   onToggleAdhanTest,
   alertType,
 }) {
@@ -83,48 +84,58 @@ export default function NextPrayerHero({
               type='button'
               onClick={onToggleAdhanTest}
               title={
-                isAdhanPlaying
-                  ? 'إيقاف الصوت الحالي'
-                  : alertType === 'short_reminder'
-                    ? 'تجربة التنبيه الصوتي الناطق'
-                    : 'تجربة الاستماع للأذان'
+                isAudioLoading
+                  ? 'جاري تجهيز الصوت...'
+                  : isAdhanPlaying
+                    ? 'إيقاف الصوت الحالي'
+                    : alertType === 'short_reminder'
+                      ? 'تجربة التنبيه الصوتي الناطق'
+                      : 'تجربة الاستماع للأذان'
               }
               aria-label={
-                isAdhanPlaying
-                  ? 'إيقاف الصوت'
-                  : alertType === 'short_reminder'
-                    ? 'تجربة التنبيه الصوتي الناطق'
-                    : 'تجربة الاستماع للأذان'
+                isAudioLoading
+                  ? 'جاري تحميل الصوت'
+                  : isAdhanPlaying
+                    ? 'إيقاف الصوت'
+                    : alertType === 'short_reminder'
+                      ? 'تجربة التنبيه الصوتي الناطق'
+                      : 'تجربة الاستماع للأذان'
               }
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs border ${
                 isAdhanPlaying
                   ? 'bg-rose-500/20 text-rose-400 border-rose-500/50 animate-pulse'
-                  : 'bg-bg-elevated text-text-muted hover:text-gold border-border-theme hover:border-gold/40'
+                  : isAudioLoading
+                    ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                    : 'bg-bg-elevated text-text-muted hover:text-gold border-border-theme hover:border-gold/40'
               }`}>
               <i
                 className={`text-[10px] ${
-                  isAdhanPlaying
-                    ? 'fas fa-stop'
-                    : alertType === 'short_reminder'
-                      ? 'fas fa-bullhorn text-gold'
-                      : 'fas fa-volume-high text-gold'
+                  isAudioLoading
+                    ? 'fas fa-spinner animate-spin'
+                    : isAdhanPlaying
+                      ? 'fas fa-stop'
+                      : alertType === 'short_reminder'
+                        ? 'fas fa-bullhorn text-gold'
+                        : 'fas fa-volume-high text-gold'
                 }`}></i>
               <span>
-                {isAdhanPlaying
-                  ? alertType === 'short_reminder'
-                    ? 'إيقاف التنبيه'
-                    : alertType === 'takbeerat'
-                      ? 'إيقاف التكبيرات'
-                      : alertType === 'chime'
-                        ? 'إيقاف الرنين'
-                        : 'إيقاف الأذان'
-                  : alertType === 'short_reminder'
-                    ? 'تجربة التنبيه الناطق'
-                    : alertType === 'takbeerat'
-                      ? 'تجربة التكبيرات'
-                      : alertType === 'chime'
-                        ? 'تجربة الرنين'
-                        : 'تجربة الأذان'}
+                {isAudioLoading
+                  ? 'جاري التحميل...'
+                  : isAdhanPlaying
+                    ? alertType === 'short_reminder'
+                      ? 'إيقاف التنبيه'
+                      : alertType === 'takbeerat'
+                        ? 'إيقاف التكبيرات'
+                        : alertType === 'chime'
+                          ? 'إيقاف الرنين'
+                          : 'إيقاف الأذان'
+                    : alertType === 'short_reminder'
+                      ? 'تجربة التنبيه الناطق'
+                      : alertType === 'takbeerat'
+                        ? 'تجربة التكبيرات'
+                        : alertType === 'chime'
+                          ? 'تجربة الرنين'
+                          : 'تجربة الأذان'}
               </span>
             </button>
 

@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getAzkarByCategory } from './utils/azkar';
+import { warmSavedAdhanAudio } from './utils/sound';
 import { Header, MobileNav, Hero, Footer } from './components/layout';
 import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
@@ -13,6 +14,7 @@ import {
   useAzkarCounters,
 } from './hooks';
 import { PANELS } from './constants/tabs';
+import { MUEZZINS } from './constants/prayers';
 
 export default function App() {
   const { currentRoute: activeTab, navigate: switchTab } = useRouter();
@@ -23,6 +25,21 @@ export default function App() {
   const { counters, decrementCounter, resetCardCounter, resetPanel } =
     useAzkarCounters(showToast);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  // Pre-warm active muezzin Adhan audio during browser idle for instant playback
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let idleId = null;
+    const warm = () => warmSavedAdhanAudio(MUEZZINS);
+
+    if ('requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(warm, { timeout: 2500 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    idleId = setTimeout(warm, 1200);
+    return () => clearTimeout(idleId);
+  }, []);
 
   return (
     <div className='min-h-screen flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>

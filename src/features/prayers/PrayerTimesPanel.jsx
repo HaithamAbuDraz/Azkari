@@ -136,6 +136,7 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
         onToggleAudio={() => setAudioEnabled(!audioEnabled)}
         hijriDate={hijriDate}
         isAdhanPlaying={isAdhanPlaying}
+        isAudioLoading={isAudioLoading && !playingMuezzinId}
         onToggleAdhanTest={toggleAdhanTest}
         alertType={alertType}
       />

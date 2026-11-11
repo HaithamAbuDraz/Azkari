@@ -48,63 +48,65 @@ export const ALERT_TYPES = [
   },
 ];
 
-// Available Muezzin voices (Local high-performance audio assets for zero-lag instant playback)
+// Available Muezzin voices (Optimized local audio assets for fast instant playback)
+export const DEFAULT_ADHAN_URL = '/assets/audio/adhan.mp3?v=2';
+
 export const MUEZZINS = [
   {
     id: 'mishary',
     name: 'الشيخ مشاري راشد العفاسي',
     location: 'محلي (دون إنترنت) والكويت',
-    url: '/assets/audio/adhan.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhan.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'ali_mulla',
     name: 'الشيخ علي ملا',
     location: 'أذان المسجد الحرام بمكة المكرمة',
-    url: '/assets/audio/adhans/ali_mulla.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/ali_mulla.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'madinah',
     name: 'أذان المسجد النبوي الشريف',
     location: 'المدينة المنورة',
-    url: '/assets/audio/adhans/madinah.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/madinah.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'aqsa',
     name: 'أذان المسجد الأقصى المبارك',
     location: 'القدس الشريف',
-    url: '/assets/audio/adhans/aqsa.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/aqsa.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'abdulbasit',
     name: 'الشيخ عبد الباسط عبد الصمد',
     location: 'جمهورية مصر العربية',
-    url: '/assets/audio/adhans/abdulbasit.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/abdulbasit.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'alnafees',
     name: 'الشيخ أحمد النفيس',
     location: 'الكويت',
-    url: '/assets/audio/adhans/alnafees.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/alnafees.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'zahrani',
     name: 'الشيخ منصور الزهراني',
     location: 'المملكة العربية السعودية',
-    url: '/assets/audio/adhans/zahrani.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/zahrani.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
   {
     id: 'turkey',
     name: 'حافظ مصطفى أوزجان',
     location: 'تركيا',
-    url: '/assets/audio/adhans/turkey.mp3',
-    fallbackUrl: '/assets/audio/adhan.mp3',
+    url: '/assets/audio/adhans/turkey.mp3?v=2',
+    fallbackUrl: DEFAULT_ADHAN_URL,
   },
 ];
 

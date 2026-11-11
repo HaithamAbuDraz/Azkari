@@ -5,6 +5,10 @@ import {
   MUEZZINS,
   ALERT_TYPES,
 } from '../../../constants/prayers';
+import {
+  preloadMuezzinList,
+  stopMuezzinListPreload,
+} from '../../../utils/sound';
 
 export default function LocationModal({
   isOpen,
@@ -37,6 +41,29 @@ export default function LocationModal({
       setActiveTab(initialTab);
     }
   }, [isOpen, initialTab]);
+
+  // Gently pre-warm muezzin audio cache sequentially when browsing voices
+  useEffect(() => {
+    if (
+      !isOpen ||
+      activeTab !== 'settings' ||
+      openSection !== 'muezzins' ||
+      isAdhanPlaying ||
+      isAudioLoading
+    ) {
+      return;
+    }
+
+    const urls = MUEZZINS.map((m) => m.url).filter(Boolean);
+    const timer = setTimeout(() => {
+      preloadMuezzinList(urls);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      stopMuezzinListPreload();
+    };
+  }, [isOpen, activeTab, openSection, isAdhanPlaying, isAudioLoading]);
 
   const filteredCities = useMemo(() => {
     const q = search.trim().toLowerCase();

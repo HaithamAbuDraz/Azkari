@@ -1,3 +1,5 @@
+import { DEFAULT_ADHAN_URL } from '../constants/prayers';
+
 // Soft, soothing procedural audio feedback for Tasbih using Web Audio API
 
 let audioCtx = null;
@@ -81,40 +83,203 @@ export function playMilestoneChime() {
 
 /* ─────────────────────────────────────────────────────────────
    Adhan Audio & Reminder Player
-   High-performance preloading pool & instant playback
+   Cache API persistence + RAM Blob pool + zero-contention streaming
 ───────────────────────────────────────────────────────────── */
+const AUDIO_CACHE_NAME = 'azkari-audio-v2';
+
 let adhanAudio = null;
+let adhanEndedHandler = null;
 let takbeeratTimeout = null;
-const audioPool = new Map();
+let playbackSeq = 0;
+let listPreloadController = null;
+
+const audioPool = new Map(); // url -> HTMLAudioElement
+const blobUrlPool = new Map(); // url -> blob: object URL
+const inFlightPreloads = new Map(); // url -> { controller, promise }
 
 /**
- * Preloads an audio file in the background so it plays with zero lag.
+ * Checks whether an audio URL is already ready in RAM for instantaneous playback.
  */
-export function preloadAdhanAudio(url) {
-  if (typeof window === 'undefined' || !url) return;
-  if (audioPool.has(url)) return;
+export function isAdhanAudioReady(url) {
+  if (!url) return false;
+  if (blobUrlPool.has(url)) return true;
+  const pooled = audioPool.get(url);
+  return !!(pooled && !pooled.error && pooled.readyState >= 3);
+}
 
-  try {
-    const audio = new Audio();
-    audio.preload = 'auto';
-    audio.src = url;
-    audio.load();
-    audioPool.set(url, audio);
-  } catch {
-    // Ignore preload errors
+/**
+ * Aborts background preloads and unfinished streams for other URLs so the
+ * actively requested Adhan gets 100% of available network bandwidth.
+ */
+export function abortOtherPreloads(keepUrl = null) {
+  if (listPreloadController) {
+    listPreloadController.abort();
+    listPreloadController = null;
+  }
+
+  for (const [url, entry] of inFlightPreloads.entries()) {
+    if (url !== keepUrl) {
+      entry.controller.abort();
+      inFlightPreloads.delete(url);
+    }
+  }
+
+  for (const [url, audio] of audioPool.entries()) {
+    if (
+      url !== keepUrl &&
+      audio !== adhanAudio &&
+      audio.readyState < 4 &&
+      !audio.src.startsWith('blob:')
+    ) {
+      try {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      } catch {
+        // Ignore cleanup errors
+      }
+      audioPool.delete(url);
+    }
   }
 }
 
 /**
- * Plays Adhan audio with sub-second instant startup.
- * Uses pre-buffered audio pool.
+ * Fetches an audio file with low priority, persists it in the browser Cache API,
+ * and stores an in-memory Blob URL for instant playback on desktop and mobile.
+ */
+export function preloadAdhanAudio(url) {
+  if (typeof window === 'undefined' || !url) return Promise.resolve(false);
+  if (blobUrlPool.has(url)) return Promise.resolve(true);
+
+  const existing = inFlightPreloads.get(url);
+  if (existing) return existing.promise;
+
+  const controller = new AbortController();
+
+  const promise = (async () => {
+    try {
+      let cache = null;
+      if ('caches' in window) {
+        try {
+          cache = await window.caches.open(AUDIO_CACHE_NAME);
+          const cachedResponse = await cache.match(url);
+          if (cachedResponse) {
+            const blob = await cachedResponse.blob();
+            if (!controller.signal.aborted && blob.size > 0) {
+              blobUrlPool.set(url, URL.createObjectURL(blob));
+              return true;
+            }
+          }
+        } catch {
+          // Cache API may be unavailable in private/non-secure contexts
+        }
+      }
+
+      if (controller.signal.aborted) return false;
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        priority: 'low',
+      });
+
+      if (!response.ok) return false;
+
+      if (cache) {
+        try {
+          await cache.put(url, response.clone());
+        } catch {
+          // Ignore quota errors
+        }
+      }
+
+      const blob = await response.blob();
+      if (!controller.signal.aborted && blob.size > 0) {
+        blobUrlPool.set(url, URL.createObjectURL(blob));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    } finally {
+      const current = inFlightPreloads.get(url);
+      if (current && current.controller === controller) {
+        inFlightPreloads.delete(url);
+      }
+    }
+  })();
+
+  inFlightPreloads.set(url, { controller, promise });
+  return promise;
+}
+
+/**
+ * Sequentially warms a list of muezzin URLs in the background without
+ * saturating network bandwidth. Automatically yields if user plays an Adhan.
+ */
+export async function preloadMuezzinList(urls = []) {
+  if (typeof window === 'undefined' || !urls.length) return;
+
+  if (listPreloadController) {
+    listPreloadController.abort();
+  }
+  const controller = new AbortController();
+  listPreloadController = controller;
+
+  for (const url of urls) {
+    if (controller.signal.aborted) break;
+    if (!url || blobUrlPool.has(url)) continue;
+    await preloadAdhanAudio(url);
+  }
+
+  if (listPreloadController === controller) {
+    listPreloadController = null;
+  }
+}
+
+/**
+ * Stops the background sequential muezzin preload queue without interrupting
+ * active or selected-muezzin audio caching.
+ */
+export function stopMuezzinListPreload() {
+  if (listPreloadController) {
+    listPreloadController.abort();
+    listPreloadController = null;
+  }
+}
+
+/**
+ * Hydrates the user's saved muezzin audio from Cache API / network during idle time.
+ */
+export function warmSavedAdhanAudio(
+  muezzinList = [],
+  storageKey = 'azkari-prayer-muezzin'
+) {
+  if (typeof window === 'undefined' || !muezzinList.length) return;
+
+  let savedId = muezzinList[0].id;
+  try {
+    savedId = localStorage.getItem(storageKey) || muezzinList[0].id;
+  } catch {
+    // Ignore storage read error
+  }
+
+  const target = muezzinList.find((m) => m.id === savedId) || muezzinList[0];
+  if (target?.url) {
+    preloadAdhanAudio(target.url);
+  }
+}
+
+/**
+ * Plays Adhan audio immediately.
+ * Uses in-memory Blob URL when cached, or progressive HTTP streaming with zero
+ * competing downloads on first play (keeping synchronous user activation).
  * @param {string} audioUrl
  * @param {() => void} [onEnded]
  * @param {number} [maxDurationSec]
  * @param {boolean} [allowFallback]
  */
 export function playAdhanAudio(
-  audioUrl = '/assets/audio/adhan.mp3',
+  audioUrl = DEFAULT_ADHAN_URL,
   onEnded,
   maxDurationSec = 0,
   allowFallback = false
@@ -122,88 +287,144 @@ export function playAdhanAudio(
   if (typeof window === 'undefined')
     return Promise.reject(new Error('No window'));
 
-  // Stop active audio
   stopAdhanAudio();
+  const currentSeq = ++playbackSeq;
+  const cachedBlobUrl = blobUrlPool.get(audioUrl);
+  // If not yet in RAM, cancel all background fetches (including for this URL)
+  // so progressive <audio> streaming gets 100% of bandwidth without duplicate requests.
+  abortOtherPreloads(cachedBlobUrl ? audioUrl : null);
 
   try {
     let audio = audioPool.get(audioUrl);
 
+    if (audio && audio.error) {
+      audioPool.delete(audioUrl);
+      audio = null;
+    }
+
+    if (audio && cachedBlobUrl && !audio.src.startsWith('blob:')) {
+      audio.src = cachedBlobUrl;
+    }
+
     if (!audio) {
       audio = new Audio();
       audio.preload = 'auto';
-      audio.src = audioUrl;
+      audio.src = cachedBlobUrl || audioUrl;
       audioPool.set(audioUrl, audio);
     }
 
     adhanAudio = audio;
-    audio.currentTime = 0;
+
+    // Reset position only when metadata exists to avoid stalling cold streams
+    if (audio.readyState > 0 && audio.currentTime !== 0) {
+      audio.currentTime = 0;
+    }
 
     if (onEnded) {
-      const handleEnded = () => {
-        audio.removeEventListener('ended', handleEnded);
+      adhanEndedHandler = () => {
+        if (currentSeq !== playbackSeq) return;
+        audio.removeEventListener('ended', adhanEndedHandler);
+        adhanEndedHandler = null;
+        adhanAudio = null;
         onEnded();
       };
-      audio.addEventListener('ended', handleEnded, { once: true });
+      audio.addEventListener('ended', adhanEndedHandler, { once: true });
     }
 
-    if (maxDurationSec > 0) {
-      takbeeratTimeout = setTimeout(() => {
-        stopAdhanAudio();
-        if (onEnded) onEnded();
-      }, maxDurationSec * 1000);
-    }
-
-    const playPromise = audio.play();
-
-    // Only apply fallback when explicitly allowed (e.g. automatic prayer time alert)
-    // and give remote CDN a reasonable 6s window so we don't hijack user previews.
-    if (
-      allowFallback &&
-      audioUrl !== '/assets/audio/adhan.mp3' &&
-      playPromise
-    ) {
-      const fallbackTimer = setTimeout(() => {
-        if (audio.readyState < 2 && adhanAudio === audio) {
-          console.warn(
-            'Remote Adhan CDN lagging, switching to instant local audio'
-          );
-          playAdhanAudio(
-            '/assets/audio/adhan.mp3',
-            onEnded,
-            maxDurationSec,
-            false
-          );
+    // Store in Cache API once the browser finishes buffering this stream cleanly
+    if (!cachedBlobUrl && !inFlightPreloads.has(audioUrl)) {
+      const handleBuffered = () => {
+        if (
+          !blobUrlPool.has(audioUrl) &&
+          !inFlightPreloads.has(audioUrl) &&
+          (currentSeq === playbackSeq || audio.readyState >= 4)
+        ) {
+          preloadAdhanAudio(audioUrl);
         }
-      }, 6000);
+      };
+      audio.addEventListener('canplaythrough', handleBuffered, { once: true });
+    }
+
+    const rawPlayPromise = audio.play();
+
+    const playPromise = Promise.resolve(rawPlayPromise).then(() => {
+      if (currentSeq !== playbackSeq) {
+        if (audio !== adhanAudio) {
+          try {
+            audio.pause();
+          } catch {
+            // Ignore
+          }
+        }
+        return;
+      }
+      if (maxDurationSec > 0) {
+        takbeeratTimeout = setTimeout(() => {
+          if (currentSeq !== playbackSeq) return;
+          stopAdhanAudio();
+          if (onEnded) onEnded();
+        }, maxDurationSec * 1000);
+      }
+    });
+
+    if (allowFallback && audioUrl !== DEFAULT_ADHAN_URL) {
+      const fallbackTimer = setTimeout(() => {
+        if (
+          currentSeq === playbackSeq &&
+          audio.readyState < 2 &&
+          adhanAudio === audio
+        ) {
+          console.warn('Adhan audio lagging, switching to default local audio');
+          playAdhanAudio(DEFAULT_ADHAN_URL, onEnded, maxDurationSec, false);
+        }
+      }, 4000);
 
       playPromise
         .then(() => clearTimeout(fallbackTimer))
         .catch(() => clearTimeout(fallbackTimer));
     }
 
-    return playPromise;
+    return playPromise.catch((err) => {
+      if (
+        allowFallback &&
+        err?.name !== 'AbortError' &&
+        err?.name !== 'NotAllowedError' &&
+        audioUrl !== DEFAULT_ADHAN_URL &&
+        currentSeq === playbackSeq
+      ) {
+        return playAdhanAudio(
+          DEFAULT_ADHAN_URL,
+          onEnded,
+          maxDurationSec,
+          false
+        );
+      }
+      throw err;
+    });
   } catch (err) {
-    if (allowFallback && audioUrl !== '/assets/audio/adhan.mp3') {
-      return playAdhanAudio(
-        '/assets/audio/adhan.mp3',
-        onEnded,
-        maxDurationSec,
-        false
-      );
+    if (allowFallback && audioUrl !== DEFAULT_ADHAN_URL) {
+      return playAdhanAudio(DEFAULT_ADHAN_URL, onEnded, maxDurationSec, false);
     }
     return Promise.reject(err);
   }
 }
 
 export function stopAdhanAudio() {
+  playbackSeq += 1;
   if (takbeeratTimeout) {
     clearTimeout(takbeeratTimeout);
     takbeeratTimeout = null;
   }
   if (adhanAudio) {
+    if (adhanEndedHandler) {
+      adhanAudio.removeEventListener('ended', adhanEndedHandler);
+      adhanEndedHandler = null;
+    }
     try {
       adhanAudio.pause();
-      adhanAudio.currentTime = 0;
+      if (adhanAudio.readyState > 0) {
+        adhanAudio.currentTime = 0;
+      }
     } catch {
       // Ignore pause error
     }
