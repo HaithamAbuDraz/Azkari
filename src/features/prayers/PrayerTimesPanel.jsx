@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { CARD_HOVER_SPRING, EASE_SPIRITUAL } from '../../constants/motion';
 import { usePrayerTimes } from '../../hooks/usePrayerTimes';
 import { getDisplayCityName } from '../../utils/location';
 import NextPrayerHero from './components/NextPrayerHero';
@@ -55,7 +57,11 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
       role='tabpanel'
       aria-label='مواقيت الصلاة والقبلة'>
       {/* Top Banner / Location bar */}
-      <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-bg-card border border-border-theme shadow-xs mb-6 sm:mb-8 transition-colors'>
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: EASE_SPIRITUAL }}
+        className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-bg-card/90 backdrop-blur-md border border-border-theme shadow-xs mb-6 sm:mb-8 transition-colors'>
         <div className='flex items-center gap-3.5'>
           <div className='w-12 h-12 rounded-2xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold text-xl shadow-2xs'>
             <i className='fas fa-mosque'></i>
@@ -107,25 +113,32 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
           </button>
 
           {/* Refresh Button */}
-          <button
+          <motion.button
             type='button'
+            whileTap={{ scale: 0.92 }}
             onClick={refetch}
             aria-label='تحديث المواقيت'
             title='تحديث المواقيت الآن'
-            className='w-9 h-9 rounded-xl border border-border-theme flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-elevated transition cursor-pointer active:scale-95'>
+            className='w-9 h-9 rounded-xl border border-border-theme flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-elevated transition cursor-pointer'>
             <i
               className={`fas fa-rotate-right text-xs ${loading ? 'animate-spin' : ''}`}></i>
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Offline / Error notice if any */}
-      {error && (
-        <div className='p-3 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs sm:text-sm mb-6 flex items-center gap-2.5'>
-          <i className='fas fa-circle-exclamation text-amber-400 text-sm'></i>
-          <span>{error}</span>
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className='p-3 sm:p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs sm:text-sm mb-6 flex items-center gap-2.5'>
+            <i className='fas fa-circle-exclamation text-amber-400 text-sm'></i>
+            <span>{error}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Main Countdown Hero Card */}
       <NextPrayerHero
@@ -152,7 +165,13 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
 
       {/* Link to After-Prayer Azkar */}
       {onSelectTab && (
-        <div className='p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-primary/10 via-bg-card to-gold/10 border border-border-theme flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right shadow-xs'>
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          whileHover={{ y: -3 }}
+          transition={CARD_HOVER_SPRING}
+          className='p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-primary/10 via-bg-card/90 to-gold/10 backdrop-blur-md border border-border-theme flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right shadow-xs'>
           <div className='flex items-center gap-3.5'>
             <div className='w-10 h-10 rounded-xl bg-gold/15 border border-gold/30 text-gold flex items-center justify-center text-base'>
               <i className='fas fa-kaaba'></i>
@@ -166,14 +185,16 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
               </p>
             </div>
           </div>
-          <button
+          <motion.button
             type='button'
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => onSelectTab('salah')}
-            className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gold text-bg-deep hover:bg-gold-bright active:scale-95 transition cursor-pointer shadow-xs'>
+            className='inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-gold text-bg-deep hover:bg-gold-bright transition cursor-pointer shadow-xs'>
             <span>انتقل لأذكار بعد الصلاة</span>
             <i className='fas fa-arrow-left text-xs'></i>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
       )}
 
       {/* Floating Adhan Alert Banner when prayer arrives or is playing */}
