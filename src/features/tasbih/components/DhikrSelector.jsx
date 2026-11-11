@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  EASE_SPIRITUAL,
+  MODAL_BACKDROP_VARIANTS,
+  MODAL_PANEL_VARIANTS,
+} from '../../../constants/motion';
 
 export default function DhikrSelector({
   dhikrs,
@@ -6,7 +12,6 @@ export default function DhikrSelector({
   onSelectDhikr,
   onAddCustomDhikr,
   arabicOpacity,
-  target,
 }) {
   const [fontSizeLevel, setFontSizeLevel] = useState(1); // 0: Normal, 1: Large, 2: Extra Large
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -17,9 +22,9 @@ export default function DhikrSelector({
   const currentDhikr = dhikrs[activeIdx] || dhikrs[0];
 
   const fontSizeClasses = [
-    'text-xl sm:text-2xl lg:text-3xl', // Normal
-    'text-2xl sm:text-3xl lg:text-4xl', // Large (default)
-    'text-3xl sm:text-4xl lg:text-5xl', // Extra Large (elderly accessible)
+    'text-xl sm:text-2xl lg:text-3xl',
+    'text-2xl sm:text-3xl lg:text-4xl',
+    'text-3xl sm:text-4xl lg:text-5xl',
   ];
 
   const handleAddSubmit = (e) => {
@@ -29,7 +34,7 @@ export default function DhikrSelector({
       label: customLabel.trim(),
       arabic: customArabic.trim() || customLabel.trim(),
       target: parseInt(customTarget, 10) || 100,
-      virtue: 'ذكر مخصص من اختيارك — تقبل الله طاعتك.',
+      virtue: 'ذكر مخصص من اختيارك، تقبل الله طاعتك.',
     };
     if (onAddCustomDhikr) {
       onAddCustomDhikr(newDhikr);
@@ -88,10 +93,12 @@ export default function DhikrSelector({
         {dhikrs.map((d, i) => {
           const isSelected = i === activeIdx;
           return (
-            <button
+            <motion.button
               key={`${d.label}-${i}`}
               type='button'
-              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-semibold border transition-all duration-200 cursor-pointer select-none flex items-center gap-2 active:scale-95 ${
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className={`shrink-0 px-3.5 py-2 rounded-2xl text-xs sm:text-sm font-semibold border transition-colors duration-200 cursor-pointer select-none flex items-center gap-2 ${
                 isSelected
                   ? 'bg-primary/20 text-primary border-primary/50 shadow-xs ring-2 ring-primary/25 font-bold'
                   : 'bg-bg-card border-border-theme text-text-muted hover:text-text-main hover:bg-bg-elevated hover:border-gold/30'
@@ -107,28 +114,29 @@ export default function DhikrSelector({
               <span className='text-[10px] px-1.5 py-0.5 rounded-full bg-bg-elevated/80 font-mono text-text-muted'>
                 {d.target}
               </span>
-            </button>
+            </motion.button>
           );
         })}
 
         {/* Add custom dhikr button */}
-        <button
+        <motion.button
           type='button'
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => setShowCustomModal(true)}
           className='shrink-0 px-3 py-2 rounded-2xl text-xs font-semibold border border-dashed border-gold/40 bg-gold/5 text-gold hover:bg-gold/15 transition cursor-pointer flex items-center gap-1.5'
           title='إضافة صيغة ذكر مخصصة'>
           <i className='fas fa-plus text-[10px]'></i>
           <span>ذكر مخصص</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Central Arabic Calligraphy Display Banner */}
       <div
-        className='relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-bg-card border border-border-theme text-center text-text-arabic my-4 sm:my-5 shadow-xs transition-all duration-300'
+        className='relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-bg-card/90 backdrop-blur-md border border-border-theme text-center text-text-arabic my-4 sm:my-5 shadow-xs transition-all duration-300'
         lang='ar'
         dir='rtl'
         aria-live='polite'>
-        {/* Subtle decorative Islamic corner patterns */}
         <div
           className='absolute top-2 right-2 text-gold/15 text-xl pointer-events-none select-none'
           aria-hidden='true'>
@@ -140,111 +148,127 @@ export default function DhikrSelector({
           ❖
         </div>
 
-        {/* Selected Arabic text with full diacritics */}
-        <div
-          className={`font-amiri font-bold text-text-arabic leading-relaxed min-h-[4rem] sm:min-h-[5rem] flex items-center justify-center ${fontSizeClasses[fontSizeLevel]}`}
-          style={{
-            opacity: arabicOpacity,
-            transition: 'opacity 0.25s ease-in-out',
-          }}>
-          {currentDhikr.arabic || currentDhikr.label}
-        </div>
+        <AnimatePresence mode='wait'>
+          <motion.div
+            key={currentDhikr.arabic || currentDhikr.label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: arabicOpacity ?? 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.24, ease: EASE_SPIRITUAL }}>
+            <div
+              className={`font-amiri font-bold text-text-arabic leading-relaxed min-h-[4rem] sm:min-h-[5rem] flex items-center justify-center ${fontSizeClasses[fontSizeLevel]}`}>
+              {currentDhikr.arabic || currentDhikr.label}
+            </div>
 
-        {/* Virtue / Hadith footnote */}
-        {currentDhikr.virtue && (
-          <div className='mt-3 pt-3 border-t border-border-theme/60 flex items-center justify-center gap-2 text-xs sm:text-sm text-text-muted'>
-            <i className='fas fa-feather-pointed text-gold text-xs'></i>
-            <span className='font-tajawal leading-normal'>
-              {currentDhikr.virtue}
-            </span>
-          </div>
-        )}
+            {currentDhikr.virtue && (
+              <div className='mt-3 pt-3 border-t border-border-theme/60 flex items-center justify-center gap-2 text-xs sm:text-sm text-text-muted'>
+                <i className='fas fa-feather-pointed text-gold text-xs'></i>
+                <span className='font-tajawal leading-normal'>
+                  {currentDhikr.virtue}
+                </span>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      {/* Custom Dhikr Modal */}
-      {showCustomModal && (
-        <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4'
-          role='dialog'
-          aria-modal='true'
-          aria-labelledby='custom-modal-title'>
-          <div className='w-full max-w-md bg-bg-card border border-border-theme rounded-3xl p-6 shadow-2xl relative'>
-            <button
-              type='button'
-              onClick={() => setShowCustomModal(false)}
-              className='absolute top-4 left-4 w-8 h-8 rounded-full bg-bg-elevated hover:bg-gold/20 text-text-muted hover:text-text-main flex items-center justify-center text-xs transition cursor-pointer'
-              aria-label='إغلاق'>
-              <i className='fas fa-times'></i>
-            </button>
+      {/* Animated Custom Dhikr Modal */}
+      <AnimatePresence>
+        {showCustomModal && (
+          <motion.div
+            variants={MODAL_BACKDROP_VARIANTS}
+            initial='hidden'
+            animate='visible'
+            exit='exit'
+            onClick={() => setShowCustomModal(false)}
+            className='fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='custom-modal-title'>
+            <motion.div
+              variants={MODAL_PANEL_VARIANTS}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              onClick={(e) => e.stopPropagation()}
+              className='w-full max-w-md bg-bg-card border border-border-theme rounded-3xl p-6 shadow-2xl relative'>
+              <button
+                type='button'
+                onClick={() => setShowCustomModal(false)}
+                className='absolute top-4 left-4 w-8 h-8 rounded-full bg-bg-elevated hover:bg-gold/20 text-text-muted hover:text-text-main flex items-center justify-center text-xs transition cursor-pointer'
+                aria-label='إغلاق'>
+                <i className='fas fa-times'></i>
+              </button>
 
-            <h4
-              id='custom-modal-title'
-              className='text-base font-bold text-text-main mb-4 flex items-center gap-2'>
-              <i className='fas fa-plus-circle text-gold'></i>
-              <span>إضافة صيغة ذكر مخصصة</span>
-            </h4>
+              <h4
+                id='custom-modal-title'
+                className='text-base font-bold text-text-main mb-4 flex items-center gap-2'>
+                <i className='fas fa-plus-circle text-gold'></i>
+                <span>إضافة صيغة ذكر مخصصة</span>
+              </h4>
 
-            <form
-              onSubmit={handleAddSubmit}
-              className='space-y-4'>
-              <div>
-                <label className='block text-xs font-semibold text-text-muted mb-1.5'>
-                  اسم الذكر (مختصر):
-                </label>
-                <input
-                  type='text'
-                  required
-                  placeholder='مثال: يا حي يا قيوم'
-                  value={customLabel}
-                  onChange={(e) => setCustomLabel(e.target.value)}
-                  className='w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm focus:outline-none focus:border-gold/60'
-                />
-              </div>
+              <form
+                onSubmit={handleAddSubmit}
+                className='space-y-4'>
+                <div>
+                  <label className='block text-xs font-semibold text-text-muted mb-1.5'>
+                    اسم الذكر (مختصر):
+                  </label>
+                  <input
+                    type='text'
+                    required
+                    placeholder='مثال: يا حي يا قيوم'
+                    value={customLabel}
+                    onChange={(e) => setCustomLabel(e.target.value)}
+                    className='w-full px-3.5 py-2.5 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm focus:outline-none focus:border-gold/60'
+                  />
+                </div>
 
-              <div>
-                <label className='block text-xs font-semibold text-text-muted mb-1.5'>
-                  النص الكامل (مع التشكيل إن أمكن):
-                </label>
-                <textarea
-                  rows='2'
-                  placeholder='يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ'
-                  value={customArabic}
-                  onChange={(e) => setCustomArabic(e.target.value)}
-                  className='w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm font-amiri focus:outline-none focus:border-gold/60'
-                />
-              </div>
+                <div>
+                  <label className='block text-xs font-semibold text-text-muted mb-1.5'>
+                    النص الكامل (مع التشكيل إن أمكن):
+                  </label>
+                  <textarea
+                    rows='2'
+                    placeholder='يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ'
+                    value={customArabic}
+                    onChange={(e) => setCustomArabic(e.target.value)}
+                    className='w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm font-amiri focus:outline-none focus:border-gold/60'
+                  />
+                </div>
 
-              <div>
-                <label className='block text-xs font-semibold text-text-muted mb-1.5'>
-                  الهدف التكراري الافتراضي:
-                </label>
-                <input
-                  type='number'
-                  min='1'
-                  max='9999'
-                  value={customTarget}
-                  onChange={(e) => setCustomTarget(e.target.value)}
-                  className='w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm font-mono focus:outline-none focus:border-gold/60'
-                />
-              </div>
+                <div>
+                  <label className='block text-xs font-semibold text-text-muted mb-1.5'>
+                    الهدف التكراري الافتراضي:
+                  </label>
+                  <input
+                    type='number'
+                    min='1'
+                    max='9999'
+                    value={customTarget}
+                    onChange={(e) => setCustomTarget(e.target.value)}
+                    className='w-full px-3.5 py-2 rounded-xl bg-bg-elevated border border-border-theme text-text-main text-sm font-mono focus:outline-none focus:border-gold/60'
+                  />
+                </div>
 
-              <div className='flex items-center justify-end gap-2.5 pt-2'>
-                <button
-                  type='button'
-                  onClick={() => setShowCustomModal(false)}
-                  className='px-4 py-2 rounded-xl border border-border-theme text-xs font-semibold text-text-muted hover:text-text-main cursor-pointer'>
-                  إلغاء
-                </button>
-                <button
-                  type='submit'
-                  className='px-5 py-2 rounded-xl bg-gold text-bg-deep text-xs font-bold hover:opacity-90 shadow-xs cursor-pointer'>
-                  إضافة الذكر
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+                <div className='flex items-center justify-end gap-2.5 pt-2'>
+                  <button
+                    type='button'
+                    onClick={() => setShowCustomModal(false)}
+                    className='px-4 py-2 rounded-xl border border-border-theme text-xs font-semibold text-text-muted hover:text-text-main cursor-pointer'>
+                    إلغاء
+                  </button>
+                  <button
+                    type='submit'
+                    className='px-5 py-2 rounded-xl bg-gold text-bg-deep text-xs font-bold hover:opacity-90 shadow-xs cursor-pointer'>
+                    إضافة الذكر
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

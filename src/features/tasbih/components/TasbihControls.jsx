@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { TARGET_PRESETS } from '../../../constants/tasbih';
 
 export default function TasbihControls({
@@ -84,35 +85,41 @@ export default function TasbihControls({
 
         <div className='grid grid-cols-3 gap-2.5 sm:gap-3'>
           {/* Undo */}
-          <button
+          <motion.button
             type='button'
             onClick={onUndo}
             disabled={!canUndo}
-            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-border-theme bg-bg-elevated/70 text-text-main hover:text-gold hover:border-gold/40 text-xs sm:text-sm font-bold transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs'
+            whileHover={canUndo ? { y: -2 } : undefined}
+            whileTap={canUndo ? { scale: 0.95 } : undefined}
+            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-border-theme bg-bg-elevated/70 text-text-main hover:text-gold hover:border-gold/40 text-xs sm:text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs'
             title='تراجع عن التسبيحة الأخيرة (Backspace)'>
             <i className='fas fa-rotate-left text-xs text-gold'></i>
             <span>تراجع</span>
-          </button>
+          </motion.button>
 
           {/* Reset */}
-          <button
+          <motion.button
             type='button'
             onClick={onReset}
-            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-rose-500/25 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/40 text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs'
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-rose-500/25 bg-rose-500/5 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/40 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-2xs'
             title='إعادة تعيين العداد (R)'>
             <i className='fas fa-arrow-rotate-right text-xs'></i>
             <span>إعادة</span>
-          </button>
+          </motion.button>
 
           {/* Save Session */}
-          <button
+          <motion.button
             type='button'
             onClick={onSave}
-            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-gold/30 bg-gold/10 text-gold hover:bg-gold/20 hover:border-gold/60 text-xs sm:text-sm font-bold transition-all active:scale-95 cursor-pointer shadow-2xs'
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className='flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl border border-gold/30 bg-gold/10 text-gold hover:bg-gold/20 hover:border-gold/60 text-xs sm:text-sm font-bold transition-colors cursor-pointer shadow-2xs'
             title='حفظ جلسة التسبيح في السجل'>
             <i className='fas fa-floppy-disk text-xs'></i>
             <span>حفظ الجلسة</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 

@@ -1,4 +1,6 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Fingerprint } from 'lucide-react';
 
 export default function TasbihRing({
   count,
@@ -20,9 +22,9 @@ export default function TasbihRing({
       aria-label='عداد التسبيح التفاعلي'>
       {/* Central Circular Counter Unit */}
       <div className='relative w-72 h-72 sm:w-80 sm:h-80 md:w-88 md:h-88 flex items-center justify-center'>
-        {/* Ambient glow container in dark mode */}
+        {/* Ambient glow container */}
         <div
-          className='absolute inset-2 rounded-full tasbih-glow-aura pointer-events-none opacity-40 dark:opacity-80 transition-opacity'
+          className='absolute inset-2 rounded-full tasbih-glow-aura pointer-events-none opacity-45 dark:opacity-80 transition-opacity'
           aria-hidden='true'></div>
 
         {/* SVG Circular Progress Bar */}
@@ -79,7 +81,7 @@ export default function TasbihRing({
           />
 
           {/* Animated Progress Circle */}
-          <circle
+          <motion.circle
             cx='130'
             cy='130'
             r='115'
@@ -88,39 +90,60 @@ export default function TasbihRing({
             strokeWidth='9'
             strokeLinecap='round'
             filter='url(#glowFilter)'
-            style={{
-              strokeDasharray: 722,
-              strokeDashoffset,
-              transition:
-                'stroke-dashoffset 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
+            style={{ strokeDasharray: 722 }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
           />
         </svg>
 
-        {/* The Main Tactile Button covering the inner circle */}
-        <button
+        {/* Main Tactile Counter Button */}
+        <motion.button
           ref={tapBtnRef}
           type='button'
           onClick={onIncrement}
+          whileHover={{ scale: 1.015 }}
+          whileTap={{ scale: 0.95 }}
+          animate={isBumping ? { scale: [1, 1.045, 1] } : { scale: 1 }}
+          transition={{ type: 'spring', stiffness: 450, damping: 20 }}
           aria-label={`اضغط للتسبيح. العدد الحالي ${count} من ${target}`}
-          className='relative z-20 w-[84%] h-[84%] rounded-full overflow-hidden flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-150 active:scale-96 focus:outline-none focus-visible:ring-4 focus-visible:ring-gold/60 border-4 border-gold/30 hover:border-gold/60 bg-gradient-to-b from-bg-card via-bg-elevated to-bg-card shadow-xl group'>
+          className='relative z-20 w-[84%] h-[84%] rounded-full overflow-hidden flex flex-col items-center justify-center text-center cursor-pointer transition-colors duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-gold/60 border-4 border-gold/30 hover:border-gold/60 bg-gradient-to-b from-bg-card via-bg-elevated to-bg-card shadow-xl group'>
           {/* Top Lap / Progress Info */}
           <div className='flex items-center gap-2 mb-1'>
-            <span className='text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20'>
-              {laps > 0 ? `الدورة ${laps + 1}` : 'الدورة 1'}
-            </span>
+            <AnimatePresence
+              mode='popLayout'
+              initial={false}>
+              <motion.span
+                key={laps}
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={{ duration: 0.2 }}
+                className='text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20'>
+                {laps > 0 ? `الدورة ${laps + 1}` : 'الدورة 1'}
+              </motion.span>
+            </AnimatePresence>
             <span className='text-[11px] font-mono text-text-muted font-bold'>
               {pct}%
             </span>
           </div>
 
-          {/* Current Count (Prominent Display) */}
+          {/* Rolling Current Count */}
           <div
-            className={`text-6xl sm:text-7xl font-extrabold font-mono text-gold transition-transform duration-120 tracking-tight leading-none my-1 ${
-              isBumping ? 'scale-115 text-primary' : 'scale-100'
-            }`}
+            className='h-16 sm:h-20 flex items-center justify-center overflow-hidden my-1'
             aria-live='polite'>
-            {count}
+            <AnimatePresence
+              mode='popLayout'
+              initial={false}>
+              <motion.div
+                key={count}
+                initial={{ opacity: 0, y: -22, scale: 0.85 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 22, scale: 0.85 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                className='text-6xl sm:text-7xl font-extrabold font-mono text-gold tracking-tight leading-none'>
+                {count}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Target Goal Display */}
@@ -139,7 +162,7 @@ export default function TasbihRing({
           {/* CTA: اضغط / أو اضغط Space */}
           <div className='flex flex-col items-center justify-center pt-1 border-t border-border-theme/50 w-36'>
             <div className='flex items-center gap-1.5 text-base sm:text-lg font-bold text-text-main group-hover:text-gold transition-colors'>
-              <i className='fas fa-hand-pointer text-xs text-gold'></i>
+              <Fingerprint className='w-4 h-4 text-gold' />
               <span className='font-tajawal'>اضغط</span>
             </div>
             <span className='text-[11px] text-text-muted font-normal mt-0.5 flex items-center gap-1'>
@@ -158,7 +181,7 @@ export default function TasbihRing({
               style={rip.style}
             />
           ))}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import {
   INITIAL_DHIKRS,
   MILESTONES,
   CIRCUMFERENCE,
   getMilestoneMsg,
 } from '../../constants/tasbih';
+import {
+  CONTAINER_STAGGER_VARIANTS,
+  ITEM_FADE_UP_VARIANTS,
+} from '../../constants/motion';
 import { triggerHaptic } from '../../utils/haptics';
 import { playTasbihClick, playMilestoneChime } from '../../utils/sound';
+import { fireSpiritualConfetti } from '../../utils/celebrate';
 import DhikrSelector from './components/DhikrSelector';
 import TasbihRing from './components/TasbihRing';
 import TasbihControls from './components/TasbihControls';
@@ -234,6 +240,7 @@ export default function TasbihPanel({ isActive, showToast }) {
         newLaps = laps + 1;
         setLaps(newLaps);
         if (soundEnabled) playMilestoneChime();
+        fireSpiritualConfetti({ y: 0.65 });
         if (showToast) {
           showToast(
             `ما شاء الله! اكتملت الدورة ${newLaps} <i class="fas fa-star text-gold"></i>`
@@ -245,6 +252,7 @@ export default function TasbihPanel({ isActive, showToast }) {
       const newTotal = newLaps * target + newCount;
       if (MILESTONES.includes(newTotal)) {
         if (soundEnabled) playMilestoneChime();
+        fireSpiritualConfetti({ y: 0.65 });
         if (showToast) {
           showToast(getMilestoneMsg(newTotal, currentDhikr.label));
         }
@@ -388,9 +396,15 @@ export default function TasbihPanel({ isActive, showToast }) {
       role='tabpanel'
       aria-label='صفحة التسبيح الرقمي'>
       {/* 2-Column Responsive Layout on Desktop (Counter + Controls on right/main, Sidebar on left/sidebar for RTL) */}
-      <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-start'>
+      <motion.div
+        className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-start'
+        variants={CONTAINER_STAGGER_VARIANTS}
+        initial='hidden'
+        animate='visible'>
         {/* Main Interaction Area & Controls (cols 12 -> lg:7 or 8) */}
-        <div className='lg:col-span-8 flex flex-col items-center'>
+        <motion.div
+          variants={ITEM_FADE_UP_VARIANTS}
+          className='lg:col-span-8 flex flex-col items-center'>
           {/* 3. Zikr Selection Panel */}
           <DhikrSelector
             dhikrs={dhikrs}
@@ -427,10 +441,12 @@ export default function TasbihPanel({ isActive, showToast }) {
             hapticEnabled={hapticEnabled}
             onToggleHaptic={handleToggleHaptic}
           />
-        </div>
+        </motion.div>
 
         {/* 6. Saved Sessions / History Sidebar (cols 12 -> lg:4) */}
-        <div className='lg:col-span-4 flex flex-col gap-6'>
+        <motion.div
+          variants={ITEM_FADE_UP_VARIANTS}
+          className='lg:col-span-4 flex flex-col gap-6'>
           {/* History / Saved Sessions Sidebar */}
           <HistoryList
             history={history}
@@ -472,8 +488,8 @@ export default function TasbihPanel({ isActive, showToast }) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
