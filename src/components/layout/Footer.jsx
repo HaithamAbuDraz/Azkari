@@ -25,7 +25,7 @@ export default function Footer({ onShowToast, onSelectTab }) {
 
   return (
     <footer
-      className='mt-16 sm:mt-24 border-t border-border-theme bg-bg-card/75 backdrop-blur-md pt-12 pb-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300'
+      className='mt-12 sm:mt-20 border-t border-border-theme bg-bg-card/75 backdrop-blur-md pt-8 sm:pt-10 pb-3.5 sm:pb-4 px-4 sm:px-6 lg:px-8 transition-colors duration-300'
       role='contentinfo'>
       <div className='max-w-7xl mx-auto flex flex-col gap-8'>
         <div className='grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-border-theme/50'>
@@ -159,7 +159,7 @@ export default function Footer({ onShowToast, onSelectTab }) {
         </div>
 
         {/* Bottom copyright & attribution */}
-        <div className='flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted'>
+        <div className='flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-text-muted sm:pl-16'>
           <p className='flex items-center gap-1.5 flex-wrap'>
             <i className='far fa-copyright text-xs'></i>
             <span>
@@ -171,7 +171,7 @@ export default function Footer({ onShowToast, onSelectTab }) {
                 target='_blank'
                 rel='noopener noreferrer'
                 className='font-semibold text-text-main hover:text-gold transition-colors inline-flex items-center gap-1 underline underline-offset-4 decoration-border-theme hover:decoration-gold'>
-                هيثم أبو دراز (Haitham Abu Draz)
+                هيثم أبو دراز
               </a>
             </span>
           </p>
