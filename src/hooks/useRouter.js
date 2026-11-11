@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import {
-  VALID_ROUTES,
-  getDefaultTab,
-  TAB_TITLES,
-  TAB_DESCRIPTIONS,
-} from '../constants/tabs';
+import { VALID_ROUTES, TAB_TITLES, TAB_DESCRIPTIONS } from '../constants/tabs';
 
 // Helper to extract route from current window location (pathname or hash)
 export function getRouteFromLocation() {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined') return 'home';
 
   // 1. Check hash first (e.g., #/morning or #morning)
   const hash = window.location.hash.replace(/^#\/?/, '').trim();
@@ -16,13 +11,17 @@ export function getRouteFromLocation() {
     return hash;
   }
 
-  // 2. Check pathname (e.g., /morning or /azkari/morning)
+  // 2. Check pathname (e.g., / -> home, /morning -> morning)
   const pathSegments = window.location.pathname
     .replace(/\/+$/, '')
     .split('/')
     .filter(Boolean);
-  const lastSegment = pathSegments[pathSegments.length - 1];
 
+  if (pathSegments.length === 0) {
+    return 'home';
+  }
+
+  const lastSegment = pathSegments[pathSegments.length - 1];
   if (lastSegment && VALID_ROUTES.includes(lastSegment)) {
     return lastSegment;
   }
@@ -32,14 +31,14 @@ export function getRouteFromLocation() {
 
 export function useRouter() {
   const [currentRoute, setCurrentRoute] = useState(() => {
-    return getRouteFromLocation() || getDefaultTab();
+    return getRouteFromLocation() || 'home';
   });
 
   const syncDocumentMeta = useCallback((route) => {
     if (typeof document === 'undefined') return;
 
-    const mainTitle = 'أذكاري — روضة الأذكار والأدعية';
-    const subTitle = TAB_TITLES[route];
+    const mainTitle = 'أذكاري | روضة الأذكار والأدعية';
+    const subTitle = route !== 'home' ? TAB_TITLES[route] : '';
     document.title = subTitle ? `${mainTitle} | ${subTitle}` : mainTitle;
 
     const metaDescription = document.querySelector('meta[name="description"]');
@@ -53,11 +52,14 @@ export function useRouter() {
       const cleanTarget = String(target)
         .replace(/^\/?(#[/])?/, '')
         .replace(/\/+$/, '');
-      const validRoute = VALID_ROUTES.includes(cleanTarget)
-        ? cleanTarget
-        : getDefaultTab();
+      const validRoute =
+        cleanTarget === ''
+          ? 'home'
+          : VALID_ROUTES.includes(cleanTarget)
+            ? cleanTarget
+            : 'home';
 
-      const newPath = `/${validRoute}`;
+      const newPath = validRoute === 'home' ? '/' : `/${validRoute}`;
       const currentPath = window.location.pathname;
 
       if (currentPath !== newPath || options.replace) {
@@ -81,7 +83,7 @@ export function useRouter() {
   // Sync with browser back/forward buttons (popstate) and hash changes
   useEffect(() => {
     const handleLocationChange = () => {
-      const detected = getRouteFromLocation() || getDefaultTab();
+      const detected = getRouteFromLocation() || 'home';
       setCurrentRoute(detected);
       syncDocumentMeta(detected);
     };
@@ -89,12 +91,11 @@ export function useRouter() {
     window.addEventListener('popstate', handleLocationChange);
     window.addEventListener('hashchange', handleLocationChange);
 
-    // Initial sync: If user visited root '/', update URL to current default tab without reload
+    // Initial sync: normalize /home or unknown paths cleanly to /
     const initialDetected = getRouteFromLocation();
-    if (!initialDetected) {
-      const defaultTab = getDefaultTab();
-      window.history.replaceState({ route: defaultTab }, '', `/${defaultTab}`);
-      syncDocumentMeta(defaultTab);
+    if (!initialDetected || window.location.pathname === '/home') {
+      window.history.replaceState({ route: 'home' }, '', '/');
+      syncDocumentMeta('home');
     } else {
       syncDocumentMeta(initialDetected);
     }
