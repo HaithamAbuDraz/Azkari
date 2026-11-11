@@ -3,6 +3,7 @@ import {
   POPULAR_CITIES,
   PRAYER_KEYS,
   MUEZZINS,
+  DEFAULT_ADHAN_URL,
   ALERT_TYPES,
   FALLBACK_TIMINGS,
   calculateQiblaDirection,
@@ -95,6 +96,7 @@ export function usePrayerTimes(showToast) {
   // Track if adhan was triggered for the current prayer
   const lastChimedPrayer = useRef(null);
   const resolvedCoordsAttempted = useRef(new Set());
+  const playbackReqIdRef = useRef(0);
 
   // Keep live time ticking every second
   useEffect(() => {
@@ -401,20 +403,35 @@ export function usePrayerTimes(showToast) {
     return MUEZZINS.find((m) => m.id === muezzinId) || MUEZZINS[0];
   }, [muezzinId]);
 
-  // Preload audio files for instant, zero-delay playback
+  // Preload only the currently selected muezzin audio cleanly in the background
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    preloadAdhanAudio('/assets/audio/adhan.mp3');
-    if (currentMuezzin?.url) preloadAdhanAudio(currentMuezzin.url);
-    if (currentMuezzin?.fallbackUrl)
-      preloadAdhanAudio(currentMuezzin.fallbackUrl);
+    if (typeof window === 'undefined' || !currentMuezzin?.url) return;
+    const timer = setTimeout(() => {
+      preloadAdhanAudio(currentMuezzin.url);
+    }, 200);
+    return () => clearTimeout(timer);
   }, [currentMuezzin]);
+
+  // Stop playing Adhan / Reminder
+  const stopAdhan = useCallback(() => {
+    playbackReqIdRef.current += 1;
+    stopAdhanAudio();
+    stopPrayerReminder();
+    setIsAdhanPlaying(false);
+    setPlayingMuezzinId(null);
+    setIsAudioLoading(false);
+    setActiveAdhanPrayer(null);
+    setAutoplayBlocked(false);
+  }, []);
 
   // Start playing Adhan or Prayer Reminder
   const startAdhan = useCallback(
     (prayerLabel = 'الصلاة') => {
       // 1. Short voice reminder ("حان الآن موعد أذان صلاة {الاسم}")
       if (alertType === 'short_reminder') {
+        playbackReqIdRef.current += 1;
+        setIsAudioLoading(false);
+        setPlayingMuezzinId(null);
         setIsAdhanPlaying(true);
         setActiveAdhanPrayer(prayerLabel);
         setAutoplayBlocked(false);
@@ -433,48 +450,48 @@ export function usePrayerTimes(showToast) {
       }
 
       // 3. Adhan or Takbeerat audio
+      const reqId = ++playbackReqIdRef.current;
       const audioUrl =
-        currentMuezzin.url ||
-        currentMuezzin.fallbackUrl ||
-        '/assets/audio/adhan.mp3';
+        currentMuezzin.url || currentMuezzin.fallbackUrl || DEFAULT_ADHAN_URL;
 
       // Duration limit: 22s for takbeerat mode, full (0) for full adhan
       const maxDuration = alertType === 'takbeerat' ? 22 : 0;
 
+      setPlayingMuezzinId(null);
+      setIsAudioLoading(true);
+      setAutoplayBlocked(false);
+
       playAdhanAudio(
         audioUrl,
         () => {
+          if (playbackReqIdRef.current !== reqId) return;
           setIsAdhanPlaying(false);
+          setIsAudioLoading(false);
           setActiveAdhanPrayer(null);
           setAutoplayBlocked(false);
         },
-        maxDuration
+        maxDuration,
+        true
       )
         .then(() => {
+          if (playbackReqIdRef.current !== reqId) return;
+          setIsAudioLoading(false);
           setIsAdhanPlaying(true);
           setActiveAdhanPrayer(prayerLabel);
           setAutoplayBlocked(false);
         })
         .catch((err) => {
-          console.warn('Adhan autoplay blocked or failed:', err);
+          if (playbackReqIdRef.current !== reqId) return;
+          setIsAudioLoading(false);
           setIsAdhanPlaying(false);
+          if (err?.name === 'AbortError') return;
+          console.warn('Adhan autoplay blocked or failed:', err);
           setActiveAdhanPrayer(prayerLabel);
           setAutoplayBlocked(true);
         });
     },
     [currentMuezzin, alertType]
   );
-
-  // Stop playing Adhan / Reminder
-  const stopAdhan = useCallback(() => {
-    stopAdhanAudio();
-    stopPrayerReminder();
-    setIsAdhanPlaying(false);
-    setPlayingMuezzinId(null);
-    setIsAudioLoading(false);
-    setActiveAdhanPrayer(null);
-    setAutoplayBlocked(false);
-  }, []);
 
   // Preview / Toggle Adhan test
   const toggleAdhanTest = useCallback(() => {
@@ -519,15 +536,15 @@ export function usePrayerTimes(showToast) {
       } else if (typeId === 'chime') {
         playMilestoneChime();
       } else {
+        const reqId = ++playbackReqIdRef.current;
         const audioUrl =
-          currentMuezzin.url ||
-          currentMuezzin.fallbackUrl ||
-          '/assets/audio/adhan.mp3';
+          currentMuezzin.url || currentMuezzin.fallbackUrl || DEFAULT_ADHAN_URL;
         const maxDuration = typeId === 'takbeerat' ? 22 : 0;
         setIsAudioLoading(true);
         playAdhanAudio(
           audioUrl,
           () => {
+            if (playbackReqIdRef.current !== reqId) return;
             setIsAdhanPlaying(false);
             setIsAudioLoading(false);
             setActiveAdhanPrayer(null);
@@ -536,17 +553,24 @@ export function usePrayerTimes(showToast) {
           false
         )
           .then(() => {
+            if (playbackReqIdRef.current !== reqId) return;
             setIsAudioLoading(false);
             setIsAdhanPlaying(true);
             setActiveAdhanPrayer('تجربة الأذان');
           })
-          .catch(() => {
+          .catch((err) => {
+            if (playbackReqIdRef.current !== reqId) return;
             setIsAudioLoading(false);
             setIsAdhanPlaying(false);
+            if (err?.name !== 'AbortError' && showToast) {
+              showToast(
+                'تعذر تشغيل صوت الأذان، يرجى التحقق من الاتصال بالإنترنت'
+              );
+            }
           });
       }
     },
-    [stopAdhan, prayerSchedule, currentMuezzin]
+    [stopAdhan, prayerSchedule, currentMuezzin, showToast]
   );
 
   // Preview a specific muezzin's adhan on demand
@@ -562,17 +586,18 @@ export function usePrayerTimes(showToast) {
       }
 
       stopAdhan();
+      const reqId = ++playbackReqIdRef.current;
       setPlayingMuezzinId(targetMuezzinId);
       setIsAudioLoading(true);
 
       const target =
         MUEZZINS.find((m) => m.id === targetMuezzinId) || currentMuezzin;
-      const audioUrl =
-        target.url || target.fallbackUrl || '/assets/audio/adhan.mp3';
+      const audioUrl = target.url || target.fallbackUrl || DEFAULT_ADHAN_URL;
 
       playAdhanAudio(
         audioUrl,
         () => {
+          if (playbackReqIdRef.current !== reqId) return;
           setIsAdhanPlaying(false);
           setPlayingMuezzinId(null);
           setIsAudioLoading(false);
@@ -582,15 +607,18 @@ export function usePrayerTimes(showToast) {
         false
       )
         .then(() => {
+          if (playbackReqIdRef.current !== reqId) return;
           setIsAudioLoading(false);
           setIsAdhanPlaying(true);
           setActiveAdhanPrayer(`أذان بصوت ${target.name}`);
         })
         .catch((err) => {
-          console.warn('Preview muezzin playback error:', err);
+          if (playbackReqIdRef.current !== reqId) return;
           setIsAudioLoading(false);
           setIsAdhanPlaying(false);
           setPlayingMuezzinId(null);
+          if (err?.name === 'AbortError') return;
+          console.warn('Preview muezzin playback error:', err);
           if (showToast) {
             showToast(
               'تعذر تشغيل صوت الأذان، يرجى التحقق من الاتصال بالإنترنت'
