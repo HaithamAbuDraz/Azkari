@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BookOpen,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -15,6 +16,7 @@ import { getDefaultTab } from '../../../constants/tabs';
 import { triggerHaptic } from '../../../utils/haptics';
 import { playTasbihClick, playMilestoneChime } from '../../../utils/sound';
 import { cn } from '../../../utils/cn';
+import { RollingNumber } from '../../../components/common';
 import { useRipples } from '../hooks/useRipples';
 import {
   copyTextWithToast,
@@ -161,7 +163,7 @@ export default function InteractiveZikrPreview({ onSelectTab, onShowToast }) {
         className={cn(
           'relative overflow-hidden rounded-[1.75rem] sm:rounded-[2.25rem] p-6 sm:p-10 lg:p-12 border backdrop-blur-md transition-all duration-300 shadow-lg tasbih-glow-aura',
           isCompleted
-            ? 'bg-[var(--bg-card)] border-[var(--gold)]/75 card-completion-glow'
+            ? 'bg-[var(--bg-card)] border-[var(--gold)]/75 card-completion-shimmer card-completion-glow'
             : 'bg-[var(--glass-card)] border-[var(--border-accent)] hover:border-[var(--gold)]/70'
         )}
         initial={{ opacity: 0, y: 28 }}
@@ -357,23 +359,17 @@ export default function InteractiveZikrPreview({ onSelectTab, onShowToast }) {
                     transition={{ duration: 0.35, ease: 'easeOut' }}
                   />
                 </svg>
-                <AnimatePresence
-                  mode='popLayout'
-                  initial={false}>
-                  <motion.span
-                    key={currentRemaining}
-                    className='absolute font-ibm text-sm font-bold text-[var(--text-arabic)]'
-                    initial={{ opacity: 0, y: -12, scale: 0.75 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 12, scale: 0.75 }}
-                    transition={{ duration: 0.18 }}>
-                    {isCompleted ? (
-                      <Check className='w-4 h-4 text-[var(--gold-text)]' />
-                    ) : (
-                      currentRemaining
-                    )}
-                  </motion.span>
-                </AnimatePresence>
+                <span className='absolute inset-0 flex items-center justify-center'>
+                  {isCompleted ? (
+                    <Check className='w-4 h-4 text-[var(--gold-text)]' />
+                  ) : (
+                    <RollingNumber
+                      value={currentRemaining}
+                      ariaLabel={`المتبقي ${currentRemaining} من ${totalCount}`}
+                      className='font-ibm text-sm font-bold text-[var(--text-arabic)]'
+                    />
+                  )}
+                </span>
               </div>
 
               <div className='text-right'>
@@ -385,6 +381,13 @@ export default function InteractiveZikrPreview({ onSelectTab, onShowToast }) {
                 </span>
               </div>
             </motion.button>
+
+            {isCompleted && (
+              <span className='completion-badge-enter inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] font-bold text-xs border border-[var(--primary)]/30'>
+                <CheckCircle2 className='w-3.5 h-3.5 text-[var(--gold-text)]' />
+                <span>اكتمل بحمد الله</span>
+              </span>
+            )}
 
             <button
               type='button'
