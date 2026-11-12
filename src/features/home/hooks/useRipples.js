@@ -24,7 +24,7 @@ export function useRipples(containerRef) {
       const hasClientPos = e && typeof e.clientX === 'number' && e.clientX > 0;
       const x = hasClientPos ? e.clientX - rect.left : rect.width / 2;
       const y = hasClientPos ? e.clientY - rect.top : rect.height / 2;
-      const size = Math.max(rect.width, rect.height) * 0.85;
+      const size = Math.min(Math.max(rect.width, rect.height) * 0.85, 180);
       const id = Date.now() + Math.random();
 
       setRipples((prev) => [

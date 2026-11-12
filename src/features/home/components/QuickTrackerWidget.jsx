@@ -2,12 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Fingerprint,
   RotateCcw,
   Sparkles,
-  CheckCircle2,
 } from 'lucide-react';
 import { getDefaultTab, PANELS } from '../../../constants/tabs';
 import { INITIAL_DHIKRS, MILESTONES } from '../../../constants/tasbih';
@@ -15,6 +15,8 @@ import { getAzkarByCategory } from '../../../utils/azkar';
 import { triggerHaptic } from '../../../utils/haptics';
 import { playMilestoneChime, playTasbihClick } from '../../../utils/sound';
 import { cn } from '../../../utils/cn';
+import { RollingNumber } from '../../../components/common';
+import { useMilestone } from '../../../hooks';
 import {
   containerVariants,
   itemVariants,
@@ -122,6 +124,9 @@ export default function QuickTrackerWidget({
     readIntStorage('tasbih-current-laps', 0)
   );
   const [isBumping, setIsBumping] = useState(false);
+  const [showResetHint, setShowResetHint] = useState(false);
+  const [resetFlashKey, setResetFlashKey] = useState(0);
+  const resetHintTimerRef = useRef(null);
   const tapAreaRef = useRef(null);
   const { ripples, spawnRipple } = useRipples(tapAreaRef);
 
@@ -129,7 +134,18 @@ export default function QuickTrackerWidget({
   const currentDhikr = dhikrs[safeIdx] || INITIAL_DHIKRS[0];
   const target = currentDhikr.target || 33;
   const miniProgress = target > 0 ? Math.min(count / target, 1) : 0;
+  const miniProgressPct = Math.round(miniProgress * 100);
   const miniOffset = MINI_RING_CIRCUMFERENCE * (1 - miniProgress);
+  const isCycleDone = count === target && target > 0;
+  const milestoneKey = useMilestone(miniProgressPct);
+
+  useEffect(() => {
+    return () => {
+      if (resetHintTimerRef.current) {
+        clearTimeout(resetHintTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -145,6 +161,13 @@ export default function QuickTrackerWidget({
     spawnRipple(e);
     setIsBumping(true);
     setTimeout(() => setIsBumping(false), 160);
+
+    // Highlight reset icon briefly after each tap (mirrors AzkarCard)
+    setShowResetHint(true);
+    if (resetHintTimerRef.current) {
+      clearTimeout(resetHintTimerRef.current);
+    }
+    resetHintTimerRef.current = setTimeout(() => setShowResetHint(false), 2000);
 
     const soundOn = readBoolStorage('tasbih-sound', true);
     const hapticOn = readBoolStorage('tasbih-haptic', true);
@@ -180,12 +203,15 @@ export default function QuickTrackerWidget({
     setActiveIdx(next);
     setCount(0);
     setLaps(0);
+    setShowResetHint(false);
     triggerHaptic(10);
   };
 
   const handleResetMini = () => {
     setCount(0);
     setLaps(0);
+    setResetFlashKey((k) => k + 1);
+    setShowResetHint(false);
     triggerHaptic(12);
   };
 
@@ -333,20 +359,50 @@ export default function QuickTrackerWidget({
           </div>
         </motion.div>
 
-        {/* 2. Interactive Mini-Tasbih Counter Widget */}
+        {/* 2. Interactive Mini-Tasbih Counter Widget (Full-Card Clickable) */}
         <motion.div
+          ref={tapAreaRef}
           variants={itemVariants}
           whileHover={{ y: -4 }}
+          whileTap={{ scale: 0.99 }}
           transition={cardHoverSpring}
+          role='button'
+          tabIndex={0}
+          onClick={(e) => {
+            if (e.target.closest('button, a, input')) return;
+            handleTasbihTap(e);
+          }}
+          onKeyDown={(e) => {
+            if (e.target.closest('button, a, input')) return;
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleTasbihTap(null);
+            }
+          }}
+          aria-label={`تسبيح ${currentDhikr.label}، العدد الحالي ${count} من ${target}`}
           style={{ boxShadow: 'var(--glass-highlight)' }}
-          className='lg:col-span-6 relative overflow-hidden rounded-[1.75rem] sm:rounded-[2rem] bg-[var(--glass-card)] backdrop-blur-md border border-[var(--border)] hover:border-[var(--gold)]/55 p-6 sm:p-7 shadow-lg transition-colors duration-300 flex flex-col justify-between gap-5'>
+          className={cn(
+            'lg:col-span-6 relative overflow-hidden rounded-[1.75rem] sm:rounded-[2rem] bg-[var(--glass-card)] backdrop-blur-md border p-6 sm:p-7 shadow-lg transition-colors duration-300 flex flex-col justify-between gap-5 cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]',
+            isCycleDone
+              ? 'card-completion-shimmer card-completion-glow border-[var(--gold)]/60'
+              : 'border-[var(--border)] hover:border-[var(--gold)]/60 active:border-[var(--gold)]'
+          )}>
+          {/* Radial Card Ripples */}
+          {ripples.map((r) => (
+            <span
+              key={r.id}
+              className='ripple z-0'
+              style={r.style}
+            />
+          ))}
+
           <span
-            className='absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/45 to-transparent'
+            className='absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-[var(--gold)]/45 to-transparent pointer-events-none'
             aria-hidden='true'
           />
 
           {/* Top Bar: Badge + Dhikr Switcher */}
-          <div className='flex items-center justify-between gap-3 flex-wrap'>
+          <div className='relative z-10 flex items-center justify-between gap-3 flex-wrap'>
             <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--gold-light)] border border-[var(--border-accent)] text-[var(--gold-text)] text-[11px] font-bold'>
               <Fingerprint className='w-3.5 h-3.5' />
               <span>المسبحة السريعة</span>
@@ -355,7 +411,10 @@ export default function QuickTrackerWidget({
             <div className='flex items-center gap-1.5'>
               <button
                 type='button'
-                onClick={() => handleCycleDhikr(-1)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCycleDhikr(-1);
+                }}
                 aria-label='الذكر السابق في المسبحة'
                 className='w-8 h-8 rounded-xl bg-[var(--bg-elevated)]/85 hover:bg-[var(--gold)]/15 border border-[var(--border)] hover:border-[var(--gold)]/45 flex items-center justify-center text-[var(--text-main)] hover:text-[var(--gold)] transition cursor-pointer active:scale-95'>
                 <ChevronRight className='w-4 h-4' />
@@ -365,7 +424,10 @@ export default function QuickTrackerWidget({
               </span>
               <button
                 type='button'
-                onClick={() => handleCycleDhikr(1)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCycleDhikr(1);
+                }}
                 aria-label='الذكر التالي في المسبحة'
                 className='w-8 h-8 rounded-xl bg-[var(--bg-elevated)]/85 hover:bg-[var(--gold)]/15 border border-[var(--border)] hover:border-[var(--gold)]/45 flex items-center justify-center text-[var(--text-main)] hover:text-[var(--gold)] transition cursor-pointer active:scale-95'>
                 <ChevronLeft className='w-4 h-4' />
@@ -373,8 +435,8 @@ export default function QuickTrackerWidget({
             </div>
           </div>
 
-          {/* Interactive Tasbih Core: Dhikr Title + Tactile Ring Button */}
-          <div className='flex flex-col sm:flex-row items-center justify-between gap-5'>
+          {/* Interactive Tasbih Core: Dhikr Title + Tactile Ring Indicator */}
+          <div className='relative z-10 flex flex-col sm:flex-row items-center justify-between gap-5'>
             <div className='flex-1 text-center sm:text-right min-w-0'>
               <AnimatePresence mode='wait'>
                 <motion.p
@@ -392,25 +454,18 @@ export default function QuickTrackerWidget({
               </p>
             </div>
 
-            {/* Interactive Bump + Ripple + Number-Roll Counter Button */}
-            <motion.button
-              ref={tapAreaRef}
-              type='button'
-              onClick={handleTasbihTap}
-              whileTap={{ scale: 0.92 }}
+            {/* Interactive Bump + Slot-Machine Rolling Number Counter Ring */}
+            <motion.div
               animate={isBumping ? { scale: [1, 1.07, 1] } : { scale: 1 }}
               transition={{ type: 'spring', stiffness: 450, damping: 18 }}
-              aria-label={`تسبيح ${currentDhikr.label}، العدد الحالي ${count} من ${target}`}
-              className='relative overflow-hidden shrink-0 w-28 h-28 rounded-full bg-[var(--bg-elevated)]/90 border border-[var(--border-accent)] hover:border-[var(--gold)] shadow-lg tasbih-glow-aura flex items-center justify-center cursor-pointer select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--gold)]'>
-              {/* Radial Ripples */}
-              {ripples.map((r) => (
+              className='relative overflow-hidden shrink-0 w-28 h-28 rounded-full bg-[var(--bg-elevated)]/90 border border-[var(--border-accent)] shadow-lg tasbih-glow-aura flex items-center justify-center'>
+              {milestoneKey > 0 && (
                 <span
-                  key={r.id}
-                  className='ripple'
-                  style={r.style}
+                  key={milestoneKey}
+                  className='absolute inset-0 rounded-full milestone-pulse pointer-events-none'
+                  aria-hidden='true'
                 />
-              ))}
-
+              )}
               {/* Circular Progress Track */}
               <svg
                 className='absolute inset-0 w-full h-full -rotate-90 pointer-events-none'
@@ -441,30 +496,22 @@ export default function QuickTrackerWidget({
 
               {/* Rolling Number Display */}
               <div className='relative z-10 flex flex-col items-center justify-center pointer-events-none'>
-                <div className='h-8 flex items-center justify-center overflow-hidden'>
-                  <AnimatePresence
-                    mode='popLayout'
-                    initial={false}>
-                    <motion.span
-                      key={count}
-                      initial={{ opacity: 0, y: -16, scale: 0.85 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 16, scale: 0.85 }}
-                      transition={{ duration: 0.18, ease: 'easeOut' }}
-                      className='font-ibm text-2xl font-bold text-[var(--text-arabic)] leading-none'>
-                      {count}
-                    </motion.span>
-                  </AnimatePresence>
+                <div className='h-8 flex items-center justify-center'>
+                  <RollingNumber
+                    value={count}
+                    ariaLabel={`العدد الحالي ${count} من ${target}`}
+                    className='font-ibm text-2xl font-bold text-[var(--text-arabic)] leading-none'
+                  />
                 </div>
                 <span className='font-ibm text-[10px] font-bold text-[var(--gold-text)] mt-0.5'>
                   من {target}
                 </span>
               </div>
-            </motion.button>
+            </motion.div>
           </div>
 
           {/* Footer Controls */}
-          <div className='pt-3 border-t border-[var(--border)] flex items-center justify-between gap-3'>
+          <div className='relative z-10 pt-3 border-t border-[var(--border)] flex items-center justify-between gap-3 flex-wrap'>
             <div className='flex items-center gap-2'>
               <span className='px-2.5 py-1 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] font-ibm text-[11px] font-semibold text-[var(--text-muted)]'>
                 الدورات:{' '}
@@ -473,23 +520,60 @@ export default function QuickTrackerWidget({
               {(count > 0 || laps > 0) && (
                 <button
                   type='button'
-                  onClick={handleResetMini}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleResetMini();
+                  }}
                   aria-label='تصفير العداد السريع'
                   title='تصفير العداد'
-                  className='w-7 h-7 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--gold)]/15 border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--gold-text)] flex items-center justify-center transition cursor-pointer active:scale-95'>
-                  <RotateCcw className='w-3.5 h-3.5' />
+                  className={cn(
+                    'w-7 h-7 rounded-lg border flex items-center justify-center transition cursor-pointer active:scale-95',
+                    showResetHint
+                      ? 'text-[var(--gold-text)] bg-[var(--gold)]/15 border-[var(--gold)]/40'
+                      : 'bg-[var(--bg-elevated)] hover:bg-[var(--gold)]/15 border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--gold-text)]'
+                  )}>
+                  <RotateCcw
+                    key={resetFlashKey}
+                    className={cn(
+                      'w-3.5 h-3.5',
+                      resetFlashKey > 0 && showResetHint && 'reset-flash'
+                    )}
+                  />
                 </button>
+              )}
+              {isCycleDone && (
+                <span className='completion-badge-enter inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[var(--primary-light)] text-[var(--primary)] font-bold text-[11px] border border-[var(--primary)]/30'>
+                  <CheckCircle2 className='w-3.5 h-3.5 text-[var(--gold-text)]' />
+                  <span>اكتملت الدورة</span>
+                </span>
               )}
             </div>
 
             <button
               type='button'
-              onClick={() => onSelectTab('tasbih')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelectTab('tasbih');
+              }}
               className='group inline-flex items-center gap-1.5 text-xs font-bold text-[var(--gold-text)] hover:text-[var(--primary)] transition-colors cursor-pointer'>
               <span>المسبحة الكاملة</span>
               <ArrowLeft className='w-3.5 h-3.5 transition-transform group-hover:-translate-x-1' />
             </button>
           </div>
+
+          {/* Hairline Bottom Progress Bar with Milestone Pulse (mirrors AzkarCard) */}
+          {count > 0 && !isCycleDone && (
+            <div className='absolute bottom-0 inset-x-0 h-[3px] bg-[var(--border)]/40 overflow-hidden pointer-events-none'>
+              <div
+                key={`bar-${milestoneKey}`}
+                className={cn(
+                  'h-full bg-gradient-to-l from-[var(--gold)] to-[var(--primary)] transition-all duration-300 ease-out',
+                  milestoneKey > 0 && 'milestone-pulse'
+                )}
+                style={{ width: `${miniProgressPct}%` }}
+              />
+            </div>
+          )}
         </motion.div>
       </motion.div>
     </section>
