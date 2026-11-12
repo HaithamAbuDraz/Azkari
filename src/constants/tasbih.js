@@ -71,9 +71,9 @@ export const CIRCUMFERENCE = 2 * Math.PI * 115;
 export function getMilestoneMsg(n, dhikrLabel) {
   const currentDhikr = dhikrLabel || 'التسبيح';
   const msgs = {
-    33: `ثلاثة وثلاثون — ${currentDhikr}! <i class="fas fa-star text-gold"></i>`,
+    33: `ثلاثة وثلاثون: ${currentDhikr}! <i class="fas fa-star text-gold"></i>`,
     66: `ستة وستون ${currentDhikr} <i class="fas fa-star text-gold"></i>`,
-    99: `تسعة وتسعون — ${currentDhikr}! الحمد لله <i class="fas fa-star text-gold"></i>`,
+    99: `تسعة وتسعون: ${currentDhikr}! الحمد لله <i class="fas fa-star text-gold"></i>`,
     100: `مئة ${currentDhikr}! ما شاء الله تبارك الله <i class="fas fa-trophy text-gold"></i>`,
     200: `مئتان ${currentDhikr}! بارك الله في ذكرك <i class="fas fa-trophy text-gold"></i>`,
     300: `ثلاثمئة ${currentDhikr}! تقبل الله طاعتك <i class="fas fa-trophy text-gold"></i>`,

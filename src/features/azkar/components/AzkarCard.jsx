@@ -1,53 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { triggerHaptic } from '../../../utils/haptics';
-
-/* ─────────────────────────────────────────────────────────────
-   RollingNumber
-   Animated slot-machine counter: old number falls out downward,
-   new number enters from above. Pure CSS keyframes, state-first.
-───────────────────────────────────────────────────────────── */
-function RollingNumber({ value }) {
-  const [current, setCurrent] = useState(value);
-  const [previous, setPrevious] = useState(null);
-  const [animKey, setAnimKey] = useState(0);
-
-  useEffect(() => {
-    if (value === current) return;
-    setPrevious(current);
-    setCurrent(value);
-    setAnimKey((k) => k + 1);
-    // Clear the outgoing ghost after its 160ms exit animation
-    const t = setTimeout(() => setPrevious(null), 170);
-    return () => clearTimeout(t);
-  }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return (
-    // overflow:hidden clips the outgoing/incoming numbers so they don't
-    // bleed outside the counter cell. Height is fixed to 1.3em so the
-    // surrounding layout never shifts during the roll.
-    <span
-      className='relative inline-flex items-center justify-center overflow-hidden'
-      style={{ height: '1.3em', minWidth: '1.5ch' }}
-      aria-live='polite'
-      aria-label={`المتبقي ${value}`}>
-      {/* Outgoing number — falls downward */}
-      {previous !== null && (
-        <span
-          key={`out-${animKey}`}
-          className='number-roll-out'
-          aria-hidden='true'>
-          {previous}
-        </span>
-      )}
-      {/* Incoming number — enters from above */}
-      <span
-        key={`in-${animKey}`}
-        className='number-roll-in'>
-        {current}
-      </span>
-    </span>
-  );
-}
+import { RollingNumber } from '../../../components/common';
+import { useMilestone } from '../../../hooks';
 
 /* ─────────────────────────────────────────────────────────────
    useRipple
@@ -93,30 +47,6 @@ function useRipple(containerRef) {
   );
 
   return spawnRipple;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   useMilestone
-   Returns a CSS class to trigger a glow pulse on the progress
-   container when the user crosses 25 / 50 / 75% thresholds.
-───────────────────────────────────────────────────────────── */
-function useMilestone(progressPercent) {
-  const [glowKey, setGlowKey] = useState(0);
-  const prevPct = useRef(0);
-
-  useEffect(() => {
-    const milestones = [25, 50, 75];
-    const crossed = milestones.some(
-      (m) => prevPct.current < m && progressPercent >= m
-    );
-    if (crossed) {
-      setGlowKey((k) => k + 1);
-      triggerHaptic(12);
-    }
-    prevPct.current = progressPercent;
-  }, [progressPercent]);
-
-  return glowKey;
 }
 
 /* ─────────────────────────────────────────────────────────────

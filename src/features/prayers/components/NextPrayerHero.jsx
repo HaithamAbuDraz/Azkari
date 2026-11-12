@@ -1,5 +1,7 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { getDisplayCityName } from '../../../utils/location';
+import { EASE_SPIRITUAL } from '../../../constants/motion';
 
 export default function NextPrayerHero({
   prayerSchedule,
@@ -18,9 +20,14 @@ export default function NextPrayerHero({
   const { nextPrayer, countdownFormatted, progress, isNextTomorrow } =
     prayerSchedule;
   const cityName = getDisplayCityName(location);
+  const progressPct = Math.round(progress * 100);
 
   return (
-    <div className='relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-bg-card via-bg-elevated/80 to-bg-card border border-border-theme shadow-md mb-8 transition-all'>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.05, ease: EASE_SPIRITUAL }}
+      className='relative overflow-hidden p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-bg-card/95 via-bg-elevated/80 to-bg-card/95 backdrop-blur-md border border-border-theme shadow-md mb-8 transition-colors'>
       {/* Subtle Islamic Ambient Glow behind card */}
       <div
         className='absolute -top-24 -right-24 w-72 h-72 rounded-full bg-gold/10 blur-3xl pointer-events-none'
@@ -34,15 +41,14 @@ export default function NextPrayerHero({
       <div className='relative z-10 flex flex-col md:flex-row items-center justify-between gap-6'>
         {/* Left / Main info */}
         <div className='flex flex-col items-center md:items-start text-center md:text-right'>
-          {/* Top Pill with Location & Hijri Date */}
           <div className='flex flex-wrap items-center justify-center md:justify-start gap-2 mb-3.5'>
-            {/* City / Location Selector Button */}
-            <button
+            <motion.button
               type='button'
+              whileTap={{ scale: 0.95 }}
               onClick={() => onOpenLocationModal('location')}
               aria-label='اختيار المدينة والموقع الجغرافي'
               title='اختيار المدينة والموقع الجغرافي'
-              className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 active:scale-95 transition cursor-pointer shadow-2xs'>
+              className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gold/10 border border-gold/30 text-gold hover:bg-gold/20 transition cursor-pointer shadow-2xs'>
               <i
                 className={
                   location.isGps
@@ -51,9 +57,8 @@ export default function NextPrayerHero({
                 }></i>
               <span>{cityName || 'اختيار المدينة والموقع'}</span>
               <i className='fas fa-chevron-down text-[9px] opacity-70 mr-0.5'></i>
-            </button>
+            </motion.button>
 
-            {/* Hijri Date Pill if available */}
             {hijriDate && (
               <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-bg-elevated border border-border-theme text-text-muted'>
                 <i className='fas fa-moon text-gold text-[10px]'></i>
@@ -64,7 +69,6 @@ export default function NextPrayerHero({
             )}
           </div>
 
-          {/* Next Prayer Title */}
           <span className='text-xs sm:text-sm font-medium text-text-muted mb-1'>
             {isNextTomorrow ? 'الصلاة القادمة غداً' : 'الصلاة القادمة'}
           </span>
@@ -79,9 +83,9 @@ export default function NextPrayerHero({
         {/* Right: Large Countdown Box & Audio Toggle */}
         <div className='flex flex-col items-center md:items-end w-full md:w-auto'>
           <div className='flex items-center gap-2 mb-2 flex-wrap justify-center md:justify-end'>
-            {/* Audio Preview / Stop Test Button */}
-            <button
+            <motion.button
               type='button'
+              whileTap={{ scale: 0.95 }}
               onClick={onToggleAdhanTest}
               title={
                 isAudioLoading
@@ -101,7 +105,7 @@ export default function NextPrayerHero({
                       ? 'تجربة التنبيه الصوتي الناطق'
                       : 'تجربة الاستماع للأذان'
               }
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shadow-2xs border ${
                 isAdhanPlaying
                   ? 'bg-rose-500/20 text-rose-400 border-rose-500/50 animate-pulse'
                   : isAudioLoading
@@ -137,11 +141,11 @@ export default function NextPrayerHero({
                           ? 'تجربة الرنين'
                           : 'تجربة الأذان'}
               </span>
-            </button>
+            </motion.button>
 
-            {/* Audio notification toggle */}
-            <button
+            <motion.button
               type='button'
+              whileTap={{ scale: 0.9 }}
               onClick={onToggleAudio}
               title={
                 audioEnabled
@@ -160,16 +164,24 @@ export default function NextPrayerHero({
                 className={
                   audioEnabled ? 'fas fa-bell' : 'fas fa-bell-slash'
                 }></i>
-            </button>
+            </motion.button>
           </div>
 
           {/* Big monospaced digital timer */}
-          <div
-            className='px-5 py-2.5 rounded-2xl bg-bg-elevated/90 border border-gold/30 text-text-arabic font-mono font-bold text-3xl sm:text-4xl tracking-wider shadow-inner text-gold flex items-center justify-center min-w-[210px]'
+          <motion.div
+            animate={{
+              boxShadow: [
+                'inset 0 2px 4px rgba(0,0,0,0.06), 0 0 0 rgba(197,161,91,0)',
+                'inset 0 2px 4px rgba(0,0,0,0.06), 0 0 18px rgba(197,161,91,0.18)',
+                'inset 0 2px 4px rgba(0,0,0,0.06), 0 0 0 rgba(197,161,91,0)',
+              ],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            className='px-5 py-2.5 rounded-2xl bg-bg-elevated/90 border border-gold/30 text-text-arabic font-mono font-bold text-3xl sm:text-4xl tracking-wider text-gold flex items-center justify-center min-w-[210px]'
             dir='ltr'
             aria-live='off'>
             {countdownFormatted}
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -181,21 +193,23 @@ export default function NextPrayerHero({
               ? `منذ ${prayerSchedule.prevPrayer.label}`
               : 'منذ الصلاة السابقة'}
           </span>
-          <span>{Math.round(progress * 100)}%</span>
+          <span>{progressPct}%</span>
           <span>صلاة {nextPrayer.label}</span>
         </div>
         <div
           className='w-full h-2 rounded-full bg-bg-elevated overflow-hidden border border-border-theme/60'
           role='progressbar'
-          aria-valuenow={Math.round(progress * 100)}
+          aria-valuenow={progressPct}
           aria-valuemin='0'
           aria-valuemax='100'>
-          <div
-            className='h-full bg-gradient-to-r from-primary to-gold rounded-full transition-all duration-1000 ease-linear'
-            style={{ width: `${Math.round(progress * 100)}%` }}
+          <motion.div
+            className='h-full bg-gradient-to-r from-primary to-gold rounded-full'
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ duration: 0.8, ease: EASE_SPIRITUAL }}
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

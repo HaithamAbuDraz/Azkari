@@ -1,5 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { NAV_ITEMS } from '../../constants/tabs';
+import { EASE_SPIRITUAL } from '../../constants/motion';
+import { TabIcon } from '../common';
 
 export default function Footer({ onShowToast, onSelectTab }) {
   const handleShare = () => {
@@ -24,7 +27,11 @@ export default function Footer({ onShowToast, onSelectTab }) {
   };
 
   return (
-    <footer
+    <motion.footer
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.45, ease: EASE_SPIRITUAL }}
       className='mt-12 sm:mt-20 border-t border-border-theme bg-bg-card/75 backdrop-blur-md pt-8 sm:pt-10 pb-3.5 sm:pb-4 px-4 sm:px-6 lg:px-8 transition-colors duration-300'
       role='contentinfo'>
       <div className='max-w-7xl mx-auto flex flex-col gap-8'>
@@ -64,8 +71,8 @@ export default function Footer({ onShowToast, onSelectTab }) {
               الله في كل أوقاته.
             </p>
 
-            {/* Hadith Citation Card */}
-            <div className='p-4 rounded-xl bg-bg-elevated/70 border border-border-theme/70 text-xs sm:text-sm text-text-muted leading-relaxed'>
+            {/* Hadith Citation Card in gold-framed glass */}
+            <div className='p-4 rounded-xl bg-bg-elevated/65 backdrop-blur-md border border-gold/30 shadow-xs text-xs sm:text-sm text-text-muted leading-relaxed'>
               <p className='font-amiri text-base sm:text-lg text-text-arabic mb-1'>
                 <i className='fas fa-quote-right text-gold/60 ml-2 text-xs'></i>
                 مَثَلُ الَّذِي يَذْكُرُ رَبَّهُ وَالَّذِي لاَ يَذْكُرُ رَبَّهُ،
@@ -93,14 +100,18 @@ export default function Footer({ onShowToast, onSelectTab }) {
               {NAV_ITEMS.map((item) => (
                 <a
                   key={item.id}
-                  href={`/${item.id}`}
+                  href={item.path}
                   onClick={(e) => {
                     e.preventDefault();
                     if (onSelectTab) onSelectTab(item.id);
                   }}
                   className='flex items-center gap-2 text-xs sm:text-sm text-text-muted hover:text-gold text-right transition cursor-pointer'>
-                  <i
-                    className={`${item.icon} text-xs w-4 text-center text-gold/70`}></i>
+                  <TabIcon
+                    item={item}
+                    lucideClassName='w-3.5 h-3.5 mx-[1px]'
+                    faClassName='text-xs w-4 text-center'
+                    className='text-gold/70'
+                  />
                   <span>{item.fullLabel || item.label}</span>
                 </a>
               ))}
@@ -163,7 +174,7 @@ export default function Footer({ onShowToast, onSelectTab }) {
           <p className='flex items-center gap-1.5 flex-wrap'>
             <i className='far fa-copyright text-xs'></i>
             <span>
-              {new Date().getFullYear()} أذكاري — تطوير{' '}
+              {new Date().getFullYear()} أذكاري • تطوير{' '}
               <a
                 href={`https://wa.me/970592580144?text=${encodeURIComponent(
                   'مرحباً هيثم أبو دراز، أريد التواصل معك'
@@ -178,11 +189,11 @@ export default function Footer({ onShowToast, onSelectTab }) {
           <div className='flex items-center gap-2 text-center sm:text-right'>
             <i className='fas fa-quran text-gold'></i>
             <span>
-              جميع الأذكار مأخوذة من حصن المسلم — من الكتاب والسنة النبوية
+              جميع الأذكار مأخوذة من حصن المسلم، من الكتاب والسنة النبوية
             </span>
           </div>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

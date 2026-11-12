@@ -8,6 +8,18 @@ import { triggerHaptic } from '../utils/haptics';
 import { playMilestoneChime } from '../utils/sound';
 
 const STORAGE_KEY = 'azkar-counters';
+const DATE_STORAGE_KEY = 'azkar-counters-date';
+
+/**
+ * Returns local calendar date key (YYYY-MM-DD) so daily resets happen at
+ * the user's local midnight rather than UTC midnight.
+ */
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function resetCategoryCounters(prev, list) {
   const next = { ...prev };
@@ -18,19 +30,36 @@ function resetCategoryCounters(prev, list) {
 }
 
 export function useAzkarCounters(showToast) {
-  const autoResetTimers = useRef({});
+  const scrollTimerRef = useRef(null);
+  const activeDateRef = useRef(getLocalDateKey());
 
-  // Cleanup pending reset timers on unmount
+  // Cleanup pending scroll timer on unmount
   useEffect(() => {
     return () => {
-      Object.values(autoResetTimers.current).forEach((t) => clearTimeout(t));
+      if (scrollTimerRef.current) {
+        clearTimeout(scrollTimerRef.current);
+      }
     };
   }, []);
 
-  // Initialize counters directly from localStorage so there's no state flicker on page reload
+  // Initialize counters directly from localStorage; reset automatically on a new day
   const [counters, setCounters] = useState(() => {
     if (typeof window === 'undefined') return {};
+    const todayKey = getLocalDateKey();
+    activeDateRef.current = todayKey;
+
     try {
+      const savedDate = localStorage.getItem(DATE_STORAGE_KEY);
+      if (savedDate && savedDate !== todayKey) {
+        localStorage.setItem(DATE_STORAGE_KEY, todayKey);
+        localStorage.setItem(STORAGE_KEY, '{}');
+        return {};
+      }
+
+      if (!savedDate) {
+        localStorage.setItem(DATE_STORAGE_KEY, todayKey);
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (!saved) return {};
       const parsed = JSON.parse(saved);
@@ -52,18 +81,65 @@ export function useAzkarCounters(showToast) {
     }
   }, [counters]);
 
-  // Decrement counter for a specific dhikr card
+  // Reset daily progress automatically if the local calendar day changes while app stays open
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const syncDailyReset = () => {
+      const todayKey = getLocalDateKey();
+      if (activeDateRef.current !== todayKey) {
+        activeDateRef.current = todayKey;
+        try {
+          localStorage.setItem(DATE_STORAGE_KEY, todayKey);
+          localStorage.setItem(STORAGE_KEY, '{}');
+        } catch {
+          // Ignore storage quota errors
+        }
+        setCounters({});
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncDailyReset();
+      }
+    };
+
+    const intervalId = setInterval(syncDailyReset, 60000);
+    window.addEventListener('focus', syncDailyReset);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('focus', syncDailyReset);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Decrement counter for a specific dhikr card (preserves daily completion until next day)
   const decrementCounter = useCallback(
     (cardId, max) => {
+      const todayKey = getLocalDateKey();
+      const isNewDay = activeDateRef.current !== todayKey;
+      if (isNewDay) {
+        activeDateRef.current = todayKey;
+        try {
+          localStorage.setItem(DATE_STORAGE_KEY, todayKey);
+        } catch {
+          // Ignore storage quota errors
+        }
+      }
+
       setCounters((prev) => {
-        const current = prev[cardId] ?? max;
-        if (current <= 0) return prev;
+        const base = isNewDay ? {} : prev;
+        const current = base[cardId] ?? max;
+        if (current <= 0) return base;
 
         const nextVal = current - 1;
         triggerHaptic(25);
 
         const tabKey = getCategoryTabFromCardId(cardId);
-        const nextCounters = { ...prev, [cardId]: nextVal };
+        const nextCounters = { ...base, [cardId]: nextVal };
 
         if (nextVal === 0) {
           // Single-card completion haptic: two gentle pulses
@@ -84,16 +160,14 @@ export function useAzkarCounters(showToast) {
             }
 
             showToast(
-              'ما شاء الله! اكتملت جميع الأذكار وتم تجديد التقدم تلقائياً <i class="fas fa-check-circle text-gold"></i>'
+              'ما شاء الله! اكتملت جميع أذكار هذا القسم لهذا اليوم، تقبّل الله طاعتك <i class="fas fa-check-circle text-gold"></i>'
             );
 
-            // Automatically refresh progress and smoothly scroll to top after a brief confirmation
-            if (autoResetTimers.current[tabKey]) {
-              clearTimeout(autoResetTimers.current[tabKey]);
-            }
-
             // Smoothly scroll up if the user is scrolled down towards the bottom
-            setTimeout(() => {
+            if (scrollTimerRef.current) {
+              clearTimeout(scrollTimerRef.current);
+            }
+            scrollTimerRef.current = setTimeout(() => {
               if (typeof window !== 'undefined') {
                 const scrollPos =
                   window.scrollY || document.documentElement.scrollTop || 0;
@@ -105,13 +179,6 @@ export function useAzkarCounters(showToast) {
                 }
               }
             }, 900);
-
-            autoResetTimers.current[tabKey] = setTimeout(() => {
-              setCounters((currentCounters) =>
-                resetCategoryCounters(currentCounters, list)
-              );
-              delete autoResetTimers.current[tabKey];
-            }, 1200);
           } else {
             showToast(
               'أحسنت! اكتمل الذكر بحمد الله <i class="fas fa-check-circle text-gold"></i>'

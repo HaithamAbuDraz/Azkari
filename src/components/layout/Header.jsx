@@ -1,5 +1,7 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { NAV_ITEMS } from '../../constants/tabs';
+import { TabIcon } from '../common';
 
 export default function Header({
   activeTab,
@@ -15,12 +17,12 @@ export default function Header({
         <div className='flex items-center justify-between h-16 sm:h-20'>
           {/* Brand Identity / Logo */}
           <a
-            href='/morning'
+            href='/'
             aria-label='أذكاري - روضة الأذكار والأدعية'
-            title='أذكاري - روضة الأذكار والأدعية'
+            title='أذكاري - الصفحة الرئيسية'
             onClick={(e) => {
               e.preventDefault();
-              onSelectTab('morning');
+              onSelectTab('home');
             }}
             className='flex items-center gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 rounded-xl'>
             <div className='relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gold/10 border border-gold/30 flex items-center justify-center text-gold shadow-2xs group-hover:border-gold/60 group-hover:bg-gold/15 transition-all duration-300'>
@@ -61,19 +63,34 @@ export default function Header({
               return (
                 <a
                   key={item.id}
-                  href={`/${item.id}`}
+                  href={item.path}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={(e) => {
                     e.preventDefault();
                     onSelectTab(item.id);
                   }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs xl:text-sm font-medium transition-all duration-200 cursor-pointer select-none ${
+                  className={`relative z-10 flex items-center gap-1.5 px-2.5 xl:px-3.5 py-2 rounded-xl text-xs xl:text-sm font-medium transition-colors duration-200 cursor-pointer select-none ${
                     isActive
-                      ? 'bg-primary/15 text-primary border border-primary/30 font-semibold shadow-2xs'
-                      : 'text-text-muted hover:text-text-main hover:bg-bg-elevated/70 border border-transparent'
+                      ? 'text-primary font-semibold'
+                      : 'text-text-muted hover:text-text-main hover:bg-bg-elevated/70'
                   }`}>
-                  <i
-                    className={`${item.icon} text-xs ${isActive ? 'text-gold' : 'text-text-muted'}`}></i>
+                  {isActive && (
+                    <motion.span
+                      layoutId='nav-active-pill'
+                      transition={{
+                        type: 'spring',
+                        stiffness: 380,
+                        damping: 32,
+                      }}
+                      className='absolute inset-0 rounded-xl bg-primary/15 border border-primary/30 shadow-2xs -z-10'
+                    />
+                  )}
+                  <TabIcon
+                    item={item}
+                    lucideClassName='w-3.5 h-3.5'
+                    faClassName='text-xs'
+                    className={isActive ? 'text-gold' : 'text-text-muted'}
+                  />
                   <span>{item.label}</span>
                 </a>
               );

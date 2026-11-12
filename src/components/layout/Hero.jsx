@@ -1,17 +1,25 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Fingerprint } from 'lucide-react';
 import { useClock } from '../../hooks';
+import { EASE_SPIRITUAL } from '../../constants/motion';
 
 export default function Hero({ activeTab }) {
   const clock = useClock();
   const isTasbih = activeTab === 'tasbih';
   const isPrayers = activeTab === 'prayers';
 
+  const heroGroupKey = isPrayers ? 'prayers' : isTasbih ? 'tasbih' : 'azkar';
+
   return (
     <section
       className='relative text-center pt-6 pb-4 sm:pt-10 sm:pb-6 px-4 max-w-4xl mx-auto flex flex-col items-center'
       aria-label='المقدمة والترويسة'>
       {/* Subtle Islamic Geometric Ornament */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: EASE_SPIRITUAL }}
         className='flex items-center justify-center gap-3 mb-3 text-gold/60'
         aria-hidden='true'>
         <span className='w-8 sm:w-16 h-px bg-gradient-to-l from-gold/50 to-transparent'></span>
@@ -30,47 +38,64 @@ export default function Hero({ activeTab }) {
           />
         </svg>
         <span className='w-8 sm:w-16 h-px bg-gradient-to-r from-gold/50 to-transparent'></span>
-      </div>
+      </motion.div>
 
-      {/* Pill Badge */}
-      <div className='inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium bg-gold/10 border border-gold/25 text-gold mb-3 shadow-2xs'>
-        <i
-          className={
-            isPrayers
-              ? 'fas fa-mosque text-[11px]'
+      <AnimatePresence
+        mode='wait'
+        initial={false}>
+        <motion.div
+          key={heroGroupKey}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.25, ease: EASE_SPIRITUAL }}
+          className='flex flex-col items-center'>
+          {/* Pill Badge */}
+          <div className='inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-medium bg-gold/10 border border-gold/25 text-gold mb-3 shadow-2xs'>
+            {isTasbih ? (
+              <Fingerprint className='w-3.5 h-3.5' />
+            ) : (
+              <i
+                className={
+                  isPrayers
+                    ? 'fas fa-mosque text-[11px]'
+                    : 'fas fa-heart text-[11px]'
+                }></i>
+            )}
+            <span className='font-tajawal'>
+              {isPrayers
+                ? 'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا'
+                : isTasbih
+                  ? 'فَسَبِّحْ بِحَمْدِ رَبِّكَ وَكُن مِّنَ السَّاجِدِينَ'
+                  : 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
+            </span>
+          </div>
+
+          {/* Main Spiritual Heading */}
+          <h1 className='text-3xl sm:text-4xl font-bold font-amiri text-text-arabic mb-3 leading-tight tracking-normal'>
+            {isPrayers
+              ? 'مواقيت الصلاة والقبلة'
               : isTasbih
-                ? 'fas fa-hands-praying text-[11px]'
-                : 'fas fa-heart text-[11px]'
-          }></i>
-        <span className='font-tajawal'>
-          {isPrayers
-            ? 'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا'
-            : isTasbih
-              ? 'فَسَبِّحْ بِحَمْدِ رَبِّكَ وَكُن مِّنَ السَّاجِدِينَ'
-              : 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'}
-        </span>
-      </div>
+                ? 'مسبحتي'
+                : 'رفيقك اليومي للذكر والطمأنينة'}
+          </h1>
 
-      {/* Main Spiritual Heading */}
-      <h1 className='text-3xl sm:text-4xl font-bold font-amiri text-text-arabic mb-3 leading-tight tracking-normal'>
-        {isPrayers
-          ? 'مواقيت الصلاة والقبلة'
-          : isTasbih
-            ? 'مسبحتي'
-            : 'رفيقك اليومي للذكر والطمأنينة'}
-      </h1>
-
-      {/* Supporting subtitle about remembering Allah */}
-      <p className='text-sm sm:text-base text-text-muted max-w-2xl mx-auto mb-5 leading-relaxed font-tajawal'>
-        {isPrayers
-          ? 'أوقات الصلوات الخمس بدقة، العد التنازلي للأذان، واتجاه القبلة نحو الكعبة المشرفة.'
-          : isTasbih
-            ? 'مسبحة إلكترونية لتسبيح الله وذكره في كل وقت، بقلبٍ مطمئن ولسانٍ رطب.'
-            : 'اجعل ذكر الله جزءاً من يومك، وامنح قلبك لحظات من السكينة والطمأنينة.'}
-      </p>
+          {/* Supporting subtitle about remembering Allah */}
+          <p className='text-sm sm:text-base text-text-muted max-w-2xl mx-auto mb-5 leading-relaxed font-tajawal'>
+            {isPrayers
+              ? 'أوقات الصلوات الخمس بدقة، العد التنازلي للأذان، واتجاه القبلة نحو الكعبة المشرفة.'
+              : isTasbih
+                ? 'مسبحة إلكترونية لتسبيح الله وذكره في كل وقت، بقلبٍ مطمئن ولسانٍ رطب.'
+                : 'اجعل ذكر الله جزءاً من يومك، وامنح قلبك لحظات من السكينة والطمأنينة.'}
+          </p>
+        </motion.div>
+      </AnimatePresence>
 
       {/* Subtle Status Bar showing Time, Day/Date & Current Period */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.38, delay: 0.08, ease: EASE_SPIRITUAL }}
         className='inline-flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4 py-2 sm:py-2.5 rounded-full bg-bg-card/90 border border-border-theme backdrop-blur-md text-xs text-text-muted shadow-2xs transition-colors'
         aria-live='polite'
         aria-label='الحالة والتوقيت الحالي'>
@@ -122,7 +147,7 @@ export default function Hero({ activeTab }) {
             {clock.period}
           </strong>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

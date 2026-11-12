@@ -1,7 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { EASE_SPIRITUAL } from '../../../constants/motion';
 
 export default function MilestonesGrid({ milestones, totalCount }) {
-  // Find current progress towards next milestone
   const nextMilestone =
     milestones.find((m) => totalCount < m) || milestones[milestones.length - 1];
   const progressPct = Math.min(
@@ -11,7 +12,7 @@ export default function MilestonesGrid({ milestones, totalCount }) {
 
   return (
     <div
-      className='w-full p-5 sm:p-6 rounded-3xl bg-bg-card border border-border-theme shadow-xs'
+      className='w-full p-5 sm:p-6 rounded-3xl bg-bg-card/90 backdrop-blur-md border border-border-theme shadow-xs'
       role='region'
       aria-label='سجل إنجازات وأوسمة التسبيح'>
       <div className='flex items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-border-theme/60'>
@@ -38,9 +39,12 @@ export default function MilestonesGrid({ milestones, totalCount }) {
             </span>
           </div>
           <div className='w-full h-2 rounded-full bg-bg-card overflow-hidden border border-border-theme/40'>
-            <div
-              className='h-full bg-gradient-to-l from-gold to-primary transition-all duration-300 rounded-full'
-              style={{ width: `${progressPct}%` }}></div>
+            <motion.div
+              className='h-full bg-gradient-to-l from-gold to-primary rounded-full'
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPct}%` }}
+              transition={{ duration: 0.4, ease: EASE_SPIRITUAL }}
+            />
           </div>
         </div>
       )}
@@ -50,9 +54,12 @@ export default function MilestonesGrid({ milestones, totalCount }) {
         {milestones.map((ms) => {
           const reached = totalCount >= ms;
           return (
-            <div
+            <motion.div
               key={ms}
-              className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-all ${
+              animate={reached ? { scale: [1, 1.07, 1] } : { scale: 1 }}
+              transition={{ duration: 0.35 }}
+              whileHover={{ y: -2 }}
+              className={`flex flex-col items-center justify-center p-2.5 rounded-2xl border text-center transition-colors ${
                 reached
                   ? 'bg-primary/15 border-primary/40 text-primary font-bold shadow-2xs'
                   : 'bg-bg-elevated/40 border-border-theme/50 text-text-muted opacity-65'
@@ -70,7 +77,7 @@ export default function MilestonesGrid({ milestones, totalCount }) {
                   <span>تسبيحة</span>
                 )}
               </span>
-            </div>
+            </motion.div>
           );
         })}
       </div>

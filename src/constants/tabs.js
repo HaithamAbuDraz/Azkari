@@ -1,3 +1,5 @@
+import { Fingerprint } from 'lucide-react';
+
 export const PANELS = {
   morning: { title: 'أذكار الصباح', icon: 'fas fa-sun', path: '/morning' },
   evening: { title: 'أذكار المساء', icon: 'fas fa-moon', path: '/evening' },
@@ -7,6 +9,13 @@ export const PANELS = {
 };
 
 export const NAV_ITEMS = [
+  {
+    id: 'home',
+    path: '/',
+    label: 'الرئيسية',
+    fullLabel: 'الصفحة الرئيسية',
+    icon: 'fas fa-house',
+  },
   {
     id: 'morning',
     path: '/morning',
@@ -47,7 +56,8 @@ export const NAV_ITEMS = [
     path: '/tasbih',
     label: 'التسبيح',
     fullLabel: 'التسبيح الرقمي',
-    icon: 'fas fa-hands-praying',
+    icon: 'fas fa-fingerprint',
+    Icon: Fingerprint,
   },
   {
     id: 'prayers',
@@ -59,6 +69,7 @@ export const NAV_ITEMS = [
 ];
 
 export const VALID_ROUTES = [
+  'home',
   'morning',
   'evening',
   'salah',
@@ -69,6 +80,7 @@ export const VALID_ROUTES = [
 ];
 
 export const TAB_TITLES = {
+  home: 'الصفحة الرئيسية',
   morning: 'أذكار الصباح',
   evening: 'أذكار المساء',
   salah: 'أذكار بعد الصلاة',
@@ -79,6 +91,7 @@ export const TAB_TITLES = {
 };
 
 export const TAB_DESCRIPTIONS = {
+  home: 'أذكاري: روضة الأذكار والأدعية من الكتاب والسنة، أذكار الصباح والمساء، المسبحة الرقمية، ومواقيت الصلاة واتجاه القبلة بتصميم إسلامي هادئ دون إعلانات.',
   morning:
     'أذكار الصباح من حصن المسلم - أذكار وأدعية الصباح لتحصين النفس وتقوية الإيمان. أذكار الصباح كاملة من الكتاب والسنة.',
   evening:

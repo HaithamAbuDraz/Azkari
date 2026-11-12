@@ -16,6 +16,8 @@
   --color-sage: var(--sage);
   --color-gold: var(--gold);
   --color-gold-dim: var(--gold-dim);
+  --color-gold-text: var(--gold-text);
+  --color-gold-vivid: var(--gold-vivid);
   --color-gold-light: var(--gold-light);
   --color-gold-glow: var(--gold-glow);
 
@@ -55,6 +57,8 @@
 
   --gold: #c5a15b;
   --gold-dim: #9e7d3f;
+  --gold-text: #dfc078;
+  --gold-vivid: #f1d896;
   --gold-light: rgba(197, 161, 91, 0.16);
   --gold-glow: rgba(197, 161, 91, 0.18);
 
@@ -66,6 +70,11 @@
   --border-accent: rgba(197, 161, 91, 0.3);
   --ambient-top: rgba(145, 182, 156, 0.08);
   --ambient-accent: rgba(197, 161, 91, 0.06);
+
+  --glass-card: rgba(24, 39, 32, 0.78);
+  --glass-elevated: rgba(32, 51, 42, 0.72);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --hero-title-filter: drop-shadow(0 2px 16px rgba(197, 161, 91, 0.22));
 }
 
 /* ===== LIGHT THEME ===== */
@@ -82,19 +91,26 @@
   --primary-fg: #ffffff;
   --sage: #8fa895;
 
-  --gold: #c5a15b;
-  --gold-dim: #a88644;
-  --gold-light: rgba(197, 161, 91, 0.12);
-  --gold-glow: rgba(197, 161, 91, 0.14);
+  --gold: #b88a32;
+  --gold-dim: #8f681d;
+  --gold-text: #855e16;
+  --gold-vivid: #b58428;
+  --gold-light: rgba(184, 138, 50, 0.12);
+  --gold-glow: rgba(184, 138, 50, 0.16);
 
   --text-main: #252c27;
   --text-muted: #5c6860;
   --text-arabic: #19211c;
 
-  --border: rgba(36, 91, 70, 0.12);
-  --border-accent: rgba(197, 161, 91, 0.35);
-  --ambient-top: rgba(36, 91, 70, 0.05);
-  --ambient-accent: rgba(197, 161, 91, 0.04);
+  --border: rgba(36, 91, 70, 0.14);
+  --border-accent: rgba(184, 138, 50, 0.38);
+  --ambient-top: rgba(36, 91, 70, 0.06);
+  --ambient-accent: rgba(184, 138, 50, 0.05);
+
+  --glass-card: rgba(255, 255, 255, 0.86);
+  --glass-elevated: rgba(241, 239, 234, 0.85);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --hero-title-filter: none;
 }
 
 html {
@@ -555,10 +571,32 @@ input[type='range'].tasbih-slider::-moz-range-thumb {
   animation: tasbihGlow 4s ease-in-out infinite;
 }
 
+/* ── Slow meditative Girih mandala rotation ── */
+@keyframes mandalaSlowSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mandala-spin {
+  animation: mandalaSlowSpin 110s linear infinite;
+}
+
+.mandala-spin-reverse {
+  animation: mandalaSlowSpin 140s linear infinite reverse;
+}
+
 /* ============================================================
    REDUCED MOTION — Override all animations
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
+  .mandala-spin,
+  .mandala-spin-reverse {
+    animation: none !important;
+  }
   .card-enter {
     animation: none !important;
     opacity: 1 !important;
