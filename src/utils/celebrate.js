@@ -73,4 +73,3 @@ export async function shareWithFallback(payload, onShowToast, fallbackToast) {
       'تم نسخ الذكر لمشاركته، الدالّ على الخير كفاعله! <i class="fas fa-share-nodes text-gold"></i>'
   );
 }
-

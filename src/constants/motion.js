@@ -79,4 +79,3 @@ export const ACCORDION_VARIANTS = {
     transition: { duration: 0.28, ease: EASE_SPIRITUAL },
   },
 };
-

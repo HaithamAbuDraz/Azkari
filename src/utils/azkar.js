@@ -89,4 +89,3 @@ export function migrateStoredFavorites(rawFavorites) {
   }
   return [...uniqueIds];
 }
-

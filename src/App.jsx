@@ -105,7 +105,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion='user'>
-      <div className='relative min-h-screen flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
+      <div className='relative min-h-screen w-full min-w-full flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
         <AmbientBackground />
 
         <Toast
@@ -131,7 +131,7 @@ export default function App() {
           favoritesCount={favoritesCount}
         />
 
-        <div className='relative z-10 flex-1 flex flex-col'>
+        <div className='relative z-10 flex-1 w-full flex flex-col'>
           <AnimatePresence initial={false}>
             {showSharedHero && (
               <motion.div
@@ -139,7 +139,8 @@ export default function App() {
                 initial={{ opacity: 0, y: -12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}>
+                transition={{ duration: 0.25 }}
+                className='w-full'>
                 <Hero activeTab={activeTab} />
               </motion.div>
             )}
@@ -147,7 +148,7 @@ export default function App() {
 
           <main
             id='main-content'
-            className='flex-1 py-2 sm:py-4'>
+            className='flex-1 w-full py-2 sm:py-4'>
             <AnimatePresence
               mode='wait'
               initial={false}>
@@ -156,7 +157,8 @@ export default function App() {
                 variants={PAGE_TRANSITION_VARIANTS}
                 initial='initial'
                 animate='animate'
-                exit='exit'>
+                exit='exit'
+                className='w-full'>
                 {renderActivePage()}
               </motion.div>
             </AnimatePresence>

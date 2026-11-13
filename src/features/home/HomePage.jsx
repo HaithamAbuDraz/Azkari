@@ -32,7 +32,7 @@ export default function HomePage({
   } = usePrayerTimes(onShowToast);
 
   return (
-    <div className='relative pb-4 sm:pb-8'>
+    <div className='relative w-full pb-4 sm:pb-8'>
       <HomeHero
         clock={clock}
         prayerSchedule={prayerSchedule}
