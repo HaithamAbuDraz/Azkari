@@ -143,7 +143,7 @@ export default function QiblaCompass({ qibla }) {
         <p className='text-xs sm:text-sm text-text-muted max-w-md mb-4 leading-relaxed'>
           المسافة المباشرة إلى المسجد الحرام بمكة المكرمة تقريباً{' '}
           <strong className='text-text-main font-mono'>
-            {qibla.distanceKm.toLocaleString('ar-EG')} كم
+            {Number(qibla?.distanceKm ?? 0).toLocaleString('en-US')} كم
           </strong>
           . وجّه جهازك أو سجادة صلاتك باتجاه المؤشر الذهبي.
         </p>
