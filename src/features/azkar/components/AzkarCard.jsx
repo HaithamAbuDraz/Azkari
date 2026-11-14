@@ -62,6 +62,7 @@ export default function AzkarCard({
   isFavorite = false,
   onToggleFavorite,
   onShowToast,
+  isResumed = false,
 }) {
   const [copied, setCopied] = useState(false);
   const [isLargeFont, setIsLargeFont] = useState(false);
@@ -175,6 +176,7 @@ export default function AzkarCard({
     <article
       ref={cardRef}
       id={`card-${cardId}`}
+      data-card-id={cardId}
       aria-label={`الذكر رقم ${index + 1}`}
       onClick={handleCardClick}
       className={[
@@ -184,10 +186,13 @@ export default function AzkarCard({
         isDone ? 'card-completion-shimmer card-completion-glow' : '',
         // ── Base card styles ──
         'group relative p-5 sm:p-6 rounded-2xl bg-bg-card border',
-        'transition-colors duration-300 flex flex-col justify-between select-none',
+        'transition-all duration-300 flex flex-col justify-between select-none',
+        // ── Distinct Border & Background States ──
         isDone
           ? 'border-gold/30 bg-primary-light/10 shadow-xs cursor-default'
-          : 'border-border-theme hover:border-gold/50 hover:shadow-md cursor-pointer',
+          : isResumed
+            ? 'border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/50 dark:ring-emerald-400/50 shadow-xl shadow-emerald-500/20 bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] scale-[1.01] cursor-pointer'
+            : 'border-border-theme hover:border-gold/50 hover:shadow-md cursor-pointer',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -197,7 +202,7 @@ export default function AzkarCard({
       }}>
       {/* ── Top Header ── */}
       <div className='flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border-theme/40'>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 flex-wrap'>
           {/* Dhikr Number Badge */}
           <div className='w-8 h-8 rounded-xl bg-gold/10 border border-gold/25 text-gold text-xs font-bold flex items-center justify-center shadow-2xs'>
             {index + 1}
@@ -206,6 +211,13 @@ export default function AzkarCard({
           <span className='text-[11px] sm:text-xs font-medium px-2.5 py-0.5 rounded-full bg-bg-elevated text-text-muted border border-border-theme/60'>
             {zikr.count === 1 ? 'مرة واحدة' : `${zikr.count} مرات`}
           </span>
+          {/* Direct Resume Badge */}
+          {isResumed && !isDone && (
+            <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-[10px] sm:text-[11px] font-bold shadow-2xs animate-pulse'>
+              <i className='fas fa-bookmark text-[9px] text-emerald-500' />
+              <span>الذكر التالي للقراءة</span>
+            </span>
+          )}
         </div>
 
         {/* Action icons — hit areas extended to ≥ 48dp via -m-1 p-1 */}

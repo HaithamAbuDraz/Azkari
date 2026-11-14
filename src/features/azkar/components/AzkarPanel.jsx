@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AzkarCard from './AzkarCard';
 import { matchesArabicSearch } from '../../../utils/arabic';
+import { getLocalDateKey } from '../../../utils/azkar';
 import { fireSpiritualConfetti } from '../../../utils/celebrate';
 import { CARD_HOVER_SPRING, EASE_SPIRITUAL } from '../../../constants/motion';
 
@@ -27,6 +28,8 @@ export default function AzkarPanel({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'in_progress' | 'completed' | 'favorites'
+  const [resumedCardId, setResumedCardId] = useState(null);
+  const hasAutoScrolledRef = useRef(false);
 
   const total = items.length;
 
@@ -40,6 +43,124 @@ export default function AzkarPanel({
   }, [items, counters, tabKey]);
 
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  // Automatically scroll and direct user to the next/last read zikr on page refresh / load
+  useEffect(() => {
+    if (hasAutoScrolledRef.current) return;
+    if (items.length === 0) return;
+
+    // Turn off browser native scroll restoration so it doesn't fight our scroll
+    if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    const todayKey = getLocalDateKey();
+    let targetCardId = null;
+
+    // 1. Check if there is stored last-active info for this category today
+    try {
+      const stored = localStorage.getItem('azkari-last-active-zikr');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.date === todayKey && parsed?.tabKey === tabKey) {
+          // If nextCardId is unfinished, prefer it
+          if (parsed.nextCardId) {
+            const nextItem = items.find(
+              (it, idx) =>
+                (it.cardId || `${tabKey}-${idx}`) === parsed.nextCardId
+            );
+            if (nextItem) {
+              const rem = counters[parsed.nextCardId] ?? nextItem.count;
+              if (rem > 0) {
+                targetCardId = parsed.nextCardId;
+              }
+            }
+          }
+          // Or if cardId itself is unfinished, prefer it
+          if (!targetCardId && parsed.cardId) {
+            const curItem = items.find(
+              (it, idx) => (it.cardId || `${tabKey}-${idx}`) === parsed.cardId
+            );
+            if (curItem) {
+              const rem = counters[parsed.cardId] ?? curItem.count;
+              if (rem > 0) {
+                targetCardId = parsed.cardId;
+              }
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+
+    // 2. Fallback: If at least 1 card is completed or started, find the FIRST incomplete card
+    if (!targetCardId) {
+      const anyStartedOrDone = items.some((it, idx) => {
+        const cid = it.cardId || `${tabKey}-${idx}`;
+        const rem = counters[cid] ?? it.count;
+        return rem < it.count;
+      });
+      const allDone = items.every((it, idx) => {
+        const cid = it.cardId || `${tabKey}-${idx}`;
+        return (counters[cid] ?? it.count) === 0;
+      });
+
+      if (anyStartedOrDone && !allDone) {
+        const firstIncomplete = items.find((it, idx) => {
+          const cid = it.cardId || `${tabKey}-${idx}`;
+          return (counters[cid] ?? it.count) > 0;
+        });
+        if (firstIncomplete) {
+          targetCardId =
+            firstIncomplete.cardId || `${tabKey}-${firstIncomplete.id}`;
+        }
+      }
+    }
+
+    if (!targetCardId) return;
+
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * 60ms = 1.8s polling window
+    let highlightTimer = null;
+    let backupTimer = null;
+
+    const intervalId = setInterval(() => {
+      attempts++;
+      const element =
+        document.getElementById(`card-${targetCardId}`) ||
+        document.querySelector(`[data-card-id="${targetCardId}"]`);
+
+      if (element) {
+        clearInterval(intervalId);
+        hasAutoScrolledRef.current = true;
+
+        // Perform smooth center scroll to target card
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setResumedCardId(targetCardId);
+
+        // Backup adjustment after 320ms in case layout shifted during image/font loads
+        backupTimer = setTimeout(() => {
+          const rect = element.getBoundingClientRect();
+          if (rect.top < 60 || rect.bottom > window.innerHeight) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 320);
+
+        highlightTimer = setTimeout(() => {
+          setResumedCardId(null);
+        }, 4000);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(intervalId);
+      }
+    }, 60);
+
+    return () => {
+      clearInterval(intervalId);
+      if (backupTimer) clearTimeout(backupTimer);
+      if (highlightTimer) clearTimeout(highlightTimer);
+    };
+  }, [items, tabKey, counters]);
 
   // Trigger celebratory confetti only when crossing to 100% completion
   const prevPctRef = useRef(pct);
@@ -281,6 +402,7 @@ export default function AzkarPanel({
                   isFavorite={isFavorite ? isFavorite(cardId) : false}
                   onToggleFavorite={onToggleFavorite}
                   onShowToast={onShowToast}
+                  isResumed={resumedCardId === cardId}
                 />
               );
             })}

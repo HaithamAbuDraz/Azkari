@@ -9,6 +9,7 @@ import { playMilestoneChime } from '../utils/sound';
 
 const STORAGE_KEY = 'azkar-counters';
 const DATE_STORAGE_KEY = 'azkar-counters-date';
+export const LAST_ACTIVE_STORAGE_KEY = 'azkari-last-active-zikr';
 
 /**
  * Returns local calendar date key (YYYY-MM-DD) so daily resets happen at
@@ -141,6 +142,43 @@ export function useAzkarCounters(showToast) {
         const tabKey = getCategoryTabFromCardId(cardId);
         const nextCounters = { ...base, [cardId]: nextVal };
 
+        // Save last active zikr and calculate the next card ID for smooth resume
+        try {
+          const list = getAzkarByCategory(tabKey);
+          const currentIdx = list.findIndex((item) => item.cardId === cardId);
+          let nextCardId = cardId;
+
+          // If current card is completed (nextVal === 0), find next incomplete card
+          if (nextVal === 0 && currentIdx !== -1) {
+            for (let i = currentIdx + 1; i < list.length; i++) {
+              const candidate = list[i];
+              const candRem = nextCounters[candidate.cardId] ?? candidate.count;
+              if (candRem > 0) {
+                nextCardId = candidate.cardId;
+                break;
+              }
+            }
+          }
+
+          const sessionPayload = JSON.stringify({
+            tabKey,
+            cardId,
+            nextCardId,
+            date: todayKey,
+            timestamp: Date.now(),
+          });
+
+          localStorage.setItem(LAST_ACTIVE_STORAGE_KEY, sessionPayload);
+          localStorage.setItem('azkari-last-active-session', sessionPayload);
+          try {
+            sessionStorage.setItem('azkari-active-tab', tabKey);
+          } catch {
+            // Ignore session storage errors
+          }
+        } catch {
+          // Ignore storage quota errors
+        }
+
         if (nextVal === 0) {
           // Single-card completion haptic: two gentle pulses
           triggerHaptic([20, 60, 20]);
@@ -206,6 +244,17 @@ export function useAzkarCounters(showToast) {
     (tabKey) => {
       const list = getAzkarByCategory(tabKey);
       setCounters((prev) => resetCategoryCounters(prev, list));
+      try {
+        const stored = localStorage.getItem(LAST_ACTIVE_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.tabKey === tabKey) {
+            localStorage.removeItem(LAST_ACTIVE_STORAGE_KEY);
+          }
+        }
+      } catch {
+        // Ignore storage errors
+      }
       showToast(
         'تمت إعادة تعيين جميع أذكار هذا القسم <i class="fas fa-rotate-left text-gold"></i>'
       );
