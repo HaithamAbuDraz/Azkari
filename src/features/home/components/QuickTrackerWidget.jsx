@@ -26,6 +26,7 @@ import {
 } from '../constants/homeData';
 import { useRipples } from '../hooks/useRipples';
 import { fireSpiritualConfetti } from '../utils/celebrate';
+import { recordTasbihProgress } from '../../progress';
 
 const TRACKER_RADIUS = 44;
 const TRACKER_CIRCUMFERENCE = 2 * Math.PI * TRACKER_RADIUS;
@@ -184,6 +185,7 @@ export default function QuickTrackerWidget({
       setLaps(nextLaps);
     }
     setCount(nextCount);
+    recordTasbihProgress({ delta: 1 });
 
     const totalCompleted = nextLaps * target + nextCount;
     if (nextCount === target || MILESTONES.includes(totalCompleted)) {
@@ -342,13 +344,14 @@ export default function QuickTrackerWidget({
           </div>
 
           {/* Footer Jump CTA */}
-          <div className='pt-3 border-t border-[var(--border)] flex items-center justify-between gap-3'>
-            <span className='text-xs text-[var(--text-muted)]'>
-              الموصى به الآن:{' '}
-              <strong className='text-[var(--text-main)]'>
-                {recommendedMeta.title}
-              </strong>
-            </span>
+          <div className='pt-3 border-t border-[var(--border)] flex items-center justify-between gap-3 flex-wrap'>
+            <button
+              type='button'
+              onClick={() => onSelectTab('progress')}
+              className='group inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--gold-text)] transition-colors cursor-pointer'>
+              <i className='fas fa-chart-line text-xs text-[var(--gold-text)]' />
+              <span>سجل التقدم الأسبوعي والشهري</span>
+            </button>
             <button
               type='button'
               onClick={() => onSelectTab(recommendedTab)}

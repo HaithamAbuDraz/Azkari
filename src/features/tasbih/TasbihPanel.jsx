@@ -18,6 +18,7 @@ import TasbihRing from './components/TasbihRing';
 import TasbihControls from './components/TasbihControls';
 import MilestonesGrid from './components/MilestonesGrid';
 import HistoryList from './components/HistoryList';
+import { recordTasbihProgress } from '../progress';
 
 export default function TasbihPanel({ isActive, showToast }) {
   const [dhikrs, setDhikrs] = useState(() => {
@@ -248,6 +249,7 @@ export default function TasbihPanel({ isActive, showToast }) {
         }
       }
       setCount(newCount);
+      recordTasbihProgress({ delta: 1 });
 
       const newTotal = newLaps * target + newCount;
       if (MILESTONES.includes(newTotal)) {

@@ -1,4 +1,4 @@
-import { Fingerprint } from 'lucide-react';
+import { Fingerprint, TrendingUp } from 'lucide-react';
 
 export const PANELS = {
   morning: { title: 'أذكار الصباح', icon: 'fas fa-sun', path: '/morning' },
@@ -66,6 +66,14 @@ export const NAV_ITEMS = [
     fullLabel: 'مواقيت الصلاة والقبلة',
     icon: 'fas fa-mosque',
   },
+  {
+    id: 'progress',
+    path: '/progress',
+    label: 'التقدم',
+    fullLabel: 'سجل التقدم والمواظبة',
+    icon: 'fas fa-chart-line',
+    Icon: TrendingUp,
+  },
 ];
 
 export const VALID_ROUTES = [
@@ -77,6 +85,7 @@ export const VALID_ROUTES = [
   'various',
   'tasbih',
   'prayers',
+  'progress',
 ];
 
 export const TAB_TITLES = {
@@ -88,6 +97,7 @@ export const TAB_TITLES = {
   various: 'أذكار متنوعة',
   tasbih: 'التسبيح الرقمي',
   prayers: 'مواقيت الصلاة والقبلة',
+  progress: 'سجل التقدم والمواظبة',
 };
 
 export const TAB_DESCRIPTIONS = {
@@ -106,6 +116,8 @@ export const TAB_DESCRIPTIONS = {
     'التسبيح الرقمي - عداد تسبيح إلكتروني لتسبيح الله وذكر الله. سبحان الله وبحمده، سبحان الله العظيم.',
   prayers:
     'مواقيت الصلاة اليومية، العد التنازلي للصلاة القادمة، اتجاه القبلة والتقويم الهجري بدقة حسب موقعك الجغرافي.',
+  progress:
+    'سجل ومتابعة التقدم الأسبوعي والشهري وسلسلة المواظبة على الأذكار والتسبيح وإحصائيات العبادة.',
 };
 
 export function getDefaultTab() {

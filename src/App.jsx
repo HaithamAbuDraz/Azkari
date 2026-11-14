@@ -14,6 +14,7 @@ import { AzkarPanel } from './features/azkar';
 import { TasbihPanel } from './features/tasbih';
 import { PrayerTimesPanel } from './features/prayers';
 import { HomePage } from './features/home';
+import { ProgressPage } from './features/progress';
 import {
   useTheme,
   useToast,
@@ -76,6 +77,16 @@ export default function App() {
         <PrayerTimesPanel
           showToast={showToast}
           onSelectTab={switchTab}
+        />
+      );
+    }
+
+    if (activeTab === 'progress') {
+      return (
+        <ProgressPage
+          counters={counters}
+          onSelectTab={switchTab}
+          showToast={showToast}
         />
       );
     }

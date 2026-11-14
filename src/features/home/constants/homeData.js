@@ -22,6 +22,7 @@ export const PORTAL_ICONS = {
   various: createFaIcon('fas fa-gem'),
   tasbih: Fingerprint,
   prayers: createFaIcon('fas fa-mosque'),
+  progress: createFaIcon('fas fa-chart-line'),
 };
 
 /**
