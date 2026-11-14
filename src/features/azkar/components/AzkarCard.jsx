@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { triggerHaptic } from '../../../utils/haptics';
-import { RollingNumber } from '../../../components/common';
+import { MisbahaCounter } from '../../../components/common';
 import { useMilestone } from '../../../hooks';
 
 /* ─────────────────────────────────────────────────────────────
@@ -73,7 +73,6 @@ export default function AzkarCard({
 
   // Refs
   const cardRef = useRef(null);
-  const decrementBtnRef = useRef(null);
 
   const isDone = remaining === 0;
   const hasStarted = remaining < zikr.count && remaining > 0;
@@ -81,9 +80,8 @@ export default function AzkarCard({
     zikr.count > 0 ? (zikr.count - remaining) / zikr.count : 0;
   const progressPercent = Math.round(progressRatio * 100);
 
-  // Ripple hooks — one for the whole card body, one for the decrement btn
+  // Ripple hook for card body tap
   const spawnCardRipple = useRipple(cardRef);
-  const spawnBtnRipple = useRipple(decrementBtnRef);
 
   // Milestone glow
   const milestoneKey = useMilestone(progressPercent);
@@ -94,7 +92,8 @@ export default function AzkarCard({
       if (
         e.target.closest('button') ||
         e.target.closest('a') ||
-        e.target.closest('input')
+        e.target.closest('input') ||
+        e.target.closest('[data-misbaha-counter]')
       )
         return;
       if (isDone) return;
@@ -110,15 +109,14 @@ export default function AzkarCard({
 
   const handleDecrementBtn = useCallback(
     (e) => {
-      e.stopPropagation();
+      e?.stopPropagation?.();
       if (isDone) return;
       onDecrement(cardId, zikr.count);
-      spawnBtnRipple(e);
       setShowResetHint(true);
       clearTimeout(resetHintTimer.current);
       resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
     },
-    [isDone, cardId, zikr.count, onDecrement, spawnBtnRipple]
+    [isDone, cardId, zikr.count, onDecrement]
   );
 
   /* ── Copy ── */
@@ -317,86 +315,44 @@ export default function AzkarCard({
         </div>
 
         {/* Counter & Status */}
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2.5 sm:gap-3'>
           {/* Completion badge */}
           {isDone && (
-            <div className='completion-badge-enter inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30'>
+            <div className='completion-badge-enter inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-light text-primary font-bold text-xs border border-primary/30 shadow-2xs'>
               <i className='fas fa-check-circle text-xs text-gold'></i>
               <span>اكتمل بحمد الله</span>
             </div>
           )}
 
-          {/* Interactive Counter Controls */}
-          <div
-            className='relative flex items-center gap-1 bg-bg-elevated p-1 rounded-xl border border-border-theme/70 overflow-hidden'
-            role='group'
-            aria-label='أداة عد الذكر'>
-            {/* Hairline progress indicator at bottom of counter pill */}
-            {hasStarted && !isDone && (
-              <div className='absolute bottom-0 inset-x-0 h-[2px] bg-border-theme/30 overflow-hidden pointer-events-none'>
-                <div
-                  className={`h-full bg-gradient-to-l from-gold to-primary transition-all duration-300 ease-out ${
-                    milestoneKey > 0 ? 'milestone-pulse' : ''
-                  }`}
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            )}
-
-            {/* Decrement button — 48dp+ hit area via min-w / h-10 */}
-            <button
-              ref={decrementBtnRef}
-              type='button'
-              disabled={isDone}
-              onClick={handleDecrementBtn}
-              aria-label={`إنقاص عداد الذكر. المتبقي: ${remaining}`}
-              className={`relative min-w-[2.75rem] h-10 px-2.5 rounded-lg font-bold text-sm flex items-center justify-center transition-all cursor-pointer overflow-hidden active:scale-[0.92] ${
-                isDone
-                  ? 'bg-transparent text-text-muted opacity-40 cursor-not-allowed'
-                  : 'bg-primary/20 text-primary hover:bg-primary/30 border border-primary/30 shadow-2xs'
-              }`}
-              style={{ touchAction: 'manipulation' }}>
-              <span className='font-mono text-base font-bold'>−</span>
-            </button>
-
-            {/* Remaining / Target — rolling number */}
-            <div
-              className='min-w-[3.5rem] px-2 text-center text-xs sm:text-sm font-bold font-mono text-text-main'
-              aria-hidden='true' /* RollingNumber has its own aria-live */
-            >
-              <span
-                className={
-                  remaining === 0
-                    ? 'text-gold transition-colors duration-180'
-                    : 'text-text-main'
-                }>
-                {remaining === 0 ? (
-                  <span className='text-gold'>-</span>
-                ) : (
-                  <RollingNumber value={remaining} />
-                )}
-              </span>
-              <span className='text-text-muted text-[10px] mx-1'>/</span>
-              <span className='text-text-muted text-[11px]'>{zikr.count}</span>
-            </div>
-
-            {/* Reset button — 48dp hit area, attention flash after decrement */}
+          {/* Reset button — appears when dhikr has started or completed */}
+          {(hasStarted || isDone) && (
             <button
               type='button'
               onClick={handleReset}
               aria-label='إعادة تعيين هذا الذكر'
               title='إعادة تعيين هذا الذكر'
-              className={`relative w-10 h-10 rounded-lg flex items-center justify-center text-xs transition cursor-pointer active:scale-95 ${
+              className={`relative w-9 h-9 rounded-xl flex items-center justify-center text-xs transition-all cursor-pointer active:scale-90 border ${
                 showResetHint
-                  ? 'text-gold bg-gold/10 border border-gold/30'
-                  : 'text-text-muted hover:text-gold hover:bg-gold/10'
+                  ? 'text-gold bg-gold/15 border-gold/40 shadow-xs ring-1 ring-gold/30'
+                  : 'text-text-muted hover:text-gold hover:bg-gold/10 border-border-theme/60 bg-bg-elevated/80 shadow-2xs'
               }`}
               style={{ touchAction: 'manipulation' }}>
               <i
                 key={resetFlashKey}
                 className={`fas fa-rotate-left ${resetFlashKey > 0 && showResetHint ? 'reset-flash' : ''}`}></i>
             </button>
-          </div>
+          )}
+
+          {/* Interactive 3D Glossy Misbaha Counter */}
+          <MisbahaCounter
+            count={remaining}
+            target={zikr.count}
+            mode='decrement'
+            size={84}
+            onDeduct={handleDecrementBtn}
+            disabled={isDone}
+            showRatio={true}
+          />
         </div>
       </div>
     </article>
