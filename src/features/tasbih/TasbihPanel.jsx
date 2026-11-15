@@ -413,6 +413,7 @@ export default function TasbihPanel({ isActive, showToast }) {
             onAddCustomDhikr={handleAddCustomDhikr}
             arabicOpacity={arabicOpacity}
             target={target}
+            showToast={showToast}
           />
 
           {/* 4. Main Interaction Area (The Core Focus: Circular Counter Button) */}
