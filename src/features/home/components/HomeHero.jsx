@@ -6,10 +6,6 @@ import {
   ChevronDown,
   Clock,
   CloudMoon,
-  Compass,
-  Heart,
-  MapPin,
-  Sparkles,
   Sun,
 } from 'lucide-react';
 import { getDefaultTab, PANELS } from '../../../constants/tabs';
@@ -175,7 +171,10 @@ export default function HomeHero({
                     ease: 'easeInOut',
                   }}
                   className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--gold)]/15 border border-[var(--gold)]/40 text-[var(--gold-text)] font-semibold hover:bg-[var(--gold)]/25 transition-colors cursor-pointer'>
-                  <Compass className='w-3 h-3' />
+                  <i
+                    className='fas fa-mosque text-[11px]'
+                    aria-hidden='true'
+                  />
                   <span>{nextPrayer.label}</span>
                   <span
                     dir='ltr'
@@ -301,7 +300,10 @@ export default function HomeHero({
               className='group flex items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--glass-elevated)] backdrop-blur-md hover:bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--gold)]/55 transition-all cursor-pointer text-right shadow-sm'>
               <div className='min-w-0'>
                 <span className='text-[11px] font-semibold text-[var(--gold-text)] flex items-center gap-1.5 mb-0.5'>
-                  <MapPin className='w-3 h-3 shrink-0' />
+                  <i
+                    className='fas fa-mosque text-[11px] shrink-0'
+                    aria-hidden='true'
+                  />
                   <span className='truncate'>
                     الصلاة القادمة{cityName ? ` • ${cityName}` : ''}
                   </span>
@@ -337,7 +339,10 @@ export default function HomeHero({
               className='group flex items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--glass-elevated)] backdrop-blur-md hover:bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--gold)]/55 transition-all cursor-pointer text-right shadow-sm'>
               <div className='min-w-0'>
                 <span className='text-[11px] font-semibold text-[var(--primary)] flex items-center gap-1.5 mb-0.5'>
-                  <Sparkles className='w-3 h-3 text-[var(--gold-text)] shrink-0' />
+                  <i
+                    className='fas fa-clock-rotate-left text-[11px] text-[var(--gold-text)] shrink-0'
+                    aria-hidden='true'
+                  />
                   <span>سجل الذكر والمفضلة</span>
                 </span>
                 <div className='flex items-center gap-3 flex-wrap'>
@@ -355,7 +360,10 @@ export default function HomeHero({
                     ? 'bg-[var(--gold)]/15 border-[var(--gold)]/40 text-[var(--gold-text)]'
                     : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)] group-hover:text-[var(--gold-text)]'
                 )}>
-                <Heart className='w-3.5 h-3.5 text-[var(--gold-text)]' />
+                <i
+                  className='fas fa-heart text-xs text-[var(--gold-text)]'
+                  aria-hidden='true'
+                />
                 <span>{favoritesCount} مفضلة</span>
               </span>
             </motion.button>
