@@ -18,7 +18,7 @@ export default function ClosingInvitation({ onSelectTab, onShowToast }) {
     shareWithFallback(
       {
         title: 'أذكاري • روضة الأذكار والأدعية',
-        text: 'مَثَلُ الَّذِي يَذْكُرُ رَبَّهُ وَالَّذِي لاَ يَذْكُرُ رَبَّهُ، مَثَلُ الحَيِّ وَالمَيِّتِ. شارك الخير في تطبيق أذكاري:',
+        text: 'مَثَلُ الَّذِي يَذْكُرُ رَبَّهُ وَالَّذِي لاَ يَذْكُرُ رَبَّهُ، مَثَلُ الحَيِّ وَالمَيِّتِ. شارك الخير في موقع أذكاري:',
         url: typeof window !== 'undefined' ? window.location.origin : '',
       },
       onShowToast,

@@ -348,7 +348,7 @@ export default function TasbihPanel({ isActive, showToast }) {
           `${i + 1}. ${item.dhikr}: ${item.count} مرة (${item.date} ${item.time})`
       )
       .join('\n');
-    const fullText = `📿 ملخص جلسات التسبيح من تطبيق أذكاري:\n\n${summary}\n\nتقبل الله منا ومنكم صالح الأعمال.`;
+    const fullText = `📿 ملخص جلسات التسبيح من موقع أذكاري:\n\n${summary}\n\nتقبل الله منا ومنكم صالح الأعمال.`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(fullText);
       if (showToast) {
