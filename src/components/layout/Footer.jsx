@@ -66,9 +66,9 @@ export default function Footer({ onShowToast, onSelectTab }) {
             </div>
 
             <p className='text-xs sm:text-sm text-text-muted leading-relaxed max-w-xl'>
-              تطبيق إسلامي يهدف إلى تيسير قراءة الأذكار اليومية والأدعية
-              المأثورة عن النبي ﷺ، وتوفير بيئة هادئة ومريحة تعين المسلم على ذكر
-              الله في كل أوقاته.
+              موقع إسلامي يهدف إلى تيسير قراءة الأذكار اليومية والأدعية المأثورة
+              عن النبي ﷺ، وتوفير بيئة هادئة ومريحة تعين المسلم على ذكر الله في
+              كل أوقاته.
             </p>
 
             {/* Hadith Citation Card in gold-framed glass */}

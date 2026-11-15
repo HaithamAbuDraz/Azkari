@@ -4,6 +4,16 @@ const LEGACY_KEY_PATTERN = /^([a-z]+)-(\d+)$/;
 const categoryCache = new Map();
 
 /**
+ * Returns local calendar date key (YYYY-MM-DD) for timezone-safe daily persistence.
+ */
+export function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
  * Returns a memoized list of hydrated azkar items for a category key.
  */
 export function getAzkarByCategory(tabKey) {

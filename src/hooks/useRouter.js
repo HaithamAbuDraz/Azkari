@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { VALID_ROUTES, TAB_TITLES, TAB_DESCRIPTIONS } from '../constants/tabs';
+import { getLocalDateKey } from '../utils/azkar';
 
 // Helper to extract route from current window location (pathname or hash)
 export function getRouteFromLocation() {
@@ -18,6 +19,33 @@ export function getRouteFromLocation() {
     .filter(Boolean);
 
   if (pathSegments.length === 0) {
+    try {
+      // Prioritize active reading session from today if page was refreshed
+      const lastSession = localStorage.getItem('azkari-last-active-session');
+      if (lastSession) {
+        const parsed = JSON.parse(lastSession);
+        const todayKey = getLocalDateKey();
+        if (
+          parsed?.date === todayKey &&
+          parsed?.tabKey &&
+          VALID_ROUTES.includes(parsed.tabKey) &&
+          parsed.tabKey !== 'home'
+        ) {
+          return parsed.tabKey;
+        }
+      }
+
+      const sessionTab = sessionStorage.getItem('azkari-active-tab');
+      if (
+        sessionTab &&
+        VALID_ROUTES.includes(sessionTab) &&
+        sessionTab !== 'home'
+      ) {
+        return sessionTab;
+      }
+    } catch {
+      // Ignore storage errors
+    }
     return 'home';
   }
 
@@ -26,7 +54,7 @@ export function getRouteFromLocation() {
     return lastSegment;
   }
 
-  return null;
+  return 'not-found';
 }
 
 export function useRouter() {
@@ -57,7 +85,9 @@ export function useRouter() {
           ? 'home'
           : VALID_ROUTES.includes(cleanTarget)
             ? cleanTarget
-            : 'home';
+            : cleanTarget === 'not-found'
+              ? 'not-found'
+              : 'home';
 
       const newPath = validRoute === 'home' ? '/' : `/${validRoute}`;
       const currentPath = window.location.pathname;
@@ -72,6 +102,17 @@ export function useRouter() {
 
       setCurrentRoute(validRoute);
       syncDocumentMeta(validRoute);
+
+      try {
+        if (validRoute === 'home') {
+          localStorage.removeItem('azkari-last-active-session');
+          sessionStorage.setItem('azkari-active-tab', 'home');
+        } else {
+          sessionStorage.setItem('azkari-active-tab', validRoute);
+        }
+      } catch {
+        // Ignore storage errors
+      }
 
       if (options.scroll !== false) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -93,10 +134,17 @@ export function useRouter() {
 
     // Initial sync: normalize /home or unknown paths cleanly to /
     const initialDetected = getRouteFromLocation();
-    if (!initialDetected || window.location.pathname === '/home') {
+    if (!initialDetected || initialDetected === 'home') {
       window.history.replaceState({ route: 'home' }, '', '/');
       syncDocumentMeta('home');
     } else {
+      if (window.location.pathname !== `/${initialDetected}`) {
+        window.history.replaceState(
+          { route: initialDetected },
+          '',
+          `/${initialDetected}`
+        );
+      }
       syncDocumentMeta(initialDetected);
     }
 

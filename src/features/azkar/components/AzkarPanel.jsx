@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AzkarCard from './AzkarCard';
 import { matchesArabicSearch } from '../../../utils/arabic';
+import { getLocalDateKey } from '../../../utils/azkar';
 import { fireSpiritualConfetti } from '../../../utils/celebrate';
 import { CARD_HOVER_SPRING, EASE_SPIRITUAL } from '../../../constants/motion';
 
@@ -27,6 +28,8 @@ export default function AzkarPanel({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState('all'); // 'all' | 'in_progress' | 'completed' | 'favorites'
+  const [resumedCardId, setResumedCardId] = useState(null);
+  const hasAutoScrolledRef = useRef(false);
 
   const total = items.length;
 
@@ -41,6 +44,99 @@ export default function AzkarPanel({
 
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
+  // Reset auto-scroll flag when switching tabs so each tab can navigate to its first unread dhikr
+  const lastTabKeyRef = useRef(tabKey);
+  useEffect(() => {
+    if (lastTabKeyRef.current !== tabKey) {
+      lastTabKeyRef.current = tabKey;
+      hasAutoScrolledRef.current = false;
+    }
+  }, [tabKey]);
+
+  // Automatically scroll and direct user to the FIRST unread zikr on page refresh / load
+  useEffect(() => {
+    if (hasAutoScrolledRef.current) return;
+    if (items.length === 0) return;
+
+    // Turn off browser native scroll restoration so it doesn't fight our scroll
+    if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    let targetCardId = null;
+
+    // Check all dhikrs in order:
+    // If the category has any progress and is not 100% completed,
+    // find the FIRST unread dhikr (from index 0) and scroll directly to it.
+    const anyStartedOrDone = items.some((it, idx) => {
+      const cid = it.cardId || `${tabKey}-${idx}`;
+      const rem = counters[cid] ?? it.count;
+      return rem < it.count;
+    });
+
+    const allDone = items.every((it, idx) => {
+      const cid = it.cardId || `${tabKey}-${idx}`;
+      return (counters[cid] ?? it.count) === 0;
+    });
+
+    if (anyStartedOrDone && !allDone) {
+      // Find the FIRST incomplete/unread dhikr from the top of the list
+      const firstUnread = items.find((it, idx) => {
+        const cid = it.cardId || `${tabKey}-${idx}`;
+        const rem = counters[cid] ?? it.count;
+        return rem > 0;
+      });
+
+      if (firstUnread) {
+        const idx = items.indexOf(firstUnread);
+        targetCardId = firstUnread.cardId || `${tabKey}-${idx}`;
+      }
+    }
+
+    if (!targetCardId) return;
+
+    let attempts = 0;
+    const maxAttempts = 30; // 30 * 60ms = 1.8s polling window
+    let highlightTimer = null;
+    let backupTimer = null;
+
+    const intervalId = setInterval(() => {
+      attempts++;
+      const element =
+        document.getElementById(`card-${targetCardId}`) ||
+        document.querySelector(`[data-card-id="${targetCardId}"]`);
+
+      if (element) {
+        clearInterval(intervalId);
+        hasAutoScrolledRef.current = true;
+
+        // Perform smooth center scroll to target card
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setResumedCardId(targetCardId);
+
+        // Backup adjustment after 320ms in case layout shifted during image/font loads
+        backupTimer = setTimeout(() => {
+          const rect = element.getBoundingClientRect();
+          if (rect.top < 60 || rect.bottom > window.innerHeight) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 320);
+
+        highlightTimer = setTimeout(() => {
+          setResumedCardId(null);
+        }, 4000);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(intervalId);
+      }
+    }, 60);
+
+    return () => {
+      clearInterval(intervalId);
+      if (backupTimer) clearTimeout(backupTimer);
+      if (highlightTimer) clearTimeout(highlightTimer);
+    };
+  }, [items, tabKey, counters]);
+
   // Trigger celebratory confetti only when crossing to 100% completion
   const prevPctRef = useRef(pct);
   useEffect(() => {
@@ -50,34 +146,45 @@ export default function AzkarPanel({
     prevPctRef.current = pct;
   }, [pct, total]);
 
+  // Pre-hydrated stable list of items for this category (stable across counter changes)
+  const allHydratedItems = useMemo(() => {
+    return items.map((zikr, idx) => ({
+      zikr,
+      originalIdx: idx,
+      cardId: zikr.cardId || `${tabKey}-${idx}`,
+    }));
+  }, [items, tabKey]);
+
   // Filter items based on search query and filter mode
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    const hasFilter = filterMode !== 'all';
+    const hasSearch = Boolean(query);
 
-    return items
-      .map((zikr, idx) => ({
-        zikr,
-        originalIdx: idx,
-        cardId: zikr.cardId || `${tabKey}-${idx}`,
-      }))
-      .filter(({ zikr, cardId }) => {
-        const remaining = counters[cardId] ?? zikr.count;
-        const isCardFavorite = isFavorite ? isFavorite(cardId) : false;
+    // In default browsing mode (no search, all tab), return stable array reference
+    // so React.memo(AzkarCard) skips re-rendering untouched cards on every tap
+    if (!hasFilter && !hasSearch) {
+      return allHydratedItems;
+    }
 
-        if (filterMode === 'in_progress' && remaining === 0) return false;
-        if (filterMode === 'completed' && remaining > 0) return false;
-        if (filterMode === 'favorites' && !isCardFavorite) return false;
+    return allHydratedItems.filter(({ zikr, cardId }) => {
+      const remaining = counters[cardId] ?? zikr.count;
+      const isCardFavorite = isFavorite ? isFavorite(cardId) : false;
 
-        if (!query) return true;
-        const textMatch = matchesArabicSearch(zikr.arabic, query);
-        const benefitMatch = matchesArabicSearch(zikr.benefit, query);
-        const sourceMatch = matchesArabicSearch(zikr.source, query);
-        const tagsMatch = Array.isArray(zikr.tags)
-          ? zikr.tags.some((tag) => matchesArabicSearch(tag, query))
-          : false;
-        return textMatch || benefitMatch || sourceMatch || tagsMatch;
-      });
-  }, [items, tabKey, counters, isFavorite, filterMode, searchQuery]);
+      if (filterMode === 'in_progress' && remaining === 0) return false;
+      if (filterMode === 'completed' && remaining > 0) return false;
+      if (filterMode === 'favorites' && !isCardFavorite) return false;
+
+      if (!hasSearch) return true;
+      const textMatch = matchesArabicSearch(zikr.arabic, query);
+      const benefitMatch = matchesArabicSearch(zikr.benefit, query);
+      const sourceMatch = matchesArabicSearch(zikr.source, query);
+      const tagsMatch = Array.isArray(zikr.tags)
+        ? zikr.tags.some((tag) => matchesArabicSearch(tag, query))
+        : false;
+      return textMatch || benefitMatch || sourceMatch || tagsMatch;
+    });
+  }, [allHydratedItems, counters, isFavorite, filterMode, searchQuery]);
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -207,7 +314,7 @@ export default function AzkarPanel({
                   isActive
                     ? 'text-primary border-transparent font-semibold'
                     : opt.hasHeart
-                      ? 'bg-bg-card border-border-theme text-text-muted hover:text-rose-500 hover:bg-bg-elevated'
+                      ? 'bg-bg-card border-border-theme text-text-muted hover:text-gold hover:bg-bg-elevated'
                       : 'bg-bg-card border-border-theme text-text-muted hover:text-text-main hover:bg-bg-elevated'
                 }`}>
                 {isActive && (
@@ -218,7 +325,7 @@ export default function AzkarPanel({
                   />
                 )}
                 {opt.hasHeart && (
-                  <i className='fas fa-heart text-[10px] text-rose-500'></i>
+                  <i className='fas fa-heart text-[10px] text-gold'></i>
                 )}
                 <span>
                   {opt.label}
@@ -281,6 +388,7 @@ export default function AzkarPanel({
                   isFavorite={isFavorite ? isFavorite(cardId) : false}
                   onToggleFavorite={onToggleFavorite}
                   onShowToast={onShowToast}
+                  isResumed={resumedCardId === cardId}
                 />
               );
             })}
