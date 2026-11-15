@@ -38,10 +38,11 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
   const rawId = useId();
   const uid = useMemo(() => rawId.replace(/[^a-zA-Z0-9]/g, ''), [rawId]);
 
+  const TOTAL_BEADS = 33;
+  const DIVIDER_INDICES = [11, 22]; // Dividing 33 beads into 3 classical sets of 11
+
   // Local state for uncontrolled or standalone usage
   const [internalCount, setInternalCount] = useState(count);
-  const [activeBeadIndex, setActiveBeadIndex] = useState(0);
-  const [rotationAngle, setRotationAngle] = useState(0);
   const [isPressed, setIsPressed] = useState(false);
 
   // Sync count if externally controlled
@@ -49,51 +50,15 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
   const isCompleted =
     mode === 'decrement' ? currentCount <= 0 : currentCount >= target;
 
-  const TOTAL_BEADS = 33;
-  const DIVIDER_INDICES = [11, 22]; // Dividing 33 beads into 3 classical sets of 11
+  // Mathematically derived rotation and active bead — 0ms instant response without any async lag
+  const completedSteps = Math.max(
+    0,
+    mode === 'decrement' ? target - currentCount : currentCount
+  );
+  const rotationAngle = completedSteps * (360 / TOTAL_BEADS);
+  const activeBeadIndex = completedSteps % TOTAL_BEADS;
 
-  // Track external count changes to trigger physical bead rotation & pulse
-  const prevCountRef = useRef(currentCount);
-
-  useEffect(() => {
-    if (
-      prevCountRef.current !== undefined &&
-      prevCountRef.current !== currentCount
-    ) {
-      if (mode === 'decrement') {
-        if (currentCount < prevCountRef.current) {
-          // Decrement happened: advance rotation by one bead step
-          setRotationAngle((prev) => prev + 360 / TOTAL_BEADS);
-          setActiveBeadIndex((prev) => (prev + 1) % TOTAL_BEADS);
-          setIsPressed(true);
-          const t = setTimeout(() => setIsPressed(false), 160);
-          prevCountRef.current = currentCount;
-          return () => clearTimeout(t);
-        } else if (currentCount >= target) {
-          // Reset happened
-          setRotationAngle(0);
-          setActiveBeadIndex(0);
-        }
-      } else {
-        if (currentCount > prevCountRef.current) {
-          // Increment happened
-          setRotationAngle((prev) => prev + 360 / TOTAL_BEADS);
-          setActiveBeadIndex((prev) => (prev + 1) % TOTAL_BEADS);
-          setIsPressed(true);
-          const t = setTimeout(() => setIsPressed(false), 160);
-          prevCountRef.current = currentCount;
-          return () => clearTimeout(t);
-        } else if (currentCount <= 0) {
-          // Reset happened
-          setRotationAngle(0);
-          setActiveBeadIndex(0);
-        }
-      }
-      prevCountRef.current = currentCount;
-    }
-  }, [currentCount, mode, target]);
-
-  // Handle tap / count deduction
+  // Handle tap / count deduction with 0ms optimistic physical response
   const handleTap = useCallback(
     (e) => {
       if (e) {
@@ -103,24 +68,26 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
       }
       if (disabled || isCompleted) return;
 
+      // 1. Instant 0ms visual & tactile response
+      setIsPressed(true);
+      setTimeout(() => setIsPressed(false), 90);
+
+      // Instant device vibration
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try {
+          navigator.vibrate(20);
+        } catch {}
+      }
+
+      // 2. Trigger count decrement
       if (onDeduct) {
         onDeduct(e);
       } else {
-        // Uncontrolled mode
-        setIsPressed(true);
-        setTimeout(() => setIsPressed(false), 160);
-        setRotationAngle((prev) => prev + 360 / TOTAL_BEADS);
-        setActiveBeadIndex((prev) => (prev + 1) % TOTAL_BEADS);
         setInternalCount((prev) =>
           mode === 'decrement'
             ? Math.max(0, prev - 1)
             : Math.min(target, prev + 1)
         );
-      }
-
-      // Haptic vibration if supported on mobile devices
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(25);
       }
     },
     [disabled, isCompleted, onDeduct, mode, target]
@@ -135,8 +102,6 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
       } else {
         setInternalCount(mode === 'decrement' ? target : 0);
       }
-      setRotationAngle(0);
-      setActiveBeadIndex(0);
     },
     [onReset, mode, target]
   );
@@ -192,7 +157,11 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
       aria-label={`المسبحة الإلكترونية. العدد: ${currentCount} من ${target}`}
       onKeyDown={handleKeyDown}
       onClick={handleTap}
-      style={{ width: `${size}px`, height: `${height}px` }}
+      style={{
+        width: `${size}px`,
+        height: `${height}px`,
+        touchAction: 'manipulation',
+      }}
       className={`relative select-none shrink-0 flex flex-col items-center justify-center cursor-pointer outline-none group transition-transform active:scale-[0.96] ${
         disabled || isCompleted ? 'opacity-90 cursor-default' : ''
       } ${className}`}>
@@ -331,42 +300,6 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
             />
           </linearGradient>
 
-          {/* ── Inner Aura / Subtle Glass Background ── */}
-          <radialGradient
-            id={`centerGlassGrad-${uid}`}
-            cx='50%'
-            cy='50%'
-            r='50%'>
-            <stop
-              offset='0%'
-              stopColor='rgba(245, 158, 11, 0.09)'
-            />
-            <stop
-              offset='65%'
-              stopColor='rgba(245, 158, 11, 0.03)'
-            />
-            <stop
-              offset='100%'
-              stopColor='rgba(245, 158, 11, 0)'
-            />
-          </radialGradient>
-
-          {/* ── Drop Shadow for 3D Depth ── */}
-          <filter
-            id={`beadShadow-${uid}`}
-            x='-30%'
-            y='-30%'
-            width='170%'
-            height='170%'>
-            <feDropShadow
-              dx='0'
-              dy='2'
-              stdDeviation='1.6'
-              floodColor='#000000'
-              floodOpacity='0.42'
-            />
-          </filter>
-
           {/* ── Active Bead Luminous Glow ── */}
           <filter
             id={`activeGlow-${uid}`}
@@ -390,15 +323,6 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
             />
           </filter>
         </defs>
-
-        {/* ── Static Background Center Soft Glow Disk (Dark mode only to avoid yellow tint in Light mode) ── */}
-        <circle
-          cx={centerX}
-          cy={centerY}
-          r='72'
-          fill={`url(#centerGlassGrad-${uid})`}
-          className='pointer-events-none hidden dark:block'
-        />
 
         {/* ── Static Bottom Minaret / Imam Head Bead & Tassel ── */}
         <g
@@ -531,8 +455,9 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
             transformOrigin: `${centerX}px ${centerY}px`,
             transform: `rotate(${rotationAngle}deg)`,
             transition: isPressed
-              ? 'transform 140ms ease-out'
-              : 'transform 280ms cubic-bezier(0.34, 1.3, 0.64, 1)',
+              ? 'transform 80ms ease-out'
+              : 'transform 180ms cubic-bezier(0.34, 1.3, 0.64, 1)',
+            willChange: 'transform',
           }}>
           {/* The Circular Brown Thread strung through all beads */}
           <circle
@@ -562,8 +487,7 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
                   isActive
                     ? `url(#activeGlow-${uid})`
                     : `url(#beadShadow-${uid})`
-                }
-                className='transition-transform duration-200'>
+                }>
                 {/* Bead Base Sphere */}
                 <circle
                   cx={bead.x}
@@ -572,7 +496,6 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
                   fill={gradId}
                   stroke={bead.isDivider ? '#115e59' : '#78350f'}
                   strokeWidth={isActive ? '1.2' : '0.6'}
-                  className='transition-all duration-200'
                 />
 
                 {/* 3D Curved Surface Glossy Specular Highlight */}
@@ -608,20 +531,19 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
       <div
         className='absolute inset-0 flex items-center justify-center pointer-events-none select-none'
         style={{ transform: `translateY(-${height * 0.09}px)` }}>
-        {/* Soft background aura providing subtle contrast in both modes */}
+        {/* Soft background aura providing subtle contrast without color tint in Light Mode */}
         <div
-          className='rounded-full flex items-center justify-center px-2 py-0.5 bg-black/[0.03] dark:bg-amber-500/15 backdrop-blur-[0.5px]'
+          className='rounded-full flex items-center justify-center px-2 py-0.5 bg-transparent dark:bg-amber-500/15 backdrop-blur-[0.5px]'
           style={{
-            minWidth: `${size * 0.44}px`,
-            minHeight: `${size * 0.44}px`,
-            maxWidth: `${size * 0.62}px`,
+            minWidth: `${size * 0.38}px`,
+            minHeight: `${size * 0.38}px`,
           }}>
           <div
             dir='ltr'
-            className="flex items-baseline justify-center gap-1 font-ibm font-['IBM_Plex_Sans_Arabic'] whitespace-nowrap">
-            {/* Main Count: Crisp dark in Light Mode, warm golden glow in Dark Mode */}
+            className="flex items-baseline justify-center gap-1 font-ibm font-['IBM_Plex_Sans_Arabic'] whitespace-nowrap flex-nowrap">
+            {/* Main Count: High contrast crisp dark in Light Mode, warm golden glow in Dark Mode */}
             <span
-              className={`font-bold leading-none transition-colors ${
+              className={`font-bold leading-none select-none transition-colors ${
                 isCompleted
                   ? 'text-emerald-700 dark:text-emerald-400'
                   : 'text-stone-900 dark:text-amber-300 dark:drop-shadow-[0_2px_8px_rgba(245,158,11,0.45)]'
@@ -629,8 +551,8 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
               style={{
                 fontSize: `${
                   target >= 100 || currentCount >= 100
-                    ? Math.max(13, size * 0.14)
-                    : Math.max(15, size * 0.17)
+                    ? Math.max(13, size * 0.15)
+                    : Math.max(15, size * 0.18)
                 }px`,
               }}>
               {isCompleted ? '✓' : currentCount}
@@ -639,12 +561,12 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
             {/* Target Count / Ratio: Muted dark slate in Light Mode, soft gold in Dark Mode */}
             {showRatio && !isCompleted && (
               <span
-                className='text-stone-500 dark:text-amber-200/60 font-medium opacity-75 leading-none'
+                className='text-stone-500 dark:text-amber-200/60 font-medium opacity-75 leading-none select-none'
                 style={{
                   fontSize: `${
                     target >= 100
-                      ? Math.max(9, size * 0.065)
-                      : Math.max(10, size * 0.075)
+                      ? Math.max(9, size * 0.07)
+                      : Math.max(10, size * 0.08)
                   }px`,
                 }}>
                 / {target}
@@ -657,4 +579,4 @@ const MisbahaCounter = React.forwardRef(function MisbahaCounter(
   );
 });
 
-export default MisbahaCounter;
+export default React.memo(MisbahaCounter);

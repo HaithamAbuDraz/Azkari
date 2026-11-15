@@ -131,25 +131,40 @@ export function useAzkarCounters(showToast) {
         }
       }
 
+      let willBeCompleted = false;
+
+      // 1. Instant pure state update (0ms, non-blocking)
       setCounters((prev) => {
         const base = isNewDay ? {} : prev;
         const current = base[cardId] ?? max;
         if (current <= 0) return base;
 
         const nextVal = current - 1;
-        triggerHaptic(25);
+        if (nextVal === 0) willBeCompleted = true;
 
-        const tabKey = getCategoryTabFromCardId(cardId);
-        const nextCounters = { ...base, [cardId]: nextVal };
+        return { ...base, [cardId]: nextVal };
+      });
 
-        // Save last active zikr and calculate the next card ID for smooth resume
+      // 2. Instant tactile feedback
+      triggerHaptic(20);
+
+      // 3. Defer disk I/O, toasts, and chimes asynchronously so the UI thread updates at 60fps+
+      setTimeout(() => {
         try {
+          const tabKey = getCategoryTabFromCardId(cardId);
           const list = getAzkarByCategory(tabKey);
-          const currentIdx = list.findIndex((item) => item.cardId === cardId);
-          // Find the first incomplete/unread dhikr from the top of the category
+
+          // Get latest counters for session check
+          let currentCounters = {};
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            currentCounters = raw ? JSON.parse(raw) : {};
+          } catch {}
+
           let nextCardId = cardId;
           const firstUnread = list.find((candidate) => {
-            const candRem = nextCounters[candidate.cardId] ?? candidate.count;
+            const candRem =
+              currentCounters[candidate.cardId] ?? candidate.count;
             return candRem > 0;
           });
           if (firstUnread) {
@@ -171,57 +186,54 @@ export function useAzkarCounters(showToast) {
           } catch {
             // Ignore session storage errors
           }
+
+          if (willBeCompleted) {
+            // Single-card completion haptic: two gentle pulses
+            triggerHaptic([20, 60, 20]);
+
+            const allDone = list.every(
+              (item) => (currentCounters[item.cardId] ?? item.count) === 0
+            );
+
+            if (allDone && list.length > 0) {
+              // Full-session completion — richer haptic pattern & celebratory spiritual chime
+              setTimeout(() => triggerHaptic([30, 80, 30, 80, 60]), 350);
+              try {
+                playMilestoneChime();
+              } catch {
+                // Ignore chime errors
+              }
+
+              showToast(
+                'ما شاء الله! اكتملت جميع أذكار هذا القسم لهذا اليوم، تقبّل الله طاعتك <i class="fas fa-check-circle text-gold"></i>'
+              );
+
+              // Smoothly scroll up if the user is scrolled down towards the bottom
+              if (scrollTimerRef.current) {
+                clearTimeout(scrollTimerRef.current);
+              }
+              scrollTimerRef.current = setTimeout(() => {
+                if (typeof window !== 'undefined') {
+                  const scrollPos =
+                    window.scrollY || document.documentElement.scrollTop || 0;
+                  if (scrollPos > 80) {
+                    window.scrollTo({
+                      top: 0,
+                      behavior: 'smooth',
+                    });
+                  }
+                }
+              }, 900);
+            } else {
+              showToast(
+                'أحسنت! اكتمل الذكر بحمد الله <i class="fas fa-check-circle text-gold"></i>'
+              );
+            }
+          }
         } catch {
           // Ignore storage quota errors
         }
-
-        if (nextVal === 0) {
-          // Single-card completion haptic: two gentle pulses
-          triggerHaptic([20, 60, 20]);
-
-          const list = getAzkarByCategory(tabKey);
-          const allDone = list.every(
-            (item) => (nextCounters[item.cardId] ?? item.count) === 0
-          );
-
-          if (allDone && list.length > 0) {
-            // Full-session completion — richer haptic pattern & celebratory spiritual chime
-            setTimeout(() => triggerHaptic([30, 80, 30, 80, 60]), 350);
-            try {
-              playMilestoneChime();
-            } catch {
-              // Ignore chime errors
-            }
-
-            showToast(
-              'ما شاء الله! اكتملت جميع أذكار هذا القسم لهذا اليوم، تقبّل الله طاعتك <i class="fas fa-check-circle text-gold"></i>'
-            );
-
-            // Smoothly scroll up if the user is scrolled down towards the bottom
-            if (scrollTimerRef.current) {
-              clearTimeout(scrollTimerRef.current);
-            }
-            scrollTimerRef.current = setTimeout(() => {
-              if (typeof window !== 'undefined') {
-                const scrollPos =
-                  window.scrollY || document.documentElement.scrollTop || 0;
-                if (scrollPos > 80) {
-                  window.scrollTo({
-                    top: 0,
-                    behavior: 'smooth',
-                  });
-                }
-              }
-            }, 900);
-          } else {
-            showToast(
-              'أحسنت! اكتمل الذكر بحمد الله <i class="fas fa-check-circle text-gold"></i>'
-            );
-          }
-        }
-
-        return nextCounters;
-      });
+      }, 0);
     },
     [showToast]
   );

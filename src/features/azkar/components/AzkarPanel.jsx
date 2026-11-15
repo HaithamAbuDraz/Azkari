@@ -146,34 +146,45 @@ export default function AzkarPanel({
     prevPctRef.current = pct;
   }, [pct, total]);
 
+  // Pre-hydrated stable list of items for this category (stable across counter changes)
+  const allHydratedItems = useMemo(() => {
+    return items.map((zikr, idx) => ({
+      zikr,
+      originalIdx: idx,
+      cardId: zikr.cardId || `${tabKey}-${idx}`,
+    }));
+  }, [items, tabKey]);
+
   // Filter items based on search query and filter mode
   const filteredItems = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    const hasFilter = filterMode !== 'all';
+    const hasSearch = Boolean(query);
 
-    return items
-      .map((zikr, idx) => ({
-        zikr,
-        originalIdx: idx,
-        cardId: zikr.cardId || `${tabKey}-${idx}`,
-      }))
-      .filter(({ zikr, cardId }) => {
-        const remaining = counters[cardId] ?? zikr.count;
-        const isCardFavorite = isFavorite ? isFavorite(cardId) : false;
+    // In default browsing mode (no search, all tab), return stable array reference
+    // so React.memo(AzkarCard) skips re-rendering untouched cards on every tap
+    if (!hasFilter && !hasSearch) {
+      return allHydratedItems;
+    }
 
-        if (filterMode === 'in_progress' && remaining === 0) return false;
-        if (filterMode === 'completed' && remaining > 0) return false;
-        if (filterMode === 'favorites' && !isCardFavorite) return false;
+    return allHydratedItems.filter(({ zikr, cardId }) => {
+      const remaining = counters[cardId] ?? zikr.count;
+      const isCardFavorite = isFavorite ? isFavorite(cardId) : false;
 
-        if (!query) return true;
-        const textMatch = matchesArabicSearch(zikr.arabic, query);
-        const benefitMatch = matchesArabicSearch(zikr.benefit, query);
-        const sourceMatch = matchesArabicSearch(zikr.source, query);
-        const tagsMatch = Array.isArray(zikr.tags)
-          ? zikr.tags.some((tag) => matchesArabicSearch(tag, query))
-          : false;
-        return textMatch || benefitMatch || sourceMatch || tagsMatch;
-      });
-  }, [items, tabKey, counters, isFavorite, filterMode, searchQuery]);
+      if (filterMode === 'in_progress' && remaining === 0) return false;
+      if (filterMode === 'completed' && remaining > 0) return false;
+      if (filterMode === 'favorites' && !isCardFavorite) return false;
+
+      if (!hasSearch) return true;
+      const textMatch = matchesArabicSearch(zikr.arabic, query);
+      const benefitMatch = matchesArabicSearch(zikr.benefit, query);
+      const sourceMatch = matchesArabicSearch(zikr.source, query);
+      const tagsMatch = Array.isArray(zikr.tags)
+        ? zikr.tags.some((tag) => matchesArabicSearch(tag, query))
+        : false;
+      return textMatch || benefitMatch || sourceMatch || tagsMatch;
+    });
+  }, [allHydratedItems, counters, isFavorite, filterMode, searchQuery]);
 
   const clearFilters = () => {
     setSearchQuery('');

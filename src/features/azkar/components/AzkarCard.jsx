@@ -19,29 +19,34 @@ function useRipple(containerRef) {
       if (now - lastRippleTime.current < 150) return;
       lastRippleTime.current = now;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const clientX =
-        e.clientX ?? e.touches?.[0]?.clientX ?? rect.left + rect.width / 2;
-      const clientY =
-        e.clientY ?? e.touches?.[0]?.clientY ?? rect.top + rect.height / 2;
+      const container = containerRef.current;
+      const clientX = e.clientX ?? e.touches?.[0]?.clientX ?? null;
+      const clientY = e.clientY ?? e.touches?.[0]?.clientY ?? null;
 
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-      const SIZE = 48;
+      // Defer DOM measurements and ripple creation to next animation frame
+      requestAnimationFrame(() => {
+        if (!container) return;
+        const rect = container.getBoundingClientRect();
+        const posX = clientX !== null ? clientX : rect.left + rect.width / 2;
+        const posY = clientY !== null ? clientY : rect.top + rect.height / 2;
+        const x = posX - rect.left;
+        const y = posY - rect.top;
+        const SIZE = 48;
 
-      const el = document.createElement('span');
-      el.className = 'ripple';
-      el.style.cssText = `
-        left: ${x}px;
-        top: ${y}px;
-        width: ${SIZE}px;
-        height: ${SIZE}px;
-        margin-left: -${SIZE / 2}px;
-        margin-top: -${SIZE / 2}px;
-        background: var(--gold-glow);
-      `;
-      containerRef.current.appendChild(el);
-      el.addEventListener('animationend', () => el.remove(), { once: true });
+        const el = document.createElement('span');
+        el.className = 'ripple';
+        el.style.cssText = `
+          left: ${x}px;
+          top: ${y}px;
+          width: ${SIZE}px;
+          height: ${SIZE}px;
+          margin-left: -${SIZE / 2}px;
+          margin-top: -${SIZE / 2}px;
+          background: var(--gold-glow);
+        `;
+        container.appendChild(el);
+        el.addEventListener('animationend', () => el.remove(), { once: true });
+      });
     },
     [containerRef]
   );
@@ -52,7 +57,7 @@ function useRipple(containerRef) {
 /* ─────────────────────────────────────────────────────────────
    AzkarCard
 ───────────────────────────────────────────────────────────── */
-export default function AzkarCard({
+function AzkarCard({
   zikr,
   index,
   cardId,
@@ -74,10 +79,18 @@ export default function AzkarCard({
   // Refs
   const cardRef = useRef(null);
 
-  const isDone = remaining === 0;
-  const hasStarted = remaining < zikr.count && remaining > 0;
+  // Local optimistic count for 0ms instantaneous tap response
+  const [localRemaining, setLocalRemaining] = useState(remaining);
+
+  // Synchronize with parent state
+  useEffect(() => {
+    setLocalRemaining(remaining);
+  }, [remaining]);
+
+  const isDone = localRemaining === 0;
+  const hasStarted = localRemaining < zikr.count && localRemaining > 0;
   const progressRatio =
-    zikr.count > 0 ? (zikr.count - remaining) / zikr.count : 0;
+    zikr.count > 0 ? (zikr.count - localRemaining) / zikr.count : 0;
   const progressPercent = Math.round(progressRatio * 100);
 
   // Ripple hook for card body tap
@@ -86,7 +99,28 @@ export default function AzkarCard({
   // Milestone glow
   const milestoneKey = useMilestone(progressPercent);
 
-  /* ── Tap handler: state-first, then animation ── */
+  /* ── Instant Tap handler: 0ms optimistic response ── */
+  const handleDecrement = useCallback(
+    (e) => {
+      if (localRemaining <= 0) return;
+
+      // 1. Instant 0ms local state decrement
+      setLocalRemaining((prev) => Math.max(0, prev - 1));
+
+      // 2. Instant tactile feedback
+      triggerHaptic(20);
+
+      // 3. Inform parent in background
+      onDecrement(cardId, zikr.count);
+
+      // 4. Subtle reset hint
+      setShowResetHint(true);
+      clearTimeout(resetHintTimer.current);
+      resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
+    },
+    [localRemaining, cardId, zikr.count, onDecrement]
+  );
+
   const handleCardClick = useCallback(
     (e) => {
       if (
@@ -96,27 +130,18 @@ export default function AzkarCard({
         e.target.closest('[data-misbaha-counter]')
       )
         return;
-      if (isDone) return;
-      onDecrement(cardId, zikr.count);
+      handleDecrement(e);
       spawnCardRipple(e);
-      // Show reset hint for 2s after any decrement
-      setShowResetHint(true);
-      clearTimeout(resetHintTimer.current);
-      resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
     },
-    [isDone, cardId, zikr.count, onDecrement, spawnCardRipple]
+    [handleDecrement, spawnCardRipple]
   );
 
   const handleDecrementBtn = useCallback(
     (e) => {
       e?.stopPropagation?.();
-      if (isDone) return;
-      onDecrement(cardId, zikr.count);
-      setShowResetHint(true);
-      clearTimeout(resetHintTimer.current);
-      resetHintTimer.current = setTimeout(() => setShowResetHint(false), 2000);
+      handleDecrement(e);
     },
-    [isDone, cardId, zikr.count, onDecrement]
+    [handleDecrement]
   );
 
   /* ── Copy ── */
@@ -158,6 +183,7 @@ export default function AzkarCard({
   const handleReset = useCallback(
     (e) => {
       e.stopPropagation();
+      setLocalRemaining(zikr.count);
       onReset(cardId, zikr.count);
       setResetFlashKey((k) => k + 1);
       setShowResetHint(false);
@@ -182,9 +208,9 @@ export default function AzkarCard({
         'card-enter',
         // ── Completion animations ──
         isDone ? 'card-completion-shimmer card-completion-glow' : '',
-        // ── Base card styles ──
+        // ── Base card styles with instant active click feedback ──
         'group relative p-5 sm:p-6 rounded-2xl bg-bg-card border',
-        'transition-all duration-300 flex flex-col justify-between select-none',
+        'transition-colors duration-150 active:scale-[0.99] flex flex-col justify-between select-none',
         // ── Distinct Border & Background States ──
         isDone
           ? 'border-gold/30 bg-primary-light/10 shadow-xs cursor-default'
@@ -195,6 +221,7 @@ export default function AzkarCard({
         .filter(Boolean)
         .join(' ')}
       style={{
+        touchAction: 'manipulation',
         // Stagger each card's entrance by 60ms per index (capped at 360ms)
         '--card-delay': `${Math.min(index * 60, 360)}ms`,
       }}>
@@ -345,7 +372,7 @@ export default function AzkarCard({
 
           {/* Interactive 3D Glossy Misbaha Counter */}
           <MisbahaCounter
-            count={remaining}
+            count={localRemaining}
             target={zikr.count}
             mode='decrement'
             size={84}
@@ -358,3 +385,5 @@ export default function AzkarCard({
     </article>
   );
 }
+
+export default React.memo(AzkarCard);
