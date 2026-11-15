@@ -54,7 +54,7 @@ export function getRouteFromLocation() {
     return lastSegment;
   }
 
-  return null;
+  return 'not-found';
 }
 
 export function useRouter() {
@@ -85,7 +85,9 @@ export function useRouter() {
           ? 'home'
           : VALID_ROUTES.includes(cleanTarget)
             ? cleanTarget
-            : 'home';
+            : cleanTarget === 'not-found'
+              ? 'not-found'
+              : 'home';
 
       const newPath = validRoute === 'home' ? '/' : `/${validRoute}`;
       const currentPath = window.location.pathname;

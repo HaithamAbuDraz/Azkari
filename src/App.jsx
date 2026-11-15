@@ -9,7 +9,7 @@ import {
   Footer,
   AmbientBackground,
 } from './components/layout';
-import { Toast, ScrollTop } from './components/common';
+import { Toast, ScrollTop, NotFoundPage } from './components/common';
 import { AzkarPanel } from './features/azkar';
 import { TasbihPanel } from './features/tasbih';
 import { PrayerTimesPanel } from './features/prayers';
@@ -81,23 +81,25 @@ export default function App() {
     }
 
     const meta = PANELS[activeTab];
-    if (!meta) return null;
+    if (meta) {
+      return (
+        <AzkarPanel
+          tabKey={activeTab}
+          title={meta.title}
+          icon={meta.icon}
+          items={getAzkarByCategory(activeTab)}
+          counters={counters}
+          onDecrement={decrementCounter}
+          onResetCard={resetCardCounter}
+          onResetPanel={resetPanel}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          onShowToast={showToast}
+        />
+      );
+    }
 
-    return (
-      <AzkarPanel
-        tabKey={activeTab}
-        title={meta.title}
-        icon={meta.icon}
-        items={getAzkarByCategory(activeTab)}
-        counters={counters}
-        onDecrement={decrementCounter}
-        onResetCard={resetCardCounter}
-        onResetPanel={resetPanel}
-        isFavorite={isFavorite}
-        onToggleFavorite={toggleFavorite}
-        onShowToast={showToast}
-      />
-    );
+    return <NotFoundPage onSelectTab={switchTab} />;
   };
 
   // Azkar category pages lead directly with their category banner, keeping Hero only on Tasbih & Prayers
