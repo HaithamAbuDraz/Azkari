@@ -286,14 +286,14 @@ function AzkarCard({
             aria-label={isFavorite ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
             className={`w-8 h-8 -m-1 p-1 rounded-lg flex items-center justify-center text-xs transition cursor-pointer ${
               isFavorite
-                ? 'text-rose-500 bg-rose-500/10'
-                : 'text-text-muted hover:text-rose-500 hover:bg-rose-500/10'
+                ? 'text-gold bg-gold/15'
+                : 'text-text-muted hover:text-gold hover:bg-gold/10'
             }`}
             style={{ touchAction: 'manipulation' }}>
             <i
               key={favBounceKey}
               className={[
-                isFavorite ? 'fas fa-heart text-rose-500' : 'far fa-heart',
+                isFavorite ? 'fas fa-heart text-gold' : 'far fa-heart',
                 favBounceKey > 0 ? 'favorite-bounce' : '',
               ]
                 .filter(Boolean)

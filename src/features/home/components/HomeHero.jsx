@@ -361,7 +361,10 @@ export default function HomeHero({
                     : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)] group-hover:text-[var(--gold-text)]'
                 )}>
                 <i
-                  className='fas fa-heart text-xs text-[var(--gold-text)]'
+                  className={cn(
+                    'text-xs text-[var(--gold-text)]',
+                    favoritesCount > 0 ? 'fas fa-heart' : 'far fa-heart'
+                  )}
                   aria-hidden='true'
                 />
                 <span>{favoritesCount} مفضلة</span>

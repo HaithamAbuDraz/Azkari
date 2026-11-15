@@ -314,7 +314,7 @@ export default function AzkarPanel({
                   isActive
                     ? 'text-primary border-transparent font-semibold'
                     : opt.hasHeart
-                      ? 'bg-bg-card border-border-theme text-text-muted hover:text-rose-500 hover:bg-bg-elevated'
+                      ? 'bg-bg-card border-border-theme text-text-muted hover:text-gold hover:bg-bg-elevated'
                       : 'bg-bg-card border-border-theme text-text-muted hover:text-text-main hover:bg-bg-elevated'
                 }`}>
                 {isActive && (
@@ -325,7 +325,7 @@ export default function AzkarPanel({
                   />
                 )}
                 {opt.hasHeart && (
-                  <i className='fas fa-heart text-[10px] text-rose-500'></i>
+                  <i className='fas fa-heart text-[10px] text-gold'></i>
                 )}
                 <span>
                   {opt.label}

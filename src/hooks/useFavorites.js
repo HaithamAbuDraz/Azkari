@@ -37,7 +37,7 @@ export function useFavorites(showToast) {
         } else {
           if (showToast) {
             showToast(
-              'تمت إضافة الذكر إلى المفضلة <i class="fas fa-heart text-rose-400"></i>'
+              'تمت إضافة الذكر إلى المفضلة <i class="fas fa-heart text-gold"></i>'
             );
           }
           return [...prev, cardId];
