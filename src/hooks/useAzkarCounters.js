@@ -146,18 +146,14 @@ export function useAzkarCounters(showToast) {
         try {
           const list = getAzkarByCategory(tabKey);
           const currentIdx = list.findIndex((item) => item.cardId === cardId);
+          // Find the first incomplete/unread dhikr from the top of the category
           let nextCardId = cardId;
-
-          // If current card is completed (nextVal === 0), find next incomplete card
-          if (nextVal === 0 && currentIdx !== -1) {
-            for (let i = currentIdx + 1; i < list.length; i++) {
-              const candidate = list[i];
-              const candRem = nextCounters[candidate.cardId] ?? candidate.count;
-              if (candRem > 0) {
-                nextCardId = candidate.cardId;
-                break;
-              }
-            }
+          const firstUnread = list.find((candidate) => {
+            const candRem = nextCounters[candidate.cardId] ?? candidate.count;
+            return candRem > 0;
+          });
+          if (firstUnread) {
+            nextCardId = firstUnread.cardId;
           }
 
           const sessionPayload = JSON.stringify({
