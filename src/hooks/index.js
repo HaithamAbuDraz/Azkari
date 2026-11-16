@@ -5,4 +5,5 @@ export { useFavorites } from './useFavorites';
 export { useRouter } from './useRouter';
 export { useAzkarCounters } from './useAzkarCounters';
 export { usePrayerTimes } from './usePrayerTimes';
+export { usePrayerContext } from '../context/PrayerContext';
 export { useMilestone } from './useMilestone';
