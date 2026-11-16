@@ -25,6 +25,35 @@ import { PANELS } from './constants/tabs';
 import { MUEZZINS } from './constants/prayers';
 import { PAGE_TRANSITION_VARIANTS } from './constants/motion';
 
+import { PrayerProvider, usePrayerContext } from './context/PrayerContext';
+import AdhanPermissionBanner from './components/common/AdhanPermissionBanner';
+import AdhanBanner from './features/prayers/components/AdhanBanner';
+
+function GlobalAdhanBanner({ onSelectTab }) {
+  const {
+    isAdhanPlaying,
+    activeAdhanPrayer,
+    autoplayBlocked,
+    startAdhan,
+    stopAdhan,
+    currentMuezzin,
+    alertType,
+  } = usePrayerContext();
+
+  return (
+    <AdhanBanner
+      isAdhanPlaying={isAdhanPlaying}
+      activePrayer={activeAdhanPrayer}
+      autoplayBlocked={autoplayBlocked}
+      onStartAdhan={startAdhan}
+      onStopAdhan={stopAdhan}
+      currentMuezzin={currentMuezzin}
+      onSelectTab={onSelectTab}
+      alertType={alertType}
+    />
+  );
+}
+
 export default function App() {
   const { currentRoute: activeTab, navigate: switchTab } = useRouter();
   const { theme, toggleTheme } = useTheme();
@@ -106,74 +135,74 @@ export default function App() {
   const showSharedHero = activeTab === 'tasbih' || activeTab === 'prayers';
 
   return (
-    <MotionConfig reducedMotion='user'>
-      <div className='relative min-h-screen w-full min-w-full flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
-        <AmbientBackground />
-
-        <Toast
-          toast={toast}
-          onClose={closeToast}
-        />
-
-        <MobileNav
-          isOpen={isMobileNavOpen}
-          onClose={() => setIsMobileNavOpen(false)}
-          activeTab={activeTab}
-          onSelectTab={switchTab}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
-
-        <Header
-          activeTab={activeTab}
-          onSelectTab={switchTab}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onOpenMobileNav={() => setIsMobileNavOpen(true)}
-          favoritesCount={favoritesCount}
-        />
-
-        <div className='relative flex-1 w-full flex flex-col'>
-          <AnimatePresence initial={false}>
-            {showSharedHero && (
-              <motion.div
-                key='shared-hero-banner'
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25 }}
-                className='w-full'>
-                <Hero activeTab={activeTab} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <main
-            id='main-content'
-            className='flex-1 w-full py-2 sm:py-4'>
-            <AnimatePresence
-              mode='wait'
-              initial={false}>
-              <motion.div
-                key={activeTab}
-                variants={PAGE_TRANSITION_VARIANTS}
-                initial='initial'
-                animate='animate'
-                exit='exit'
-                className='w-full'>
-                {renderActivePage()}
-              </motion.div>
-            </AnimatePresence>
-          </main>
-
-          <ScrollTop />
-
-          <Footer
-            onShowToast={showToast}
-            onSelectTab={switchTab}
+    <PrayerProvider showToast={showToast}>
+      <MotionConfig reducedMotion='user'>
+        <div className='relative min-h-screen w-full min-w-full flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
+          <AmbientBackground />
+          <Toast
+            toast={toast}
+            onClose={closeToast}
           />
+          <MobileNav
+            isOpen={isMobileNavOpen}
+            onClose={() => setIsMobileNavOpen(false)}
+            activeTab={activeTab}
+            onSelectTab={switchTab}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
+          <Header
+            activeTab={activeTab}
+            onSelectTab={switchTab}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            onOpenMobileNav={() => setIsMobileNavOpen(true)}
+            favoritesCount={favoritesCount}
+          />
+          <AdhanPermissionBanner />
+          <div className='relative flex-1 w-full flex flex-col'>
+            <AnimatePresence initial={false}>
+              {showSharedHero && (
+                <motion.div
+                  key='shared-hero-banner'
+                  initial={{ opacity: 0, y: -12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                  className='w-full'>
+                  <Hero activeTab={activeTab} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <main
+              id='main-content'
+              className='flex-1 w-full py-2 sm:py-4'>
+              <AnimatePresence
+                mode='wait'
+                initial={false}>
+                <motion.div
+                  key={activeTab}
+                  variants={PAGE_TRANSITION_VARIANTS}
+                  initial='initial'
+                  animate='animate'
+                  exit='exit'
+                  className='w-full'>
+                  {renderActivePage()}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+
+            <ScrollTop />
+
+            <Footer
+              onShowToast={showToast}
+              onSelectTab={switchTab}
+            />
+          </div>
+          <GlobalAdhanBanner onSelectTab={switchTab} />
         </div>
-      </div>
-    </MotionConfig>
+      </MotionConfig>
+    </PrayerProvider>
   );
 }
