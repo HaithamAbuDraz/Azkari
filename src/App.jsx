@@ -133,7 +133,7 @@ export default function App() {
           favoritesCount={favoritesCount}
         />
 
-        <div className='relative z-10 flex-1 w-full flex flex-col'>
+        <div className='relative flex-1 w-full flex flex-col'>
           <AnimatePresence initial={false}>
             {showSharedHero && (
               <motion.div
