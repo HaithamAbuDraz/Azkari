@@ -40,6 +40,14 @@ export default function LocationModal({
   const [activeTab, setActiveTab] = useState(initialTab);
   const [search, setSearch] = useState('');
   const [openSection, setOpenSection] = useState('muezzins'); // 'methods' | 'alertTypes' | 'muezzins'
+  const [playingAlertId, setPlayingAlertId] = useState(null);
+
+  // Reset active alert preview when audio stops or muezzin audio starts
+  useEffect(() => {
+    if (!isAdhanPlaying || playingMuezzinId) {
+      setPlayingAlertId(null);
+    }
+  }, [isAdhanPlaying, playingMuezzinId]);
 
   // Sync activeTab when modal opens with a specific requested tab
   useEffect(() => {
@@ -442,6 +450,10 @@ export default function LocationModal({
                       {ALERT_TYPES.map((type) => {
                         const active =
                           (currentAlertType || 'full_adhan') === type.id;
+                        const isPlayingThis =
+                          playingAlertId === type.id &&
+                          (type.id === 'chime' ? true : isAdhanPlaying);
+
                         return (
                           <div
                             key={type.id}
@@ -476,12 +488,42 @@ export default function LocationModal({
                                   type='button'
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onPreviewAlert(type.id);
+                                    if (isPlayingThis) {
+                                      if (onStopAudio) onStopAudio();
+                                      setPlayingAlertId(null);
+                                    } else {
+                                      setPlayingAlertId(type.id);
+                                      onPreviewAlert(type.id);
+                                      if (type.id === 'chime') {
+                                        setTimeout(() => {
+                                          setPlayingAlertId((curr) =>
+                                            curr === 'chime' ? null : curr
+                                          );
+                                        }, 1800);
+                                      }
+                                    }
                                   }}
-                                  title={`تجربة ${type.label}`}
-                                  className='px-2.5 py-1 rounded-lg text-[10px] font-bold bg-bg-elevated hover:bg-gold/20 text-gold border border-gold/30 transition cursor-pointer active:scale-95'>
-                                  <i className='fas fa-play text-[9px] ml-1'></i>
-                                  تجربة
+                                  title={
+                                    isPlayingThis
+                                      ? `إيقاف ${type.label}`
+                                      : `تجربة ${type.label}`
+                                  }
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer active:scale-95 flex items-center gap-1.5 shadow-2xs ${
+                                    isPlayingThis
+                                      ? 'bg-red-500/20 text-red-500 dark:text-red-400 border border-red-500/50 hover:bg-red-500/30'
+                                      : 'bg-bg-elevated hover:bg-gold/20 text-gold border border-gold/30'
+                                  }`}>
+                                  {isPlayingThis ? (
+                                    <>
+                                      <i className='fas fa-stop text-[9px] text-red-500 dark:text-red-400'></i>
+                                      <span>إيقاف</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className='fas fa-play text-[9px] text-gold'></i>
+                                      <span>تجربة</span>
+                                    </>
+                                  )}
                                 </button>
                               )}
                               {active && (
