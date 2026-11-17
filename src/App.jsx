@@ -27,6 +27,7 @@ import { PAGE_TRANSITION_VARIANTS } from './constants/motion';
 
 import { PrayerProvider, usePrayerContext } from './context/PrayerContext';
 import AdhanPermissionBanner from './components/common/AdhanPermissionBanner';
+import LocationOnboardingWelcome from './components/common/LocationOnboardingWelcome';
 import AdhanBanner from './features/prayers/components/AdhanBanner';
 
 function GlobalAdhanBanner({ onSelectTab }) {
@@ -139,6 +140,7 @@ export default function App() {
       <MotionConfig reducedMotion='user'>
         <div className='relative min-h-screen w-full min-w-full flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
           <AmbientBackground />
+          <LocationOnboardingWelcome />
           <Toast
             toast={toast}
             onClose={closeToast}
@@ -151,6 +153,8 @@ export default function App() {
             theme={theme}
             onToggleTheme={toggleTheme}
           />
+
+          <LocationOnboardingWelcome />
           <Header
             activeTab={activeTab}
             onSelectTab={switchTab}

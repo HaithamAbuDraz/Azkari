@@ -171,8 +171,21 @@ export function PrayerProvider({ children, showToast }) {
     }
   }, [unlockAudio, showToast]);
 
+  const isInitialLocationMount = useRef(true);
+
   // ── 6. Persist User Settings ──
   useEffect(() => {
+    if (isInitialLocationMount.current) {
+      isInitialLocationMount.current = false;
+      // If first-time user has no saved location, do not write default yet so onboarding modal triggers
+      try {
+        if (!localStorage.getItem(LOCATION_STORAGE_KEY)) {
+          return;
+        }
+      } catch {
+        // Ignore
+      }
+    }
     try {
       localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
     } catch {

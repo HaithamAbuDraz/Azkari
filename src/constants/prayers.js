@@ -170,6 +170,15 @@ export const POPULAR_CITIES = [
     method: 3,
   },
   {
+    city: 'Gaza',
+    label: 'غزة',
+    country: 'Palestine',
+    countryLabel: 'فلسطين',
+    lat: 31.5017,
+    lng: 34.4668,
+    method: 3,
+  },
+  {
     city: 'Dubai',
     label: 'دبي',
     country: 'United Arab Emirates',
