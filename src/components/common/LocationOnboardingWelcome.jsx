@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePrayerContext } from '../../context/PrayerContext';
 import { POPULAR_CITIES } from '../../constants/prayers';
-import { resolveLocationByCoords } from '../../utils/location';
 
 const LOCATION_STORAGE_KEY = 'azkari-prayer-location';
 
@@ -11,17 +10,18 @@ const LOCATION_STORAGE_KEY = 'azkari-prayer-location';
  * LocationOnboardingWelcome
  *
  * Welcoming onboarding modal shown to first-time visitors to configure their
- * geographic location (via HTML5 Geolocation or city dropdown) for accurate
- * prayer times and Qibla compass alignment.
+ * geographic location for accurate prayer times and Qibla compass alignment.
+ *
+ * Adheres to the DRY principle by reusing the global PrayerContext geolocation
+ * and city selection methods identical to PrayerTimesPanel.
  */
 export default function LocationOnboardingWelcome({ onLocationSet }) {
-  const { selectCity, setLocation } = usePrayerContext();
+  const { selectCity, requestGpsLocation, gpsLoading } = usePrayerContext();
 
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCityKey, setSelectedCityKey] = useState(
     POPULAR_CITIES[0]?.city || 'Makkah'
   );
-  const [isDetecting, setIsDetecting] = useState(false);
   const [geoError, setGeoError] = useState('');
   const [mounted, setMounted] = useState(false);
 
@@ -39,91 +39,33 @@ export default function LocationOnboardingWelcome({ onLocationSet }) {
     }
   }, []);
 
-  // Helper to commit chosen location to context & localStorage, then hide modal permanently
-  const applyAndSaveLocation = (locationData) => {
-    try {
-      localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(locationData));
-    } catch (err) {
-      console.warn('Failed to save location to localStorage:', err);
-    }
-
-    if (selectCity) {
-      selectCity(locationData);
-    } else if (setLocation) {
-      setLocation(locationData);
-    }
-
-    if (onLocationSet) {
-      onLocationSet(locationData);
-    }
-
-    setIsOpen(false);
-  };
-
-  // 2. Primary Action: Auto-detect location via HTML5 Geolocation API
-  const handleAutoDetect = () => {
+  // 2. Geolocation Auto-Detect via shared context method (DRY)
+  const handleAutoDetect = async () => {
     setGeoError('');
 
-    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
-      setGeoError(
-        'خاصية تحديد الموقع غير مدعومة في متصفحك. يرجى اختيار مدينتك يدوياً.'
-      );
-      return;
-    }
-
-    setIsDetecting(true);
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        let resolvedCity = 'موقعي الحالي';
-        let resolvedCountry = 'عبر GPS';
-
-        try {
-          const res = await resolveLocationByCoords(latitude, longitude);
-          if (res?.resolvedCity) {
-            resolvedCity = res.resolvedCity;
-            resolvedCountry = res.resolvedCountry || resolvedCountry;
-          }
-        } catch {
-          // Keep GPS defaults
-        }
-
-        const detectedLocation = {
-          city: resolvedCity,
-          countryLabel: resolvedCountry,
-          lat: latitude,
-          lng: longitude,
-          isGps: true,
-          method: 4, // Default to Umm Al-Qura / standard method
-        };
-
-        setIsDetecting(false);
-        applyAndSaveLocation(detectedLocation);
-      },
-      (err) => {
-        setIsDetecting(false);
-        let errorMsg = 'تعذر تحديد موقعك تلقائياً.';
-        if (err.code === 1) {
-          errorMsg =
-            'تم رفض إذن الوصول إلى الموقع. يرجى اختيار مدينتك يدوياً من القائمة.';
-        } else if (err.code === 2) {
-          errorMsg = 'موقعك غير متاح حالياً. يرجى اختيار مدينتك يدوياً.';
-        } else if (err.code === 3) {
-          errorMsg =
-            'استغرق تحديد الموقع وقتاً أطول من المعتاد. يرجى اختيار مدينتك يدوياً.';
-        }
-        setGeoError(errorMsg);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 60000,
+    try {
+      const resolvedLocation = await requestGpsLocation();
+      if (resolvedLocation) {
+        // Location saved to localStorage and context updated in requestGpsLocation
+        if (onLocationSet) onLocationSet(resolvedLocation);
+        setIsOpen(false);
       }
-    );
+    } catch (err) {
+      let errorMsg = 'تعذر تحديد موقعك تلقائياً.';
+      if (err?.code === 1) {
+        errorMsg =
+          'تم رفض إذن الوصول إلى الموقع. يرجى اختيار مدينتك يدوياً من القائمة.';
+      } else if (err?.code === 2) {
+        errorMsg = 'موقعك غير متاح حالياً. يرجى اختيار مدينتك يدوياً.';
+      } else if (err?.code === 3) {
+        errorMsg =
+          'استغرق تحديد الموقع وقتاً أطول من المعتاد. يرجى اختيار مدينتك يدوياً.';
+      }
+      setGeoError(errorMsg);
+    }
   };
 
-  // 3. Secondary Action: Manually select city from dropdown
+  // 3. Manual City Selection via shared selectCity method (DRY)
   const handleManualConfirm = () => {
     const chosen =
       POPULAR_CITIES.find((c) => c.city === selectedCityKey) ||
@@ -134,7 +76,21 @@ export default function LocationOnboardingWelcome({ onLocationSet }) {
       isGps: false,
     };
 
-    applyAndSaveLocation(manualLocation);
+    try {
+      localStorage.setItem(
+        LOCATION_STORAGE_KEY,
+        JSON.stringify(manualLocation)
+      );
+    } catch (err) {
+      console.warn('Failed to save location to localStorage:', err);
+    }
+
+    // Update global context & notify caller
+    selectCity(manualLocation);
+    if (onLocationSet) onLocationSet(manualLocation);
+
+    // Immediately close modal
+    setIsOpen(false);
   };
 
   if (!mounted || !isOpen) return null;
@@ -194,13 +150,13 @@ export default function LocationOnboardingWelcome({ onLocationSet }) {
           )}
 
           <div className='relative z-10 space-y-4'>
-            {/* Primary Option: Auto-detect via GPS */}
+            {/* Primary Option: Auto-detect via shared GPS logic */}
             <button
               type='button'
               onClick={handleAutoDetect}
-              disabled={isDetecting}
+              disabled={gpsLoading}
               className='w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-2xl text-xs sm:text-sm font-bold bg-gradient-to-r from-gold/90 via-gold to-amber-500 text-bg-deep hover:opacity-95 transition-all shadow-md active:scale-98 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed'>
-              {isDetecting ? (
+              {gpsLoading ? (
                 <>
                   <i className='fas fa-spinner animate-spin text-sm'></i>
                   <span>جاري تحديد موقعك الجغرافي...</span>

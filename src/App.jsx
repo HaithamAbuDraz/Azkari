@@ -154,7 +154,6 @@ export default function App() {
             onToggleTheme={toggleTheme}
           />
 
-          <LocationOnboardingWelcome />
           <Header
             activeTab={activeTab}
             onSelectTab={switchTab}
