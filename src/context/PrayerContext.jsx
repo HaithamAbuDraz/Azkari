@@ -341,6 +341,21 @@ export function PrayerProvider({ children, showToast }) {
       .toString()
       .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
+    // Interval progress calculation
+    let progress = 0;
+    if (prevPrayer?.dateObj && nextPrayer?.dateObj) {
+      const previousTime = prevPrayer.dateObj.getTime();
+      const nextTime = nextPrayer.dateObj.getTime();
+      const currentTime = now.getTime();
+      if (nextTime > previousTime) {
+        const rawProgress =
+          ((currentTime - previousTime) / (nextTime - previousTime)) * 100;
+        progress = isNaN(rawProgress)
+          ? 0
+          : Math.max(0, Math.min(100, rawProgress));
+      }
+    }
+
     return {
       list,
       nextPrayer,
@@ -350,6 +365,7 @@ export function PrayerProvider({ children, showToast }) {
       countdownFormatted,
       countdownParts: { hours, minutes, seconds },
       totalRemainingSeconds: totalSec,
+      progress,
     };
   }, [timings, now]);
 

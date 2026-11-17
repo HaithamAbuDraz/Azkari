@@ -17,10 +17,48 @@ export default function NextPrayerHero({
 }) {
   if (!prayerSchedule?.nextPrayer) return null;
 
-  const { nextPrayer, countdownFormatted, progress, isNextTomorrow } =
-    prayerSchedule;
+  const { nextPrayer, countdownFormatted, isNextTomorrow } = prayerSchedule;
   const cityName = getDisplayCityName(location);
-  const progressPct = Math.round(progress * 100);
+
+  // 1. Extract and validate timestamps for previous and next prayer
+  const previousPrayerTime = prayerSchedule?.prevPrayer?.dateObj;
+  const nextPrayerTime = nextPrayer?.dateObj;
+
+  const previousTime =
+    previousPrayerTime instanceof Date
+      ? previousPrayerTime.getTime()
+      : typeof previousPrayerTime === 'number'
+        ? previousPrayerTime
+        : previousPrayerTime
+          ? new Date(previousPrayerTime).getTime()
+          : null;
+
+  const nextTime =
+    nextPrayerTime instanceof Date
+      ? nextPrayerTime.getTime()
+      : typeof nextPrayerTime === 'number'
+        ? nextPrayerTime
+        : nextPrayerTime
+          ? new Date(nextPrayerTime).getTime()
+          : null;
+
+  const now = Date.now();
+
+  // 2. Safe progress calculation
+  let progress = 0;
+  if (previousTime && nextTime && nextTime > previousTime) {
+    progress = ((now - previousTime) / (nextTime - previousTime)) * 100;
+  } else if (typeof prayerSchedule?.progress === 'number') {
+    progress =
+      prayerSchedule.progress <= 1 && prayerSchedule.progress > 0
+        ? prayerSchedule.progress * 100
+        : prayerSchedule.progress;
+  }
+
+  // 3. Bound fallback to prevent NaN or out-of-range values
+  const safeProgress = isNaN(progress)
+    ? 0
+    : Math.max(0, Math.min(100, progress));
 
   return (
     <motion.div
@@ -193,19 +231,21 @@ export default function NextPrayerHero({
               ? `منذ ${prayerSchedule.prevPrayer.label}`
               : 'منذ الصلاة السابقة'}
           </span>
-          <span>{progressPct}%</span>
+          <span className='font-mono font-semibold text-text-main'>
+            {Math.round(safeProgress)}%
+          </span>
           <span>صلاة {nextPrayer.label}</span>
         </div>
         <div
           className='w-full h-2 rounded-full bg-bg-elevated overflow-hidden border border-border-theme/60'
           role='progressbar'
-          aria-valuenow={progressPct}
+          aria-valuenow={Math.round(safeProgress)}
           aria-valuemin='0'
           aria-valuemax='100'>
           <motion.div
             className='h-full bg-gradient-to-r from-primary to-gold rounded-full'
             initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
+            animate={{ width: `${safeProgress}%` }}
             transition={{ duration: 0.8, ease: EASE_SPIRITUAL }}
           />
         </div>
