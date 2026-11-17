@@ -107,7 +107,9 @@ export default function Hero({ activeTab }) {
           <span className='flex items-center gap-1.5'>
             <i className='far fa-clock text-gold'></i>
             <span>الوقت:</span>
-            <strong className='text-text-main font-bold font-mono tracking-wider'>
+            <strong
+              dir='ltr'
+              className='text-text-main font-bold font-mono tracking-wider'>
               {clock.timeString}
             </strong>
           </span>

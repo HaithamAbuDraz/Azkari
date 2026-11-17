@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react';
 
 function getClockData() {
   const now = new Date();
-  const h = String(now.getHours()).padStart(2, '0');
+  const rawHours = now.getHours();
+  const hours12 = rawHours % 12 || 12;
+  const h = String(hours12).padStart(2, '0');
+  const h24 = String(rawHours).padStart(2, '0');
   const m = String(now.getMinutes()).padStart(2, '0');
   const s = String(now.getSeconds()).padStart(2, '0');
-  const timeString = `${h}:${m}:${s}`;
+  const ampm = rawHours >= 12 ? 'PM' : 'AM';
+  const ampmAr = rawHours >= 12 ? 'م' : 'ص';
 
-  const hour = now.getHours();
-  // Morning (الصباح) from 4:00 AM to 12:00 PM; Evening (المساء) from 12:00 PM to 4:00 AM
-  const isMorning = hour >= 4 && hour < 12;
+  // 12-hour format with AM/PM indicator: e.g. "02:56:51 PM"
+  const timeString = `${h}:${m}:${s} ${ampm}`;
+  const timeString24 = `${h24}:${m}:${s}`;
+  const timeStringAr = `${h}:${m}:${s} ${ampmAr}`;
+
+  const isMorning = rawHours >= 4 && rawHours < 12;
   const period = isMorning ? 'الصباح' : 'المساء';
   const periodEn = isMorning ? 'Morning' : 'Evening';
 
@@ -28,7 +35,18 @@ function getClockData() {
     day: 'numeric',
   });
 
-  return { timeString, period, periodEn, isMorning, dateStr, dateStrEn };
+  return {
+    timeString,
+    timeString24,
+    timeStringAr,
+    ampm,
+    ampmAr,
+    period,
+    periodEn,
+    isMorning,
+    dateStr,
+    dateStrEn,
+  };
 }
 
 export function useClock() {
