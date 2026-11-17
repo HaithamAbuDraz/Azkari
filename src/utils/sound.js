@@ -83,9 +83,8 @@ export function playMilestoneChime() {
 
 /* ─────────────────────────────────────────────────────────────
    Adhan Audio & Reminder Player
-   Cache API persistence + RAM Blob pool + zero-contention streaming
+   IDM-Safe Blob Fetching + Object URL Session Caching + Fallback
 ───────────────────────────────────────────────────────────── */
-const AUDIO_CACHE_NAME = 'azkari-audio-v2';
 
 let adhanAudio = null;
 let adhanEndedHandler = null;
@@ -93,128 +92,107 @@ let takbeeratTimeout = null;
 let playbackSeq = 0;
 let listPreloadController = null;
 
-const audioPool = new Map(); // url -> HTMLAudioElement
-const blobUrlPool = new Map(); // url -> blob: object URL
-const inFlightPreloads = new Map(); // url -> { controller, promise }
+// Session Cache: Maps direct audio URL to cached Blob Object URL (blob:...)
+// Prevents IDM / download managers from intercepting requests repeatedly
+const cachedBlobUrls = new Map();
+const inFlightFetches = new Map(); // url -> Promise<string>
 
 /**
  * Checks whether an audio URL is already ready in RAM for instantaneous playback.
  */
 export function isAdhanAudioReady(url) {
   if (!url) return false;
-  if (blobUrlPool.has(url)) return true;
-  const pooled = audioPool.get(url);
-  return !!(pooled && !pooled.error && pooled.readyState >= 3);
+  return cachedBlobUrls.has(url);
 }
 
 /**
- * Aborts background preloads and unfinished streams for other URLs so the
- * actively requested Adhan gets 100% of available network bandwidth.
+ * Aborts background preloads for other URLs so the active one gets full priority.
  */
 export function abortOtherPreloads(keepUrl = null) {
   if (listPreloadController) {
     listPreloadController.abort();
     listPreloadController = null;
   }
-
-  for (const [url, entry] of inFlightPreloads.entries()) {
-    if (url !== keepUrl) {
-      entry.controller.abort();
-      inFlightPreloads.delete(url);
-    }
-  }
-
-  for (const [url, audio] of audioPool.entries()) {
-    if (
-      url !== keepUrl &&
-      audio !== adhanAudio &&
-      audio.readyState < 4 &&
-      !audio.src.startsWith('blob:')
-    ) {
-      try {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-      } catch {
-        // Ignore cleanup errors
-      }
-      audioPool.delete(url);
+  for (const [url, controller] of inFlightFetches.entries()) {
+    if (url !== keepUrl && controller?.abort) {
+      controller.abort();
+      inFlightFetches.delete(url);
     }
   }
 }
 
 /**
- * Fetches an audio file with low priority, persists it in the browser Cache API,
- * and stores an in-memory Blob URL for instant playback on desktop and mobile.
+ * Preloads Adhan audio via fetch(), converts response to a Blob,
+ * and creates an internal Object URL (blob:...) stored in a session cache.
+ *
+ * This completely prevents Internet Download Manager (IDM) and other
+ * extensions from hooking into .mp3 media tags and opening download dialogs.
+ *
+ * @param {string} url - Direct audio URL (e.g. /assets/audio/adhan.mp3)
+ * @returns {Promise<string>} - Resolves to the cached blob: URL (or raw url on fallback)
  */
-export function preloadAdhanAudio(url) {
-  if (typeof window === 'undefined' || !url) return Promise.resolve(false);
-  if (blobUrlPool.has(url)) return Promise.resolve(true);
+export async function preloadAdhanAudio(url) {
+  if (typeof window === 'undefined' || !url) return null;
 
-  const existing = inFlightPreloads.get(url);
-  if (existing) return existing.promise;
+  // 1. Check if already cached in session
+  if (cachedBlobUrls.has(url)) {
+    return cachedBlobUrls.get(url);
+  }
+
+  // 2. Return existing in-flight request if currently fetching
+  if (inFlightFetches.has(url)) {
+    return inFlightFetches.get(url);
+  }
 
   const controller = new AbortController();
 
-  const promise = (async () => {
+  const fetchPromise = (async () => {
     try {
-      let cache = null;
-      if ('caches' in window) {
-        try {
-          cache = await window.caches.open(AUDIO_CACHE_NAME);
-          const cachedResponse = await cache.match(url);
-          if (cachedResponse) {
-            const blob = await cachedResponse.blob();
-            if (!controller.signal.aborted && blob.size > 0) {
-              blobUrlPool.set(url, URL.createObjectURL(blob));
-              return true;
-            }
-          }
-        } catch {
-          // Cache API may be unavailable in private/non-secure contexts
-        }
-      }
-
-      if (controller.signal.aborted) return false;
-
       const response = await fetch(url, {
         signal: controller.signal,
-        priority: 'low',
+        headers: {
+          Accept: 'audio/*, application/octet-stream',
+        },
       });
 
-      if (!response.ok) return false;
-
-      if (cache) {
-        try {
-          await cache.put(url, response.clone());
-        } catch {
-          // Ignore quota errors
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status} fetching audio`);
       }
 
+      // Convert response to Blob
       const blob = await response.blob();
-      if (!controller.signal.aborted && blob.size > 0) {
-        blobUrlPool.set(url, URL.createObjectURL(blob));
-        return true;
+      if (!blob || blob.size === 0) {
+        throw new Error('Empty audio blob received');
       }
-      return false;
-    } catch {
-      return false;
+
+      // Create an internal memory Object URL (blob:...)
+      const audioBlob = blob.type.startsWith('audio')
+        ? blob
+        : new Blob([blob], { type: 'audio/mpeg' });
+      const objectUrl = URL.createObjectURL(audioBlob);
+
+      // Cache the Object URL for this session
+      cachedBlobUrls.set(url, objectUrl);
+      return objectUrl;
+    } catch (err) {
+      if (err.name === 'AbortError') return null;
+      console.warn(
+        `[Audio] Fetch as Blob failed for ${url}, fallback to direct audio:`,
+        err
+      );
+      return url; // Fallback to raw URL
     } finally {
-      const current = inFlightPreloads.get(url);
-      if (current && current.controller === controller) {
-        inFlightPreloads.delete(url);
-      }
+      inFlightFetches.delete(url);
     }
   })();
 
-  inFlightPreloads.set(url, { controller, promise });
-  return promise;
+  fetchPromise.abort = () => controller.abort();
+  inFlightFetches.set(url, fetchPromise);
+  return fetchPromise;
 }
 
 /**
- * Sequentially warms a list of muezzin URLs in the background without
- * saturating network bandwidth. Automatically yields if user plays an Adhan.
+ * Sequentially warms a list of muezzin URLs in the background.
  */
 export async function preloadMuezzinList(urls = []) {
   if (typeof window === 'undefined' || !urls.length) return;
@@ -227,8 +205,12 @@ export async function preloadMuezzinList(urls = []) {
 
   for (const url of urls) {
     if (controller.signal.aborted) break;
-    if (!url || blobUrlPool.has(url)) continue;
-    await preloadAdhanAudio(url);
+    if (!url || cachedBlobUrls.has(url)) continue;
+    try {
+      await preloadAdhanAudio(url);
+    } catch {
+      // Continue next
+    }
   }
 
   if (listPreloadController === controller) {
@@ -237,8 +219,7 @@ export async function preloadMuezzinList(urls = []) {
 }
 
 /**
- * Stops the background sequential muezzin preload queue without interrupting
- * active or selected-muezzin audio caching.
+ * Stops background muezzin preload queue.
  */
 export function stopMuezzinListPreload() {
   if (listPreloadController) {
@@ -248,7 +229,7 @@ export function stopMuezzinListPreload() {
 }
 
 /**
- * Hydrates the user's saved muezzin audio from Cache API / network during idle time.
+ * Hydrates saved muezzin audio from cache during idle time.
  */
 export function warmSavedAdhanAudio(
   muezzinList = [],
@@ -260,7 +241,7 @@ export function warmSavedAdhanAudio(
   try {
     savedId = localStorage.getItem(storageKey) || muezzinList[0].id;
   } catch {
-    // Ignore storage read error
+    // Ignore
   }
 
   const target = muezzinList.find((m) => m.id === savedId) || muezzinList[0];
@@ -270,55 +251,48 @@ export function warmSavedAdhanAudio(
 }
 
 /**
- * Plays Adhan audio immediately.
- * Uses in-memory Blob URL when cached, or progressive HTTP streaming with zero
- * competing downloads on first play (keeping synchronous user activation).
+ * Plays Adhan audio from the cached Blob Object URL instead of direct .mp3 path.
+ * If not preloaded, fetches as Blob first; falls back to standard new Audio(url) if fetch fails.
+ *
  * @param {string} audioUrl
  * @param {() => void} [onEnded]
  * @param {number} [maxDurationSec]
  * @param {boolean} [allowFallback]
  */
-export function playAdhanAudio(
+export async function playAdhanAudio(
   audioUrl = DEFAULT_ADHAN_URL,
   onEnded,
   maxDurationSec = 0,
   allowFallback = false
 ) {
-  if (typeof window === 'undefined')
+  if (typeof window === 'undefined') {
     return Promise.reject(new Error('No window'));
+  }
 
   stopAdhanAudio();
   const currentSeq = ++playbackSeq;
-  const cachedBlobUrl = blobUrlPool.get(audioUrl);
-  // If not yet in RAM, cancel all background fetches (including for this URL)
-  // so progressive <audio> streaming gets 100% of bandwidth without duplicate requests.
-  abortOtherPreloads(cachedBlobUrl ? audioUrl : null);
+
+  // 1. Retrieve cached Blob URL, or fetch as Blob on-the-fly to bypass IDM
+  let playableSrc = cachedBlobUrls.get(audioUrl);
+
+  if (!playableSrc) {
+    try {
+      playableSrc = await preloadAdhanAudio(audioUrl);
+    } catch {
+      playableSrc = audioUrl; // Fallback
+    }
+  }
+
+  if (currentSeq !== playbackSeq) {
+    return;
+  }
+
+  const resolvedSource = playableSrc || audioUrl;
 
   try {
-    let audio = audioPool.get(audioUrl);
-
-    if (audio && audio.error) {
-      audioPool.delete(audioUrl);
-      audio = null;
-    }
-
-    if (audio && cachedBlobUrl && !audio.src.startsWith('blob:')) {
-      audio.src = cachedBlobUrl;
-    }
-
-    if (!audio) {
-      audio = new Audio();
-      audio.preload = 'auto';
-      audio.src = cachedBlobUrl || audioUrl;
-      audioPool.set(audioUrl, audio);
-    }
-
+    let audio = new Audio(resolvedSource);
+    audio.preload = 'auto';
     adhanAudio = audio;
-
-    // Reset position only when metadata exists to avoid stalling cold streams
-    if (audio.readyState > 0 && audio.currentTime !== 0) {
-      audio.currentTime = 0;
-    }
 
     if (onEnded) {
       adhanEndedHandler = () => {
@@ -331,30 +305,14 @@ export function playAdhanAudio(
       audio.addEventListener('ended', adhanEndedHandler, { once: true });
     }
 
-    // Store in Cache API once the browser finishes buffering this stream cleanly
-    if (!cachedBlobUrl && !inFlightPreloads.has(audioUrl)) {
-      const handleBuffered = () => {
-        if (
-          !blobUrlPool.has(audioUrl) &&
-          !inFlightPreloads.has(audioUrl) &&
-          (currentSeq === playbackSeq || audio.readyState >= 4)
-        ) {
-          preloadAdhanAudio(audioUrl);
-        }
-      };
-      audio.addEventListener('canplaythrough', handleBuffered, { once: true });
-    }
-
     const rawPlayPromise = audio.play();
 
     const playPromise = Promise.resolve(rawPlayPromise).then(() => {
       if (currentSeq !== playbackSeq) {
-        if (audio !== adhanAudio) {
-          try {
-            audio.pause();
-          } catch {
-            // Ignore
-          }
+        try {
+          audio.pause();
+        } catch {
+          // Ignore
         }
         return;
       }
@@ -367,44 +325,72 @@ export function playAdhanAudio(
       }
     });
 
-    if (allowFallback && audioUrl !== DEFAULT_ADHAN_URL) {
-      const fallbackTimer = setTimeout(() => {
-        if (
-          currentSeq === playbackSeq &&
-          audio.readyState < 2 &&
-          adhanAudio === audio
-        ) {
-          console.warn('Adhan audio lagging, switching to default local audio');
-          playAdhanAudio(DEFAULT_ADHAN_URL, onEnded, maxDurationSec, false);
-        }
-      }, 4000);
-
-      playPromise
-        .then(() => clearTimeout(fallbackTimer))
-        .catch(() => clearTimeout(fallbackTimer));
-    }
-
     return playPromise.catch((err) => {
-      if (
-        allowFallback &&
-        err?.name !== 'AbortError' &&
-        err?.name !== 'NotAllowedError' &&
-        audioUrl !== DEFAULT_ADHAN_URL &&
-        currentSeq === playbackSeq
-      ) {
-        return playAdhanAudio(
-          DEFAULT_ADHAN_URL,
+      // 4. Graceful Fallback: if playing blob failed, try standard Audio(audioUrl)
+      if (resolvedSource !== audioUrl && currentSeq === playbackSeq) {
+        console.warn(
+          '[Audio] Playing from Blob failed, falling back to standard Audio(url):',
+          err
+        );
+        return playDirectAudioFallback(
+          audioUrl,
           onEnded,
           maxDurationSec,
-          false
+          currentSeq
         );
       }
       throw err;
     });
   } catch (err) {
-    if (allowFallback && audioUrl !== DEFAULT_ADHAN_URL) {
-      return playAdhanAudio(DEFAULT_ADHAN_URL, onEnded, maxDurationSec, false);
+    if (resolvedSource !== audioUrl && currentSeq === playbackSeq) {
+      return playDirectAudioFallback(
+        audioUrl,
+        onEnded,
+        maxDurationSec,
+        currentSeq
+      );
     }
+    return Promise.reject(err);
+  }
+}
+
+/**
+ * Standard Audio fallback helper if Blob creation/playback encounters an unexpected error.
+ */
+function playDirectAudioFallback(audioUrl, onEnded, maxDurationSec, seq) {
+  try {
+    const audio = new Audio(audioUrl);
+    adhanAudio = audio;
+
+    if (onEnded) {
+      adhanEndedHandler = () => {
+        if (seq !== playbackSeq) return;
+        audio.removeEventListener('ended', adhanEndedHandler);
+        adhanEndedHandler = null;
+        adhanAudio = null;
+        onEnded();
+      };
+      audio.addEventListener('ended', adhanEndedHandler, { once: true });
+    }
+
+    return audio.play().then(() => {
+      if (seq !== playbackSeq) {
+        try {
+          audio.pause();
+        } catch {
+          // Ignore
+        }
+        return;
+      }
+      if (maxDurationSec > 0) {
+        takbeeratTimeout = setTimeout(() => {
+          if (seq !== playbackSeq) return;
+          stopAdhanAudio();
+          if (onEnded) onEnded();
+        }, maxDurationSec * 1000);
+      }
+    });
+  } catch (err) {
     return Promise.reject(err);
   }
 }
