@@ -29,6 +29,7 @@ import {
 import {
   resolveLocationByCoords,
   isUnresolvedGpsLocation,
+  findNearestPopularCity,
 } from '../utils/location';
 
 const LOCATION_STORAGE_KEY = 'azkari-prayer-location';
@@ -45,7 +46,25 @@ export function PrayerProvider({ children, showToast }) {
     if (typeof window === 'undefined') return POPULAR_CITIES[0];
     try {
       const saved = localStorage.getItem(LOCATION_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (
+          isUnresolvedGpsLocation(parsed) &&
+          typeof parsed.lat === 'number' &&
+          typeof parsed.lng === 'number'
+        ) {
+          const nearest = findNearestPopularCity(parsed.lat, parsed.lng);
+          if (nearest) {
+            return {
+              ...parsed,
+              city: nearest.label || nearest.city,
+              label: nearest.label || nearest.city,
+              countryLabel: nearest.countryLabel || parsed.countryLabel,
+            };
+          }
+        }
+        return parsed;
+      }
     } catch {
       // Fallback
     }
@@ -280,11 +299,14 @@ export function PrayerProvider({ children, showToast }) {
 
     let active = true;
     resolveLocationByCoords(location.lat, location.lng).then((res) => {
-      if (active && res && res.resolvedCity) {
+      const detectedCity = res?.label || res?.city || res?.cityName;
+      if (active && detectedCity) {
         setLocation((prev) => ({
           ...prev,
-          city: res.resolvedCity,
-          countryLabel: res.resolvedCountry || prev.countryLabel,
+          city: detectedCity,
+          label: detectedCity,
+          countryLabel:
+            res.countryLabel || res.countryName || prev.countryLabel,
         }));
       }
     });
@@ -715,54 +737,81 @@ export function PrayerProvider({ children, showToast }) {
     setLocation((prev) => ({ ...prev, method: methodId }));
   }, []);
 
-  const requestGpsLocation = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      if (showToast) showToast('خاصية تحديد الموقع غير مدعومة في هذا الجهاز');
-      return;
-    }
+  const requestGpsLocation = useCallback(
+    (onSuccess, onError) => {
+      if (!('geolocation' in navigator)) {
+        if (showToast) showToast('خاصية تحديد الموقع غير مدعومة في هذا الجهاز');
+        if (onError) onError(new Error('Geolocation unsupported'));
+        return Promise.reject(new Error('Geolocation unsupported'));
+      }
 
-    setGpsLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        let resolvedCity = 'موقعي الحالي';
-        let resolvedCountry = 'عبر GPS';
+      setGpsLoading(true);
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            let resolvedCity = '';
+            let resolvedLabel = '';
+            let resolvedCountry = 'عبر GPS';
 
-        try {
-          const res = await resolveLocationByCoords(latitude, longitude);
-          if (res?.resolvedCity) {
-            resolvedCity = res.resolvedCity;
-            resolvedCountry = res.resolvedCountry;
-          }
-        } catch {
-          // Keep default GPS label
-        }
+            try {
+              const res = await resolveLocationByCoords(latitude, longitude);
+              const detectedCity = res?.label || res?.city || res?.cityName;
+              if (detectedCity) {
+                resolvedCity = detectedCity;
+                resolvedLabel = detectedCity;
+                resolvedCountry =
+                  res.countryLabel || res.countryName || resolvedCountry;
+              }
+            } catch {
+              // Keep default GPS label
+            }
 
-        setLocation({
-          city: resolvedCity,
-          countryLabel: resolvedCountry,
-          lat: latitude,
-          lng: longitude,
-          isGps: true,
-          method: location.method || 4,
-        });
+            const newLoc = {
+              city: resolvedCity || 'موقعك الحالي',
+              label: resolvedLabel || resolvedCity || '',
+              countryLabel: resolvedCountry,
+              lat: latitude,
+              lng: longitude,
+              isGps: true,
+              method: location.method || 4,
+            };
 
-        setGpsLoading(false);
-        if (showToast) {
-          showToast(
-            `تم تحديد موقعك بدقة: ${resolvedCity} <i class="fas fa-location-crosshairs text-gold"></i>`
-          );
-        }
-      },
-      () => {
-        setGpsLoading(false);
-        if (showToast) {
-          showToast('تعذر الوصول إلى موقعك، يرجى تفعيل إذن الموقع في المتصفح');
-        }
-      },
-      { timeout: 12000, enableHighAccuracy: true }
-    );
-  }, [location.method, showToast]);
+            setLocation(newLoc);
+            try {
+              localStorage.setItem(
+                LOCATION_STORAGE_KEY,
+                JSON.stringify(newLoc)
+              );
+            } catch {
+              // Ignore
+            }
+
+            setGpsLoading(false);
+            if (showToast) {
+              showToast(
+                `تم تحديد موقعك بدقة: ${resolvedCity} <i class="fas fa-location-crosshairs text-gold"></i>`
+              );
+            }
+            if (onSuccess) onSuccess(newLoc);
+            resolve(newLoc);
+          },
+          (err) => {
+            setGpsLoading(false);
+            if (showToast) {
+              showToast(
+                'تعذر الوصول إلى موقعك، يرجى تفعيل إذن الموقع في المتصفح'
+              );
+            }
+            if (onError) onError(err);
+            reject(err);
+          },
+          { timeout: 12000, enableHighAccuracy: true }
+        );
+      });
+    },
+    [location.method, showToast]
+  );
 
   // Qibla calculations
   const qibla = useMemo(() => {

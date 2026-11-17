@@ -6,7 +6,12 @@ import {
 
 const GEOCODE_TIMEOUT_MS = 3500;
 const MAX_NEARBY_CITY_KM = 80;
-const LEGACY_GPS_LABELS = new Set(['موقعي الحالي', 'موقعي الحالي (GPS)']);
+const LEGACY_GPS_LABELS = new Set([
+  'موقعي الحالي',
+  'موقعي الحالي (GPS)',
+  'موقعك الحالي',
+  'موقعك الحالي (GPS)',
+]);
 
 function cleanPlaceName(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -115,8 +120,26 @@ export function isUnresolvedGpsLocation(location) {
  * Returns a clean, human-readable city name for UI display (or empty string if unresolved).
  */
 export function getDisplayCityName(location) {
-  if (!location || isUnresolvedGpsLocation(location)) return '';
-  return cleanPlaceName(location.label) || cleanPlaceName(location.city);
+  if (!location) return '';
+  const cleanLabel = cleanPlaceName(location.label);
+  const cleanCity = cleanPlaceName(location.city);
+
+  if (cleanLabel && !LEGACY_GPS_LABELS.has(cleanLabel)) {
+    return cleanLabel;
+  }
+  if (cleanCity && !LEGACY_GPS_LABELS.has(cleanCity)) {
+    return cleanCity;
+  }
+
+  // If GPS location has coordinates, find nearest preset city immediately
+  if (typeof location.lat === 'number' && typeof location.lng === 'number') {
+    const nearest = findNearestPopularCity(location.lat, location.lng);
+    if (nearest?.label || nearest?.city) {
+      return nearest.label || nearest.city;
+    }
+  }
+
+  return '';
 }
 
 /**

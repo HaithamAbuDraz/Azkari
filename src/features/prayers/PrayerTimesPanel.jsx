@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CARD_HOVER_SPRING, EASE_SPIRITUAL } from '../../constants/motion';
 import { usePrayerTimes } from '../../hooks/usePrayerTimes';
+import { usePrayerContext } from '../../context/PrayerContext';
 import { getDisplayCityName } from '../../utils/location';
 import NextPrayerHero from './components/NextPrayerHero';
 import PrayerCardsGrid from './components/PrayerCardsGrid';
@@ -50,6 +51,15 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
   } = usePrayerTimes(showToast);
 
   const cityName = getDisplayCityName(location);
+  const locationDisplayName =
+    cityName ||
+    (location?.label && !location.label.includes('موقع')
+      ? location.label
+      : null) ||
+    (location?.city && !location.city.includes('موقع')
+      ? location.city
+      : null) ||
+    'موقعك الحالي';
 
   return (
     <section
@@ -76,15 +86,8 @@ export default function PrayerTimesPanel({ showToast, onSelectTab }) {
                   <i className='fas fa-spinner fa-spin text-[11px]'></i>
                   <span>جاري تحديد مدينتك الحالية...</span>
                 </span>
-              ) : cityName ? (
-                <>
-                  حسب توقيت مدينة{' '}
-                  <strong className='text-text-main font-semibold'>
-                    {cityName}
-                  </strong>
-                </>
               ) : (
-                <>حسب توقيت موقعك الحالي</>
+                `حسب توقيت ${locationDisplayName}`
               )}
             </p>
           </div>
