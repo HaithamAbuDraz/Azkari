@@ -121,7 +121,7 @@ export default function AdhanDebugTester() {
 
       <p className='text-[11px] text-text-muted mb-3 leading-relaxed'>
         اضغط على الزر، ثم <strong>أغلق التبويب فوراً</strong> للتأكد من ظهور
-        إشعار النظام وتشغيل الأذان عند النقر عليه.
+        إشعار موعد الأذان وتشغيل صوت الأذان مباشرة.
       </p>
 
       {countdown !== null ? (

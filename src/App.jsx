@@ -156,7 +156,6 @@ export default function App() {
             theme={theme}
             onToggleTheme={toggleTheme}
           />
-
           <Header
             activeTab={activeTab}
             onSelectTab={switchTab}

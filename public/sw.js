@@ -6,7 +6,7 @@
  * or opens the app on notification click to play the Adhan audio.
  */
 
-const SW_VERSION = 'azkari-sw-v3';
+const SW_VERSION = 'azkari-sw-v4';
 let scheduledTimers = [];
 
 // 1. Install & Activate Service Worker immediately
@@ -24,11 +24,10 @@ function clearScheduledTimers() {
   scheduledTimers = [];
 }
 
-// 3. Show Native System Notification
+// 3. Show Native System Notification (Clean title without asking to click)
 function showPrayerNotification(prayer) {
   const title = `حان الآن موعد أذان ${prayer.label}`;
   const options = {
-    body: 'حي على الصلاة • انقر الآن للاستماع إلى صوت الأذان',
     icon: '/icon.png',
     badge: '/favicon.svg',
     tag: `prayer-alert-${prayer.key}`,
@@ -38,21 +37,18 @@ function showPrayerNotification(prayer) {
     lang: 'ar',
     vibrate: [300, 150, 300, 150, 600],
     data: {
-      url: '/?tab=prayers&action=play_adhan',
+      url: `/?tab=prayers&action=play_adhan&prayer=${encodeURIComponent(prayer.label)}`,
       prayerKey: prayer.key,
       prayerLabel: prayer.label,
       timestamp: Date.now(),
     },
-    actions: [
-      { action: 'play', title: 'تشغيل الأذان' },
-      { action: 'dismiss', title: 'إغلاق' },
-    ],
+    actions: [{ action: 'dismiss', title: 'إغلاق' }],
   };
 
   self.registration.showNotification(title, options);
 }
 
-// 4. Schedule Prayer Notifications using standard setTimeout
+// 4. Schedule Prayer Notifications using standard setTimeout and trigger audio directly
 function schedulePrayerNotifications(prayers = []) {
   clearScheduledTimers();
   const now = Date.now();
@@ -64,6 +60,19 @@ function schedulePrayerNotifications(prayers = []) {
     if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
       const timerId = setTimeout(() => {
         showPrayerNotification(prayer);
+
+        // Directly broadcast to all open window clients to start Adhan sound immediately
+        self.clients
+          .matchAll({ type: 'window', includeUncontrolled: true })
+          .then((clientList) => {
+            clientList.forEach((client) => {
+              client.postMessage({
+                type: 'PLAY_ADHAN',
+                prayerLabel: prayer.label,
+                prayerKey: prayer.key,
+              });
+            });
+          });
       }, delay);
 
       scheduledTimers.push(timerId);
@@ -104,8 +113,10 @@ self.addEventListener('notificationclick', (event) => {
   }
 
   const notificationData = event.notification.data || {};
-  const targetUrl = notificationData.url || '/?tab=prayers&action=play_adhan';
   const prayerLabel = notificationData.prayerLabel || 'الصلاة';
+  const targetUrl =
+    notificationData.url ||
+    `/?tab=prayers&action=play_adhan&prayer=${encodeURIComponent(prayerLabel)}`;
 
   event.waitUntil(
     self.clients

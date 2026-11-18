@@ -637,25 +637,34 @@ export function PrayerProvider({ children, showToast }) {
     ]
   );
 
-  // ── 12. Global Interval Trigger: Plays Adhan on any route when remaining time hits 0 ──
+  // ── 12. Global Interval Trigger: Plays Adhan directly on any route when prayer time arrives ──
   useEffect(() => {
-    if (!audioEnabled || !prayerSchedule?.nextPrayer) return;
+    if (!audioEnabled || !prayerSchedule?.list) return;
 
-    if (prayerSchedule.totalRemainingSeconds === 0) {
-      const key = prayerSchedule.nextPrayer.key;
-      if (key === 'Sunrise') return;
+    const currentTime = now.getTime();
+    for (const prayer of prayerSchedule.list) {
+      if (prayer.key === 'Sunrise' || !prayer.dateObj) continue;
 
-      if (lastChimedPrayer.current !== key) {
-        lastChimedPrayer.current = key;
-        startAdhan(prayerSchedule.nextPrayer.label);
-        if (showToast) {
-          showToast(
-            `حان الآن موعد أذان ${prayerSchedule.nextPrayer.label} <i class="fas fa-mosque text-gold"></i>`
-          );
+      const prayerTime = prayer.dateObj.getTime();
+      const diff = currentTime - prayerTime;
+
+      // If prayer time arrived within the last 45 seconds (0 to 45 seconds ago)
+      if (diff >= 0 && diff < 45000) {
+        const prayerStamp = `${prayer.key}-${now.toDateString()}`;
+        if (lastChimedPrayer.current !== prayerStamp) {
+          lastChimedPrayer.current = prayerStamp;
+          unlockAudio();
+          startAdhan(prayer.label);
+          if (showToast) {
+            showToast(
+              `حان الآن موعد أذان ${prayer.label} <i class="fas fa-mosque text-gold"></i>`
+            );
+          }
         }
+        break;
       }
     }
-  }, [prayerSchedule, audioEnabled, startAdhan, showToast]);
+  }, [now, prayerSchedule, audioEnabled, startAdhan, unlockAudio, showToast]);
 
   // ── 13. Sync Prayer Times with Service Worker for Background Notifications ──
   useEffect(() => {
@@ -689,13 +698,19 @@ export function PrayerProvider({ children, showToast }) {
     }
   }, [prayerSchedule]);
 
-  // ── 14. Listen for Messages from Service Worker (e.g. notificationclick PLAY_ADHAN) ──
+  // ── 14. Listen for Messages from Service Worker (e.g. background notification trigger or click) ──
   useEffect(() => {
     if (typeof navigator === 'undefined' || !navigator.serviceWorker) return;
 
     const handleServiceWorkerMessage = (event) => {
       if (event.data?.type === 'PLAY_ADHAN') {
         const prayerName = event.data.prayerLabel || 'الصلاة';
+        const prayerKey = event.data.prayerKey || prayerName;
+        const prayerStamp = `${prayerKey}-${new Date().toDateString()}`;
+
+        if (lastChimedPrayer.current === prayerStamp) return;
+        lastChimedPrayer.current = prayerStamp;
+
         unlockAudio();
         startAdhan(prayerName);
       }
