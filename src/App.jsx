@@ -30,7 +30,6 @@ import { PrayerProvider, usePrayerContext } from './context/PrayerContext';
 import AdhanPermissionBanner from './components/common/AdhanPermissionBanner';
 import LocationOnboardingWelcome from './components/common/LocationOnboardingWelcome';
 import AdhanBanner from './features/prayers/components/AdhanBanner';
-import AdhanDebugTester from './components/common/AdhanDebugTester';
 
 function GlobalAdhanBanner({ onSelectTab }) {
   const {
@@ -145,7 +144,6 @@ export default function App() {
         <div className='relative min-h-screen w-full min-w-full flex flex-col font-tajawal text-text-main selection:bg-gold/25 selection:text-text-arabic'>
           <AmbientBackground />
           <LocationOnboardingWelcome />
-          <AdhanDebugTester />
           <Toast
             toast={toast}
             onClose={closeToast}
