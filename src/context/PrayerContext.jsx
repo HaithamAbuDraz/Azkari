@@ -175,7 +175,10 @@ export function PrayerProvider({ children, showToast }) {
 
       if (permission === 'granted') {
         if ('serviceWorker' in navigator) {
-          await navigator.serviceWorker.register('/sw.js');
+          const reg = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+          });
+          await reg.update().catch(() => {});
         }
         if (showToast) {
           showToast(
@@ -189,6 +192,85 @@ export function PrayerProvider({ children, showToast }) {
       return 'denied';
     }
   }, [unlockAudio, showToast]);
+
+  // ── 5.1. Instant Fast-Path System Notification ──
+  const showInstantNotification = useCallback(async (prayer) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+
+    let perm = Notification.permission;
+    if (perm === 'default') {
+      try {
+        perm = await Notification.requestPermission();
+        setNotificationPermission(perm);
+      } catch {
+        return;
+      }
+    }
+    if (perm !== 'granted') return;
+
+    const title = `حان الآن موعد أذان ${prayer.label}`;
+    const baseOrigin = window.location.origin;
+    const iconUrl = `${baseOrigin}/icon.png`;
+    const badgeUrl = `${baseOrigin}/favicon.svg`;
+    const actionUrl = `${baseOrigin}/?tab=prayers&action=play_adhan&prayer=${encodeURIComponent(prayer.label)}`;
+
+    const swOptions = {
+      body: 'حي على الصلاة • حي على الفلاح',
+      icon: iconUrl,
+      badge: badgeUrl,
+      tag: `prayer-alert-${prayer.key || prayer.label}`,
+      renotify: true,
+      requireInteraction: true,
+      dir: 'rtl',
+      lang: 'ar',
+      vibrate: [300, 150, 300, 150, 600],
+      data: {
+        url: actionUrl,
+        prayerKey: prayer.key || prayer.label,
+        prayerLabel: prayer.label,
+        timestamp: Date.now(),
+      },
+      actions: [{ action: 'dismiss', title: 'إغلاق' }],
+    };
+
+    // 1. Primary: Use Service Worker registration (produces native browser notification)
+    if ('serviceWorker' in navigator) {
+      try {
+        let reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          reg = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+          });
+        }
+        if (reg && typeof reg.showNotification === 'function') {
+          await reg.showNotification(title, swOptions);
+          return;
+        }
+      } catch (err) {
+        console.warn('SW showNotification error:', err);
+      }
+    }
+
+    // 2. Fallback: Native Window Notification (strip actions to prevent browser TypeError)
+    try {
+      const windowOptions = {
+        body: 'حي على الصلاة • حي على الفلاح',
+        icon: iconUrl,
+        tag: `prayer-alert-${prayer.key || prayer.label}`,
+        renotify: true,
+        requireInteraction: true,
+        dir: 'rtl',
+        lang: 'ar',
+      };
+      const n = new Notification(title, windowOptions);
+      n.onclick = () => {
+        window.focus();
+        n.close();
+      };
+    } catch (err) {
+      console.warn('Native Notification fallback error:', err);
+    }
+  }, []);
 
   const isInitialLocationMount = useRef(true);
 
@@ -655,6 +737,7 @@ export function PrayerProvider({ children, showToast }) {
           lastChimedPrayer.current = prayerStamp;
           unlockAudio();
           startAdhan(prayer.label);
+          showInstantNotification(prayer);
           if (showToast) {
             showToast(
               `حان الآن موعد أذان ${prayer.label} <i class="fas fa-mosque text-gold"></i>`
@@ -664,7 +747,15 @@ export function PrayerProvider({ children, showToast }) {
         break;
       }
     }
-  }, [now, prayerSchedule, audioEnabled, startAdhan, unlockAudio, showToast]);
+  }, [
+    now,
+    prayerSchedule,
+    audioEnabled,
+    startAdhan,
+    showInstantNotification,
+    unlockAudio,
+    showToast,
+  ]);
 
   // ── 13. Sync Prayer Times with Service Worker for Background Notifications ──
   useEffect(() => {
@@ -869,6 +960,7 @@ export function PrayerProvider({ children, showToast }) {
     previewMuezzin,
     unlockAudio,
     requestNotifications,
+    showInstantNotification,
     selectCity,
     setMethod,
     requestGpsLocation,

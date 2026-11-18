@@ -8,7 +8,12 @@ import { usePrayerContext } from '../../context/PrayerContext';
  * Service Worker notifications by scheduling a dummy prayer 5s into the future.
  */
 export default function AdhanDebugTester() {
-  const { startAdhan, unlockAudio, requestNotifications } = usePrayerContext();
+  const {
+    startAdhan,
+    unlockAudio,
+    requestNotifications,
+    showInstantNotification,
+  } = usePrayerContext();
   const [countdown, setCountdown] = useState(null);
   const [statusMsg, setStatusMsg] = useState('');
   const timerRef = useRef(null);
@@ -21,41 +26,75 @@ export default function AdhanDebugTester() {
     };
   }, []);
 
+  const handleInstantTest = async () => {
+    unlockAudio();
+    if ('Notification' in window) {
+      if (Notification.permission !== 'granted') {
+        const res = await requestNotifications();
+        if (res !== 'granted') {
+          setStatusMsg('يرجى السماح بالإشعارات من إعدادات المتصفح أولاً');
+          startAdhan('العصر');
+          return;
+        }
+      }
+    }
+
+    const testPrayer = {
+      key: 'Asr',
+      label: 'العصر',
+      timeMs: Date.now(),
+    };
+
+    // 1. Immediately trigger the browser notification via SW registration
+    await showInstantNotification(testPrayer);
+
+    // 2. Immediately start Adhan sound
+    startAdhan('العصر');
+    setStatusMsg('تم إطلاق إشعار المتصفح وصوت الأذان مباشرة!');
+  };
+
   const handleStartTest = async () => {
     // 1. Prime the audio context to bypass autoplay restrictions
     unlockAudio();
 
     // 2. Request notification permission if not yet granted
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      await requestNotifications();
+    if ('Notification' in window) {
+      if (Notification.permission !== 'granted') {
+        const res = await requestNotifications();
+        if (res !== 'granted') {
+          setStatusMsg('يرجى السماح بالإشعارات من إعدادات المتصفح أولاً');
+          return;
+        }
+      }
     }
 
     const delaySeconds = 5;
     const targetTimeMs = Date.now() + delaySeconds * 1000;
     const dummyPrayer = {
-      key: 'Test',
-      label: 'صلاة التجربة',
+      key: 'Asr',
+      label: 'العصر',
       timeMs: targetTimeMs,
     };
 
     // 3. Schedule with Service Worker for closed-tab notification test
     if ('serviceWorker' in navigator) {
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-          type: 'SCHEDULE_PRAYERS',
-          prayers: [dummyPrayer],
-        });
-        setStatusMsg('تم إرسال الموعد إلى الـ Service Worker بنجاح!');
-      } else {
-        // Fallback: register service worker if not yet controlling
-        navigator.serviceWorker.ready.then((reg) => {
-          reg.active?.postMessage({
+      try {
+        let reg = await navigator.serviceWorker.getRegistration();
+        if (!reg) {
+          reg = await navigator.serviceWorker.register('/sw.js', {
+            scope: '/',
+          });
+        }
+        if (reg?.active) {
+          reg.active.postMessage({
             type: 'SCHEDULE_PRAYERS',
             prayers: [dummyPrayer],
           });
-        });
-        setStatusMsg('جاري الربط مع الـ Service Worker...');
+        }
+      } catch (e) {
+        console.warn('Could not schedule with SW:', e);
       }
+      setStatusMsg('تم إرسال الموعد إلى الـ Service Worker بنجاح!');
     }
 
     // 4. In-tab fallback timer if the user keeps this page open
@@ -74,10 +113,11 @@ export default function AdhanDebugTester() {
       });
     }, 1000);
 
-    timerRef.current = setTimeout(() => {
-      startAdhan('صلاة التجربة');
+    timerRef.current = setTimeout(async () => {
+      await showInstantNotification(dummyPrayer);
+      startAdhan('العصر');
       setCountdown(null);
-      setStatusMsg('تم إطلاق الأذان الآن!');
+      setStatusMsg('تم إطلاق إشعار المتصفح وصوت الأذان!');
     }, delaySeconds * 1000);
   };
 
@@ -128,7 +168,7 @@ export default function AdhanDebugTester() {
         <div className='space-y-2'>
           <div className='p-2 rounded-xl bg-gold/10 border border-gold/30 text-gold text-xs text-center font-bold animate-pulse'>
             <span>
-              سيعمل الأذان خلال {countdown} ثوانٍ... أغلق التبويب الآن!
+              سيعمل الأذان خلال {countdown} ثوانٍ... أغلق التبويب أو صغّره الآن!
             </span>
           </div>
 
@@ -140,13 +180,23 @@ export default function AdhanDebugTester() {
           </button>
         </div>
       ) : (
-        <button
-          type='button'
-          onClick={handleStartTest}
-          className='w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-gold text-bg-deep hover:opacity-90 transition cursor-pointer shadow-xs active:scale-95'>
-          <i className='fas fa-stopwatch text-sm'></i>
-          <span>اختبار الأذان بعد 5 ثوانٍ</span>
-        </button>
+        <div className='flex flex-col gap-2'>
+          <button
+            type='button'
+            onClick={handleInstantTest}
+            className='w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold bg-gold text-bg-deep hover:opacity-90 transition cursor-pointer shadow-xs active:scale-95'>
+            <i className='fas fa-bell text-sm'></i>
+            <span>إطلاق الإشعار وصوت الأذان الآن (تجربة فورية)</span>
+          </button>
+
+          <button
+            type='button'
+            onClick={handleStartTest}
+            className='w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-xs font-semibold bg-bg-elevated hover:bg-gold/10 text-gold border border-gold/30 transition cursor-pointer active:scale-95'>
+            <i className='fas fa-stopwatch text-sm'></i>
+            <span>اختبار بعد 5 ثوانٍ (مع تصغير/إغلاق التبويب)</span>
+          </button>
+        </div>
       )}
 
       {statusMsg && (

@@ -4,18 +4,28 @@ import App from './App';
 import './assets/styles/index.css';
 
 // Register Service Worker for PWA, background notifications & prayer alerts
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
+const registerServiceWorker = () => {
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     navigator.serviceWorker
-      .register('/sw.js')
+      .register('/sw.js', { scope: '/' })
       .then((reg) => {
-        // Keep service worker updated
         reg.update().catch(() => {});
       })
       .catch((err) => {
         console.warn('Service Worker registration skipped:', err);
       });
-  });
+  }
+};
+
+if (typeof window !== 'undefined') {
+  if (
+    document.readyState === 'complete' ||
+    document.readyState === 'interactive'
+  ) {
+    registerServiceWorker();
+  } else {
+    window.addEventListener('load', registerServiceWorker);
+  }
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

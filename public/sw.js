@@ -6,7 +6,7 @@
  * or opens the app on notification click to play the Adhan audio.
  */
 
-const SW_VERSION = 'azkari-sw-v4';
+const SW_VERSION = 'azkari-sw-v7';
 let scheduledTimers = [];
 
 // 1. Install & Activate Service Worker immediately
@@ -24,13 +24,15 @@ function clearScheduledTimers() {
   scheduledTimers = [];
 }
 
-// 3. Show Native System Notification (Clean title without asking to click)
+// 3. Show Native System Notification (Clean title, persistent banner, without asking to click)
 function showPrayerNotification(prayer) {
+  const origin = self.location.origin;
   const title = `حان الآن موعد أذان ${prayer.label}`;
   const options = {
-    icon: '/icon.png',
-    badge: '/favicon.svg',
-    tag: `prayer-alert-${prayer.key}`,
+    body: 'حي على الصلاة • حي على الفلاح',
+    icon: `${origin}/icon.png`,
+    badge: `${origin}/favicon.svg`,
+    tag: `prayer-alert-${prayer.key || prayer.label}`,
     renotify: true,
     requireInteraction: true,
     dir: 'rtl',
@@ -38,14 +40,14 @@ function showPrayerNotification(prayer) {
     vibrate: [300, 150, 300, 150, 600],
     data: {
       url: `/?tab=prayers&action=play_adhan&prayer=${encodeURIComponent(prayer.label)}`,
-      prayerKey: prayer.key,
+      prayerKey: prayer.key || prayer.label,
       prayerLabel: prayer.label,
       timestamp: Date.now(),
     },
     actions: [{ action: 'dismiss', title: 'إغلاق' }],
   };
 
-  self.registration.showNotification(title, options);
+  return self.registration.showNotification(title, options);
 }
 
 // 4. Schedule Prayer Notifications using standard setTimeout and trigger audio directly
@@ -92,6 +94,17 @@ self.addEventListener('message', (event) => {
     case 'SHOW_MANUAL_NOTIFICATION':
       if (event.data.prayer) {
         showPrayerNotification(event.data.prayer);
+        self.clients
+          .matchAll({ type: 'window', includeUncontrolled: true })
+          .then((clientList) => {
+            clientList.forEach((client) => {
+              client.postMessage({
+                type: 'PLAY_ADHAN',
+                prayerLabel: event.data.prayer.label,
+                prayerKey: event.data.prayer.key,
+              });
+            });
+          });
       }
       break;
 
