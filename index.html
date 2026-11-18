@@ -1,78 +1,115 @@
 <!doctype html>
-<html
-  lang="ar"
-  dir="rtl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0" />
-    <title>أذكاري | روضة الأذكار والأدعية</title>
-    <meta
-      name="description"
-      content="موقع إلكتروني يضم أذكار الصباح والمساء وما بعد الصلاة وأذكار النوم والأذكار المتنوعة من الكتاب والسنة النبوية والمسبحة، بهدف تحصين المسلم وتقوية إيمانه." />
-    <meta
-      name="keywords"
-      content="أذكار, أدعية, حصن المسلم, أذكار الصباح, أذكار المساء, أذكار بعد الصلاة, أذكار النوم, تسبيح, ذكر الله, دعاء, أذكار يومية, روضة الأذكار, الأذكار الإسلامية" />
-    <meta
-      name="author"
-      content="أذكاري" />
-    <meta
-      name="robots"
-      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta
-      name="googlebot"
-      content="index, follow" />
-    <meta
-      name="language"
-      content="Arabic" />
-    <meta
-      name="rating"
-      content="General" />
-    <meta
-      name="distribution"
-      content="global" />
-    <meta
-      name="audience"
-      content="all" />
-    <link
-      rel="icon"
-      type="image/svg+xml"
-      href="/favicon.svg" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/icon.png" />
-    <link
-      rel="apple-touch-icon"
-      href="/icon.png" />
-    <link
-      rel="preconnect"
-      href="https://cdn.aladhan.com"
-      crossorigin />
-    <link
-      rel="dns-prefetch"
-      href="https://cdn.aladhan.com" />
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com" />
-    <link
-      rel="preconnect"
-      href="https://fonts.gstatic.com"
-      crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&display=swap"
-      rel="stylesheet" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  </head>
+<html lang="ar" dir="rtl">
 
-  <body>
-    <div id="root"></div>
-    <script
-      type="module"
-      src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta name="google-site-verification" content="iR5tD8_dpLCz7KX9uHeTIzEfwPRP2LcMY_ZyOIlJE9Y" />
+
+  <!-- Primary SEO Meta Tags -->
+  <title>
+    أذكاري | أذكار الصباح والمساء، مواقيت الصلاة، والسبحة الإلكترونية
+  </title>
+  <meta name="title" content="أذكاري | أذكار الصباح والمساء، مواقيت الصلاة، والسبحة الإلكترونية" />
+  <meta name="description"
+    content="موقع أذكاري - رفيقك اليومي لحصن المسلم: أذكار الصباح والمساء، أذكار بعد الصلاة والنوم، مواقيت الصلاة الدقيقة مع الأذان، اتجاه القبلة، وسبحة إلكترونية رقمية بتصميم إسلامي هادئ." />
+  <meta name="keywords"
+    content="أذكاري, أذكار الصباح والمساء, حصن المسلم, مواقيت الصلاة, اتجاه القبلة, سبحة إلكترونية, تسبيح, أذكار بعد الصلاة, أذكار النوم, دعاء, روضة الأذكار, الأذكار الإسلامية, أوقات الصلاة, موقع إسلامي" />
+  <meta name="author" content="أذكاري - Azkari" />
+  <link rel="canonical" href="https://my-azkari.vercel.app/" />
+
+  <!-- Crawlers & Indexing -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="language" content="Arabic" />
+  <meta name="rating" content="General" />
+  <meta name="distribution" content="global" />
+  <meta name="audience" content="all" />
+
+  <!-- Mobile & PWA Meta -->
+  <meta name="theme-color" content="#121d17" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="أذكاري" />
+
+  <!-- Open Graph / Facebook / WhatsApp / LinkedIn -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="أذكاري" />
+  <meta property="og:url" content="https://my-azkari.vercel.app/" />
+  <meta property="og:title" content="أذكاري | أذكار الصباح والمساء، مواقيت الصلاة، والسبحة الإلكترونية" />
+  <meta property="og:description"
+    content="موقع أذكاري - رفيقك اليومي لحصن المسلم: أذكار الصباح والمساء، أذكار بعد الصلاة والنوم، مواقيت الصلاة الدقيقة مع الأذان، اتجاه القبلة، وسبحة إلكترونية رقمية." />
+  <meta property="og:image" content="https://my-azkari.vercel.app/og-image.png" />
+  <meta property="og:image:secure_url" content="https://my-azkari.vercel.app/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="موقع أذكاري - روضة الأذكار ومواقيت الصلاة والقبلة" />
+  <meta property="og:locale" content="ar_AR" />
+
+  <!-- Twitter Card (X) -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://my-azkari.vercel.app/" />
+  <meta name="twitter:title" content="أذكاري | أذكار الصباح والمساء، مواقيت الصلاة، والسبحة الإلكترونية" />
+  <meta name="twitter:description"
+    content="موقع أذكاري - رفيقك اليومي لحصن المسلم: أذكار الصباح والمساء، أذكار بعد الصلاة والنوم، مواقيت الصلاة الدقيقة، اتجاه القبلة، وسبحة إلكترونية رقمية." />
+  <meta name="twitter:image" content="https://my-azkari.vercel.app/og-image.png" />
+  <meta name="twitter:image:alt" content="موقع أذكاري - روضة الأذكار ومواقيت الصلاة والقبلة" />
+
+  <!-- JSON-LD Structured Data: WebApplication -->
+  <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "أذكاري",
+        "alternateName": "Azkari",
+        "url": "https://my-azkari.vercel.app/",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "All",
+        "inLanguage": "ar",
+        "description": "موقع إسلامي ويب تقدمي (PWA) يضم أذكار الصباح والمساء، أذكار بعد الصلاة والنوم من حصن المسلم، مواقيت الصلاة الدقيقة والأذان، اتجاه القبلة، وسبحة إلكترونية ذكية.",
+        "image": "https://my-azkari.vercel.app/og-image.png",
+        "screenshot": "https://my-azkari.vercel.app/og-image.png",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "أذكار الصباح والمساء كاملة من حصن المسلم",
+          "مواقيت الصلاة الدقيقة والتنبيه بالأذان",
+          "بوصلة تفاعلية لحساب اتجاه القبلة والمسافة إلى الكعبة",
+          "سبحة إلكترونية رقمية مع سجل الذكر والمفضلة",
+          "أذكار ما بعد الصلاة المفروضة وأذكار النوم",
+          "تصميم إسلامي هادئ وسريع يعمل دون اتصال كـ PWA"
+        ]
+      }
+    </script>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <!-- Preconnect & CDNs -->
+  <link rel="preconnect" href="https://cdn.aladhan.com" crossorigin />
+  <link rel="dns-prefetch" href="https://cdn.aladhan.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Streamlined Google Fonts (Essential weights for LCP & FCP) -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" />
+
+  <!-- Non-render-blocking FontAwesome Icons with noscript fallback -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print"
+    onload="this.media = 'all'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  </noscript>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

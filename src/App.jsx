@@ -9,11 +9,36 @@ import {
   Footer,
   AmbientBackground,
 } from './components/layout';
-import { Toast, ScrollTop, NotFoundPage } from './components/common';
+import { Toast, ScrollTop } from './components/common';
 import { AzkarPanel } from './features/azkar';
-import { TasbihPanel } from './features/tasbih';
-import { PrayerTimesPanel } from './features/prayers';
 import { HomePage } from './features/home';
+
+// Lazy-loaded secondary & heavy feature bundles for optimal Core Web Vitals (FCP / LCP)
+const TasbihPanel = React.lazy(() =>
+  import('./features/tasbih').then((m) => ({ default: m.TasbihPanel }))
+);
+const PrayerTimesPanel = React.lazy(() =>
+  import('./features/prayers').then((m) => ({ default: m.PrayerTimesPanel }))
+);
+const NotFoundPage = React.lazy(() =>
+  import('./components/common').then((m) => ({ default: m.NotFoundPage }))
+);
+
+function RouteLoadingFallback() {
+  return (
+    <div
+      role='status'
+      aria-live='polite'
+      className='w-full min-h-[45vh] flex flex-col items-center justify-center p-8'>
+      <div className='w-12 h-12 rounded-2xl bg-gold/15 border border-gold/30 flex items-center justify-center text-gold text-xl animate-pulse shadow-md mb-3'>
+        <i className='fas fa-mosque'></i>
+      </div>
+      <p className='text-xs font-tajawal text-text-muted'>
+        جاري تحميل المحتوى المبارك...
+      </p>
+    </div>
+  );
+}
 import {
   useTheme,
   useToast,
@@ -21,8 +46,9 @@ import {
   useTasbihFavorites,
   useRouter,
   useAzkarCounters,
+  usePageSEO,
 } from './hooks';
-import { PANELS } from './constants/tabs';
+import { PANELS, TAB_TITLES, TAB_DESCRIPTIONS } from './constants/tabs';
 import { MUEZZINS } from './constants/prayers';
 import { PAGE_TRANSITION_VARIANTS } from './constants/motion';
 
@@ -58,6 +84,13 @@ function GlobalAdhanBanner({ onSelectTab }) {
 
 export default function App() {
   const { currentRoute: activeTab, navigate: switchTab } = useRouter();
+
+  // Dynamic Route-level SEO updates (document.title, description, canonical, OG, Twitter)
+  usePageSEO({
+    title: TAB_TITLES[activeTab] || 'أذكاري',
+    description: TAB_DESCRIPTIONS[activeTab],
+    path: activeTab === 'home' ? '/' : `/${activeTab}`,
+  });
   const { theme, toggleTheme } = useTheme();
   const { toast, showToast, closeToast } = useToast();
   const { toggleFavorite, isFavorite, favoritesCount } =
@@ -83,56 +116,62 @@ export default function App() {
   }, []);
 
   const renderActivePage = () => {
-    if (activeTab === 'home') {
-      return (
-        <HomePage
-          counters={counters}
-          favoritesCount={favoritesCount}
-          tasbihFavoritesCount={tasbihFavoritesCount}
-          onSelectTab={switchTab}
-          onShowToast={showToast}
-        />
-      );
-    }
+    return (
+      <React.Suspense fallback={<RouteLoadingFallback />}>
+        {(() => {
+          if (activeTab === 'home') {
+            return (
+              <HomePage
+                counters={counters}
+                favoritesCount={favoritesCount}
+                tasbihFavoritesCount={tasbihFavoritesCount}
+                onSelectTab={switchTab}
+                onShowToast={showToast}
+              />
+            );
+          }
 
-    if (activeTab === 'tasbih') {
-      return (
-        <TasbihPanel
-          isActive={true}
-          showToast={showToast}
-        />
-      );
-    }
+          if (activeTab === 'tasbih') {
+            return (
+              <TasbihPanel
+                isActive={true}
+                showToast={showToast}
+              />
+            );
+          }
 
-    if (activeTab === 'prayers') {
-      return (
-        <PrayerTimesPanel
-          showToast={showToast}
-          onSelectTab={switchTab}
-        />
-      );
-    }
+          if (activeTab === 'prayers') {
+            return (
+              <PrayerTimesPanel
+                showToast={showToast}
+                onSelectTab={switchTab}
+              />
+            );
+          }
 
-    const meta = PANELS[activeTab];
-    if (meta) {
-      return (
-        <AzkarPanel
-          tabKey={activeTab}
-          title={meta.title}
-          icon={meta.icon}
-          items={getAzkarByCategory(activeTab)}
-          counters={counters}
-          onDecrement={decrementCounter}
-          onResetCard={resetCardCounter}
-          onResetPanel={resetPanel}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          onShowToast={showToast}
-        />
-      );
-    }
+          const meta = PANELS[activeTab];
+          if (meta) {
+            return (
+              <AzkarPanel
+                tabKey={activeTab}
+                title={meta.title}
+                icon={meta.icon}
+                items={getAzkarByCategory(activeTab)}
+                counters={counters}
+                onDecrement={decrementCounter}
+                onResetCard={resetCardCounter}
+                onResetPanel={resetPanel}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
+                onShowToast={showToast}
+              />
+            );
+          }
 
-    return <NotFoundPage onSelectTab={switchTab} />;
+          return <NotFoundPage onSelectTab={switchTab} />;
+        })()}
+      </React.Suspense>
+    );
   };
 
   // Azkar category pages lead directly with their category banner, keeping Hero only on Tasbih & Prayers

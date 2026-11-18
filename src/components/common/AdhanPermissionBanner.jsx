@@ -220,7 +220,7 @@ export default function AdhanPermissionBanner() {
                 </h4>
                 <p className='text-[11px] sm:text-xs text-text-muted mt-0.5 leading-relaxed'>
                   اضغط لتخطي قيود المتصفح وسماع الأذان فور دخوله حتى لو كنت
-                  تتصفح صفحات أخرى أو عند إغلاق التطبيق.
+                  تتصفح صفحات أخرى أو عند إغلاق الموقع.
                 </p>
               </div>
             </div>
