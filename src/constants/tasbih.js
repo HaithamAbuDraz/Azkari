@@ -64,6 +64,8 @@ export const INITIAL_DHIKRS = [
 
 export const TARGET_PRESETS = [33, 66, 99, 100, 500, 1000];
 
+export const TASBIH_FAVORITES_KEY = 'tasbih-favorite-dhikrs';
+
 export const MILESTONES = [33, 66, 99, 100, 200, 300, 500, 1000];
 
 export const CIRCUMFERENCE = 2 * Math.PI * 115;

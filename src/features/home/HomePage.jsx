@@ -14,6 +14,7 @@ import ClosingInvitation from './components/ClosingInvitation';
 export default function HomePage({
   counters,
   favoritesCount,
+  tasbihFavoritesCount,
   onSelectTab,
   onShowToast,
 }) {
@@ -39,6 +40,7 @@ export default function HomePage({
         hijriDate={hijriDate}
         location={location}
         favoritesCount={favoritesCount}
+        tasbihFavoritesCount={tasbihFavoritesCount}
         onSelectTab={onSelectTab}
       />
 

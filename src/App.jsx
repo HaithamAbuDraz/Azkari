@@ -18,6 +18,7 @@ import {
   useTheme,
   useToast,
   useFavorites,
+  useTasbihFavorites,
   useRouter,
   useAzkarCounters,
 } from './hooks';
@@ -61,6 +62,7 @@ export default function App() {
   const { toast, showToast, closeToast } = useToast();
   const { toggleFavorite, isFavorite, favoritesCount } =
     useFavorites(showToast);
+  const { favoritesCount: tasbihFavoritesCount } = useTasbihFavorites();
   const { counters, decrementCounter, resetCardCounter, resetPanel } =
     useAzkarCounters(showToast);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -86,6 +88,7 @@ export default function App() {
         <HomePage
           counters={counters}
           favoritesCount={favoritesCount}
+          tasbihFavoritesCount={tasbihFavoritesCount}
           onSelectTab={switchTab}
           onShowToast={showToast}
         />

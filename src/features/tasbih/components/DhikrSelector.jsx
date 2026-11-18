@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   EASE_SPIRITUAL,
   MODAL_BACKDROP_VARIANTS,
   MODAL_PANEL_VARIANTS,
 } from '../../../constants/motion';
-import { triggerHaptic } from '../../../utils/haptics';
-
-const TASBIH_FAVORITES_KEY = 'tasbih-favorite-dhikrs';
+import { useTasbihFavorites } from '../../../hooks';
 
 /**
  * DhikrSelector
@@ -35,55 +33,8 @@ export default function DhikrSelector({
   const [customTarget, setCustomTarget] = useState('100');
 
   // ── 1. Favorites State & LocalStorage Persistence ──
-  const [favorites, setFavorites] = useState(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const saved = localStorage.getItem(TASBIH_FAVORITES_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(TASBIH_FAVORITES_KEY, JSON.stringify(favorites));
-    } catch (e) {
-      console.error('Failed to save tasbih favorites:', e);
-    }
-  }, [favorites]);
-
-  const isFavorite = useCallback(
-    (label) => favorites.includes(label),
-    [favorites]
-  );
-
-  const toggleFavorite = useCallback(
-    (label, e) => {
-      e?.stopPropagation?.();
-      triggerHaptic(20);
-
-      setFavorites((prev) => {
-        const exists = prev.includes(label);
-        if (exists) {
-          if (showToast) {
-            showToast(
-              'تمت إزالة الذكر من المفضلة <i class="far fa-heart"></i>'
-            );
-          }
-          return prev.filter((item) => item !== label);
-        } else {
-          if (showToast) {
-            showToast(
-              'تمت إضافة الذكر إلى المفضلة <i class="fas fa-heart text-gold"></i>'
-            );
-          }
-          return [...prev, label];
-        }
-      });
-    },
-    [showToast]
-  );
+  const { favorites, isFavorite, toggleFavorite } =
+    useTasbihFavorites(showToast);
 
   // ── 2. Filtered Dhikrs List ──
   const visibleDhikrs = useMemo(() => {

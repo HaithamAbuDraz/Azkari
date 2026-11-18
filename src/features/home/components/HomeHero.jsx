@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
 import { getDefaultTab, PANELS } from '../../../constants/tabs';
 import { getDisplayCityName } from '../../../utils/location';
 import { cn } from '../../../utils/cn';
+import { useTasbihFavorites } from '../../../hooks';
 import {
   containerVariants,
   itemVariants,
@@ -33,6 +34,7 @@ export default function HomeHero({
   hijriDate,
   location,
   favoritesCount = 0,
+  tasbihFavoritesCount: propTasbihFavoritesCount,
   onSelectTab,
 }) {
   const recommendedTab = getDefaultTab();
@@ -40,7 +42,13 @@ export default function HomeHero({
   const RecommendedIcon = PORTAL_ICONS[recommendedTab] || PORTAL_ICONS.morning;
   const PrayersIcon = PORTAL_ICONS.prayers;
 
-  const tasbihCount = useMemo(() => {
+  const { favoritesCount: hookTasbihFavoritesCount } = useTasbihFavorites();
+  const effectiveTasbihFavorites =
+    typeof propTasbihFavoritesCount === 'number'
+      ? propTasbihFavoritesCount
+      : hookTasbihFavoritesCount;
+
+  const [tasbihCount, setTasbihCount] = useState(() => {
     if (typeof window === 'undefined') return 0;
     try {
       const parsed = parseInt(localStorage.getItem('tasbih-current-count'), 10);
@@ -48,6 +56,22 @@ export default function HomeHero({
     } catch {
       return 0;
     }
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const parsed = parseInt(
+          localStorage.getItem('tasbih-current-count'),
+          10
+        );
+        setTasbihCount(!Number.isNaN(parsed) && parsed >= 0 ? parsed : 0);
+      } catch {
+        setTasbihCount(0);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const cityName = getDisplayCityName(location);
@@ -356,18 +380,20 @@ export default function HomeHero({
               <span
                 className={cn(
                   'shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-ibm text-xs font-bold transition-colors shadow-2xs',
-                  favoritesCount > 0
+                  effectiveTasbihFavorites > 0
                     ? 'bg-[var(--gold)]/15 border-[var(--gold)]/40 text-[var(--gold-text)]'
                     : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-muted)] group-hover:text-[var(--gold-text)]'
                 )}>
                 <i
                   className={cn(
                     'text-xs text-[var(--gold-text)]',
-                    favoritesCount > 0 ? 'fas fa-heart' : 'far fa-heart'
+                    effectiveTasbihFavorites > 0
+                      ? 'fas fa-heart'
+                      : 'far fa-heart'
                   )}
                   aria-hidden='true'
                 />
-                <span>{favoritesCount} مفضلة</span>
+                <span>{effectiveTasbihFavorites} مفضلة</span>
               </span>
             </motion.button>
           </motion.div>
