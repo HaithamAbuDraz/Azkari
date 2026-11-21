@@ -3,24 +3,20 @@ import {
   getAzkarByCategory,
   getCategoryTabFromCardId,
   migrateStoredCounters,
+  getLocalDateKey,
 } from '../utils/azkar';
 import { triggerHaptic } from '../utils/haptics';
 import { playMilestoneChime } from '../utils/sound';
+import {
+  useDailyAzkarReset,
+  LAST_RESET_DATE_KEY,
+  LEGACY_DATE_STORAGE_KEY,
+  AZKAR_COUNTERS_STORAGE_KEY,
+  LAST_ACTIVE_ZIKR_KEY,
+  LAST_ACTIVE_SESSION_KEY,
+} from './useDailyAzkarReset';
 
-const STORAGE_KEY = 'azkar-counters';
-const DATE_STORAGE_KEY = 'azkar-counters-date';
-export const LAST_ACTIVE_STORAGE_KEY = 'azkari-last-active-zikr';
-
-/**
- * Returns local calendar date key (YYYY-MM-DD) so daily resets happen at
- * the user's local midnight rather than UTC midnight.
- */
-function getLocalDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+export { LAST_ACTIVE_ZIKR_KEY as LAST_ACTIVE_STORAGE_KEY };
 
 function resetCategoryCounters(prev, list) {
   const next = { ...prev };
@@ -32,7 +28,6 @@ function resetCategoryCounters(prev, list) {
 
 export function useAzkarCounters(showToast) {
   const scrollTimerRef = useRef(null);
-  const activeDateRef = useRef(getLocalDateKey());
 
   // Cleanup pending scroll timer on unmount
   useEffect(() => {
@@ -43,25 +38,35 @@ export function useAzkarCounters(showToast) {
     };
   }, []);
 
-  // Initialize counters directly from localStorage; reset automatically on a new day
+  // Initialize counters directly from localStorage; reset automatically on a new day (Closed Browser Case)
   const [counters, setCounters] = useState(() => {
     if (typeof window === 'undefined') return {};
     const todayKey = getLocalDateKey();
-    activeDateRef.current = todayKey;
 
     try {
-      const savedDate = localStorage.getItem(DATE_STORAGE_KEY);
+      const savedDate =
+        localStorage.getItem(LAST_RESET_DATE_KEY) ||
+        localStorage.getItem(LEGACY_DATE_STORAGE_KEY);
+
       if (savedDate && savedDate !== todayKey) {
-        localStorage.setItem(DATE_STORAGE_KEY, todayKey);
-        localStorage.setItem(STORAGE_KEY, '{}');
+        localStorage.setItem(LAST_RESET_DATE_KEY, todayKey);
+        localStorage.setItem(LEGACY_DATE_STORAGE_KEY, todayKey);
+        localStorage.setItem(AZKAR_COUNTERS_STORAGE_KEY, '{}');
+        try {
+          localStorage.removeItem(LAST_ACTIVE_ZIKR_KEY);
+          localStorage.removeItem(LAST_ACTIVE_SESSION_KEY);
+        } catch {
+          // Ignore
+        }
         return {};
       }
 
       if (!savedDate) {
-        localStorage.setItem(DATE_STORAGE_KEY, todayKey);
+        localStorage.setItem(LAST_RESET_DATE_KEY, todayKey);
+        localStorage.setItem(LEGACY_DATE_STORAGE_KEY, todayKey);
       }
 
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(AZKAR_COUNTERS_STORAGE_KEY);
       if (!saved) return {};
       const parsed = JSON.parse(saved);
       return parsed && typeof parsed === 'object'
@@ -73,76 +78,44 @@ export function useAzkarCounters(showToast) {
     }
   });
 
+  // Automated midnight scheduler & wake-from-sleep reset handler
+  const handleDailyReset = useCallback(() => {
+    setCounters({});
+  }, []);
+
+  useDailyAzkarReset({
+    onReset: handleDailyReset,
+    showToast,
+  });
+
   // Save counters to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(counters));
+      localStorage.setItem(
+        AZKAR_COUNTERS_STORAGE_KEY,
+        JSON.stringify(counters)
+      );
     } catch (e) {
       console.error('Failed to save azkar counters to localStorage:', e);
     }
   }, [counters]);
 
-  // Reset daily progress automatically if the local calendar day changes while app stays open
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-
-    const syncDailyReset = () => {
-      const todayKey = getLocalDateKey();
-      if (activeDateRef.current !== todayKey) {
-        activeDateRef.current = todayKey;
-        try {
-          localStorage.setItem(DATE_STORAGE_KEY, todayKey);
-          localStorage.setItem(STORAGE_KEY, '{}');
-        } catch {
-          // Ignore storage quota errors
-        }
-        setCounters({});
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        syncDailyReset();
-      }
-    };
-
-    const intervalId = setInterval(syncDailyReset, 60000);
-    window.addEventListener('focus', syncDailyReset);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('focus', syncDailyReset);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
   // Decrement counter for a specific dhikr card (preserves daily completion until next day)
   const decrementCounter = useCallback(
     (cardId, max) => {
       const todayKey = getLocalDateKey();
-      const isNewDay = activeDateRef.current !== todayKey;
-      if (isNewDay) {
-        activeDateRef.current = todayKey;
-        try {
-          localStorage.setItem(DATE_STORAGE_KEY, todayKey);
-        } catch {
-          // Ignore storage quota errors
-        }
-      }
 
       let willBeCompleted = false;
 
       // 1. Instant pure state update (0ms, non-blocking)
       setCounters((prev) => {
-        const base = isNewDay ? {} : prev;
-        const current = base[cardId] ?? max;
-        if (current <= 0) return base;
+        const current = prev[cardId] ?? max;
+        if (current <= 0) return prev;
 
         const nextVal = current - 1;
         if (nextVal === 0) willBeCompleted = true;
 
-        return { ...base, [cardId]: nextVal };
+        return { ...prev, [cardId]: nextVal };
       });
 
       // 2. Instant tactile feedback
@@ -157,7 +130,7 @@ export function useAzkarCounters(showToast) {
           // Get latest counters for session check
           let currentCounters = {};
           try {
-            const raw = localStorage.getItem(STORAGE_KEY);
+            const raw = localStorage.getItem(AZKAR_COUNTERS_STORAGE_KEY);
             currentCounters = raw ? JSON.parse(raw) : {};
           } catch {}
 
@@ -179,8 +152,8 @@ export function useAzkarCounters(showToast) {
             timestamp: Date.now(),
           });
 
-          localStorage.setItem(LAST_ACTIVE_STORAGE_KEY, sessionPayload);
-          localStorage.setItem('azkari-last-active-session', sessionPayload);
+          localStorage.setItem(LAST_ACTIVE_ZIKR_KEY, sessionPayload);
+          localStorage.setItem(LAST_ACTIVE_SESSION_KEY, sessionPayload);
           try {
             sessionStorage.setItem('azkari-active-tab', tabKey);
           } catch {
@@ -253,11 +226,11 @@ export function useAzkarCounters(showToast) {
       const list = getAzkarByCategory(tabKey);
       setCounters((prev) => resetCategoryCounters(prev, list));
       try {
-        const stored = localStorage.getItem(LAST_ACTIVE_STORAGE_KEY);
+        const stored = localStorage.getItem(LAST_ACTIVE_ZIKR_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed?.tabKey === tabKey) {
-            localStorage.removeItem(LAST_ACTIVE_STORAGE_KEY);
+            localStorage.removeItem(LAST_ACTIVE_ZIKR_KEY);
           }
         }
       } catch {

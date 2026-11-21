@@ -9,3 +9,4 @@ export { usePrayerTimes } from './usePrayerTimes';
 export { usePrayerContext } from '../context/PrayerContext';
 export { useMilestone } from './useMilestone';
 export { usePageSEO } from './usePageSEO';
+export { useDailyAzkarReset } from './useDailyAzkarReset';

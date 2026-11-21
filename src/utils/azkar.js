@@ -5,12 +5,31 @@ const categoryCache = new Map();
 
 /**
  * Returns local calendar date key (YYYY-MM-DD) for timezone-safe daily persistence.
+ * Uses local time methods (getFullYear, getMonth, getDate) rather than UTC to prevent
+ * premature or late resets across timezones.
  */
 export function getLocalDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Calculates exact milliseconds remaining until next local midnight (12:00:00.500 AM).
+ * Includes a 500ms safety buffer to ensure the clock has strictly passed midnight.
+ */
+export function getMillisecondsUntilMidnight(now = new Date()) {
+  const nextMidnight = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+    0,
+    0,
+    0,
+    500
+  );
+  return Math.max(500, nextMidnight.getTime() - now.getTime());
 }
 
 /**
